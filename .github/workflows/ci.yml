@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: pdo_sqlite, intl, bcmath
+          coverage: none
+      - run: composer install --no-interaction --prefer-dist
+      - run: cp .env.example .env && php artisan key:generate
+      - run: vendor/bin/pest
+
+  image:
+    runs-on: ubuntu-latest
+    needs: tests
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build image
+        run: docker build --target app -t filament-app:ci .
+      - name: Boot app and check /up
+        run: |
+          docker run -d --name app \
+            -e APP_KEY=base64:$(openssl rand -base64 32) -e APP_ENV=production \
+            -e DB_CONNECTION=sqlite -e DB_DATABASE=/tmp/ci.sqlite \
+            -e CACHE_STORE=array -e SESSION_DRIVER=array -e QUEUE_CONNECTION=sync \
+            -e LOG_CHANNEL=stderr \
+            -p 127.0.0.1:8000:8000 filament-app:ci
+          for i in $(seq 1 30); do
+            curl -fs http://127.0.0.1:8000/up && exit 0
+            sleep 2
+          done
+          docker logs app
+          exit 1
+      - name: Database and Redis ports are not published
+        run: |
+          cp .env.example .env
+          docker compose config --format json | jq -e '.services.db.ports == null and .services.redis.ports == null'

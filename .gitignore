@@ -40,3 +40,5 @@ docker-compose.override.yml
 *.pem
 *.key
 cloudflared/*.json
+/backups/
+/public/frankenphp-worker.php
