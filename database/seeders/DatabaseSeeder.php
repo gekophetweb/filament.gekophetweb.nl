@@ -15,11 +15,11 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+        $this->call(BambuLabCatalogSeeder::class);
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
+        // Demo user for local development only; sign-in itself goes through SSO.
+        if (app()->environment('local', 'testing')) {
+            User::firstOrCreate(['email' => 'test@example.com'], ['name' => 'Test User']);
+        }
     }
 }

@@ -58,3 +58,48 @@ it('converts SpoolmanDB manufacturer files', function () {
 
     expect((new ImportCatalog)->rows($rows)['created'])->toBe(2);
 });
+
+it('converts Bambu Studio color codes', function () {
+    $rows = iterator_to_array((new ImportCatalog)->fromBambuStudio(['data' => [
+        ['fila_color_code' => '10100', 'fila_type' => 'PLA Basic', 'fila_color_name' => ['en' => 'Jade White'], 'fila_color' => ['#FFFFFFFF']],
+        ['fila_color_code' => '10900', 'fila_type' => 'PLA Basic', 'fila_color_name' => ['en' => 'Arctic Whisper'], 'fila_color' => ['#9CDBD9FF', '#FFFFFFFF']],
+        ['fila_color_code' => '32101', 'fila_type' => 'PETG Translucent', 'fila_color_name' => ['en' => 'Clear'], 'fila_color' => ['#00000000']],
+        ['fila_color_code' => '14100', 'fila_type' => 'PLA-CF', 'fila_color_name' => ['en' => 'Black'], 'fila_color' => ['#000000FF']],
+        ['fila_color_code' => '65000', 'fila_type' => 'Support for PLA/PETG', 'fila_color_name' => ['en' => 'Nature'], 'fila_color' => ['#F0F0F0FF']],
+        ['fila_color_code' => '53000', 'fila_type' => 'TPU 75A (2.85mm)', 'fila_color_name' => ['en' => 'White'], 'fila_color' => ['#FFFFFFFF']],
+    ]]), false);
+
+    expect($rows[0])->toMatchArray(['brand' => 'Bambu Lab', 'material' => 'PLA', 'line' => 'Basic', 'article_name' => 'Jade White', 'article_number' => '10100', 'color_hex' => '#FFFFFF', 'color_hex_2' => null])
+        ->and($rows[1])->toMatchArray(['color_hex' => '#9CDBD9', 'color_hex_2' => '#FFFFFF'])
+        ->and($rows[2])->toMatchArray(['material' => 'PETG', 'line' => 'Translucent', 'color_hex' => '#FFFFFF'])
+        ->and($rows[3])->toMatchArray(['material' => 'PLA-CF', 'line' => null])
+        ->and($rows[4])->toMatchArray(['material' => 'Support', 'line' => 'for PLA/PETG'])
+        ->and($rows[5])->toMatchArray(['material' => 'TPU', 'line' => '75A', 'diameter' => 2.85]);
+});
+
+it('seeds the full Bambu Lab catalog idempotently', function () {
+    $this->seed(Database\Seeders\BambuLabCatalogSeeder::class);
+
+    $total = json_decode(file_get_contents(database_path('data/bambulab-filaments.json')), true)['total'];
+    expect(FilamentProduct::count())->toBe($total)->toBeGreaterThan(300);
+
+    $jade = FilamentProduct::with(['brand', 'material'])->where('article_number', '10100')->sole();
+    expect($jade->article_name)->toBe('Jade White')
+        ->and($jade->brand->name)->toBe('Bambu Lab')
+        ->and($jade->material->name)->toBe('PLA')
+        ->and($jade->line)->toBe('Basic')
+        ->and($jade->color_hex)->toBe('#FFFFFF');
+
+    $this->seed(Database\Seeders\BambuLabCatalogSeeder::class);
+    expect(FilamentProduct::count())->toBe($total);
+});
+
+it('shows seeded filaments in the catalog', function () {
+    $this->seed(Database\Seeders\BambuLabCatalogSeeder::class);
+
+    $this->actingAs(user())->get('/?q=10100')
+        ->assertOk()
+        ->assertSee('Jade White')
+        ->assertSee('10100')
+        ->assertSee('#FFFFFF');
+});

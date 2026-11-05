@@ -1,0 +1,3791 @@
+{
+ "source": "https://github.com/bambulab/BambuStudio/blob/master/resources/profiles/BBL/filament/filaments_color_codes.json",
+ "retrieved": "2026-11-06",
+ "total": 342,
+ "data": [
+  {
+   "fila_color_code": "10100",
+   "fila_id": "GFA00",
+   "fila_type": "PLA Basic",
+   "fila_color_name": {
+    "en": "Jade White"
+   },
+   "fila_color": [
+    "#FFFFFFFF"
+   ]
+  },
+  {
+   "fila_color_code": "10101",
+   "fila_id": "GFA00",
+   "fila_type": "PLA Basic",
+   "fila_color_name": {
+    "en": "Black"
+   },
+   "fila_color": [
+    "#000000FF"
+   ]
+  },
+  {
+   "fila_color_code": "10102",
+   "fila_id": "GFA00",
+   "fila_type": "PLA Basic",
+   "fila_color_name": {
+    "en": "Silver"
+   },
+   "fila_color": [
+    "#A6A9AAFF"
+   ]
+  },
+  {
+   "fila_color_code": "10103",
+   "fila_id": "GFA00",
+   "fila_type": "PLA Basic",
+   "fila_color_name": {
+    "en": "Gray"
+   },
+   "fila_color": [
+    "#8E9089FF"
+   ]
+  },
+  {
+   "fila_color_code": "10104",
+   "fila_id": "GFA00",
+   "fila_type": "PLA Basic",
+   "fila_color_name": {
+    "en": "Light Gray"
+   },
+   "fila_color": [
+    "#D1D3D5FF"
+   ]
+  },
+  {
+   "fila_color_code": "10105",
+   "fila_id": "GFA00",
+   "fila_type": "PLA Basic",
+   "fila_color_name": {
+    "en": "Dark Gray"
+   },
+   "fila_color": [
+    "#545454FF"
+   ]
+  },
+  {
+   "fila_color_code": "10200",
+   "fila_id": "GFA00",
+   "fila_type": "PLA Basic",
+   "fila_color_name": {
+    "en": "Red"
+   },
+   "fila_color": [
+    "#C12E1FFF"
+   ]
+  },
+  {
+   "fila_color_code": "10201",
+   "fila_id": "GFA00",
+   "fila_type": "PLA Basic",
+   "fila_color_name": {
+    "en": "Beige"
+   },
+   "fila_color": [
+    "#F7E6DEFF"
+   ]
+  },
+  {
+   "fila_color_code": "10202",
+   "fila_id": "GFA00",
+   "fila_type": "PLA Basic",
+   "fila_color_name": {
+    "en": "Magenta"
+   },
+   "fila_color": [
+    "#EC008CFF"
+   ]
+  },
+  {
+   "fila_color_code": "10203",
+   "fila_id": "GFA00",
+   "fila_type": "PLA Basic",
+   "fila_color_name": {
+    "en": "Pink"
+   },
+   "fila_color": [
+    "#F55A74FF"
+   ]
+  },
+  {
+   "fila_color_code": "10204",
+   "fila_id": "GFA00",
+   "fila_type": "PLA Basic",
+   "fila_color_name": {
+    "en": "Hot Pink"
+   },
+   "fila_color": [
+    "#F5547CFF"
+   ]
+  },
+  {
+   "fila_color_code": "10205",
+   "fila_id": "GFA00",
+   "fila_type": "PLA Basic",
+   "fila_color_name": {
+    "en": "Maroon Red"
+   },
+   "fila_color": [
+    "#9D2235FF"
+   ]
+  },
+  {
+   "fila_color_code": "10300",
+   "fila_id": "GFA00",
+   "fila_type": "PLA Basic",
+   "fila_color_name": {
+    "en": "Orange"
+   },
+   "fila_color": [
+    "#FF6A13FF"
+   ]
+  },
+  {
+   "fila_color_code": "10301",
+   "fila_id": "GFA00",
+   "fila_type": "PLA Basic",
+   "fila_color_name": {
+    "en": "Pumpkin Orange"
+   },
+   "fila_color": [
+    "#FF9016FF"
+   ]
+  },
+  {
+   "fila_color_code": "10400",
+   "fila_id": "GFA00",
+   "fila_type": "PLA Basic",
+   "fila_color_name": {
+    "en": "Yellow"
+   },
+   "fila_color": [
+    "#F4EE2AFF"
+   ]
+  },
+  {
+   "fila_color_code": "10401",
+   "fila_id": "GFA00",
+   "fila_type": "PLA Basic",
+   "fila_color_name": {
+    "en": "Gold"
+   },
+   "fila_color": [
+    "#E4BD68FF"
+   ]
+  },
+  {
+   "fila_color_code": "10402",
+   "fila_id": "GFA00",
+   "fila_type": "PLA Basic",
+   "fila_color_name": {
+    "en": "Sunflower Yellow"
+   },
+   "fila_color": [
+    "#FEC600FF"
+   ]
+  },
+  {
+   "fila_color_code": "10501",
+   "fila_id": "GFA00",
+   "fila_type": "PLA Basic",
+   "fila_color_name": {
+    "en": "Bambu Green"
+   },
+   "fila_color": [
+    "#00AE42FF"
+   ]
+  },
+  {
+   "fila_color_code": "10502",
+   "fila_id": "GFA00",
+   "fila_type": "PLA Basic",
+   "fila_color_name": {
+    "en": "Mistletoe Green"
+   },
+   "fila_color": [
+    "#3F8E43FF"
+   ]
+  },
+  {
+   "fila_color_code": "10503",
+   "fila_id": "GFA00",
+   "fila_type": "PLA Basic",
+   "fila_color_name": {
+    "en": "Bright Green"
+   },
+   "fila_color": [
+    "#BECF00FF"
+   ]
+  },
+  {
+   "fila_color_code": "10601",
+   "fila_id": "GFA00",
+   "fila_type": "PLA Basic",
+   "fila_color_name": {
+    "en": "Blue"
+   },
+   "fila_color": [
+    "#0A2989FF"
+   ]
+  },
+  {
+   "fila_color_code": "10602",
+   "fila_id": "GFA00",
+   "fila_type": "PLA Basic",
+   "fila_color_name": {
+    "en": "Blue Gray"
+   },
+   "fila_color": [
+    "#5B6579FF"
+   ]
+  },
+  {
+   "fila_color_code": "10603",
+   "fila_id": "GFA00",
+   "fila_type": "PLA Basic",
+   "fila_color_name": {
+    "en": "Cyan"
+   },
+   "fila_color": [
+    "#0086D6FF"
+   ]
+  },
+  {
+   "fila_color_code": "10604",
+   "fila_id": "GFA00",
+   "fila_type": "PLA Basic",
+   "fila_color_name": {
+    "en": "Cobalt Blue"
+   },
+   "fila_color": [
+    "#0056B8FF"
+   ]
+  },
+  {
+   "fila_color_code": "10605",
+   "fila_id": "GFA00",
+   "fila_type": "PLA Basic",
+   "fila_color_name": {
+    "en": "Turquoise"
+   },
+   "fila_color": [
+    "#00B1B7FF"
+   ]
+  },
+  {
+   "fila_color_code": "10700",
+   "fila_id": "GFA00",
+   "fila_type": "PLA Basic",
+   "fila_color_name": {
+    "en": "Purple"
+   },
+   "fila_color": [
+    "#5E43B7FF"
+   ]
+  },
+  {
+   "fila_color_code": "10701",
+   "fila_id": "GFA00",
+   "fila_type": "PLA Basic",
+   "fila_color_name": {
+    "en": "Indigo Purple"
+   },
+   "fila_color": [
+    "#482960FF"
+   ]
+  },
+  {
+   "fila_color_code": "10800",
+   "fila_id": "GFA00",
+   "fila_type": "PLA Basic",
+   "fila_color_name": {
+    "en": "Brown"
+   },
+   "fila_color": [
+    "#9D432CFF"
+   ]
+  },
+  {
+   "fila_color_code": "10801",
+   "fila_id": "GFA00",
+   "fila_type": "PLA Basic",
+   "fila_color_name": {
+    "en": "Bronze"
+   },
+   "fila_color": [
+    "#847D48FF"
+   ]
+  },
+  {
+   "fila_color_code": "10802",
+   "fila_id": "GFA00",
+   "fila_type": "PLA Basic",
+   "fila_color_name": {
+    "en": "Cocoa Brown"
+   },
+   "fila_color": [
+    "#6F5034FF"
+   ]
+  },
+  {
+   "fila_color_code": "10900",
+   "fila_id": "GFA00",
+   "fila_type": "PLA Basic",
+   "fila_color_name": {
+    "en": "Arctic Whisper"
+   },
+   "fila_color": [
+    "#9CDBD9FF",
+    "#FFFFFFFF"
+   ]
+  },
+  {
+   "fila_color_code": "10901",
+   "fila_id": "GFA00",
+   "fila_type": "PLA Basic",
+   "fila_color_name": {
+    "en": "Solar Breeze"
+   },
+   "fila_color": [
+    "#E94B3CFF",
+    "#FFFFFFFF"
+   ]
+  },
+  {
+   "fila_color_code": "10902",
+   "fila_id": "GFA00",
+   "fila_type": "PLA Basic",
+   "fila_color_name": {
+    "en": "Ocean to Meadow"
+   },
+   "fila_color": [
+    "#307FE2FF",
+    "#54FF9BFF"
+   ]
+  },
+  {
+   "fila_color_code": "10903",
+   "fila_id": "GFA00",
+   "fila_type": "PLA Basic",
+   "fila_color_name": {
+    "en": "Pink Citrus"
+   },
+   "fila_color": [
+    "#F78F77FF",
+    "#E4505AFF"
+   ]
+  },
+  {
+   "fila_color_code": "10904",
+   "fila_id": "GFA00",
+   "fila_type": "PLA Basic",
+   "fila_color_name": {
+    "en": "Mint Lime"
+   },
+   "fila_color": [
+    "#B6FF43FF",
+    "#4EC939FF"
+   ]
+  },
+  {
+   "fila_color_code": "10905",
+   "fila_id": "GFA00",
+   "fila_type": "PLA Basic",
+   "fila_color_name": {
+    "en": "Blueberry Bubblegum"
+   },
+   "fila_color": [
+    "#6FCAEFFF",
+    "#8573DDFF"
+   ]
+  },
+  {
+   "fila_color_code": "10906",
+   "fila_id": "GFA00",
+   "fila_type": "PLA Basic",
+   "fila_color_name": {
+    "en": "Dusk Glare"
+   },
+   "fila_color": [
+    "#CE4406FF",
+    "#ED9558FF"
+   ]
+  },
+  {
+   "fila_color_code": "10907",
+   "fila_id": "GFA00",
+   "fila_type": "PLA Basic",
+   "fila_color_name": {
+    "en": "Cotton Candy Cloud"
+   },
+   "fila_color": [
+    "#E7C1D5FF",
+    "#8EC9E9FF"
+   ]
+  },
+  {
+   "fila_color_code": "11100",
+   "fila_id": "GFA01",
+   "fila_type": "PLA Matte",
+   "fila_color_name": {
+    "en": "Ivory White"
+   },
+   "fila_color": [
+    "#FFFFFFFF"
+   ]
+  },
+  {
+   "fila_color_code": "11101",
+   "fila_id": "GFA01",
+   "fila_type": "PLA Matte",
+   "fila_color_name": {
+    "en": "Charcoal"
+   },
+   "fila_color": [
+    "#000000FF"
+   ]
+  },
+  {
+   "fila_color_code": "11102",
+   "fila_id": "GFA01",
+   "fila_type": "PLA Matte",
+   "fila_color_name": {
+    "en": "Ash Gray"
+   },
+   "fila_color": [
+    "#9B9EA0FF"
+   ]
+  },
+  {
+   "fila_color_code": "11103",
+   "fila_id": "GFA01",
+   "fila_type": "PLA Matte",
+   "fila_color_name": {
+    "en": "Bone White"
+   },
+   "fila_color": [
+    "#CBC6B8FF"
+   ]
+  },
+  {
+   "fila_color_code": "11104",
+   "fila_id": "GFA01",
+   "fila_type": "PLA Matte",
+   "fila_color_name": {
+    "en": "Nardo Gray"
+   },
+   "fila_color": [
+    "#757575FF"
+   ]
+  },
+  {
+   "fila_color_code": "11200",
+   "fila_id": "GFA01",
+   "fila_type": "PLA Matte",
+   "fila_color_name": {
+    "en": "Scarlet Red"
+   },
+   "fila_color": [
+    "#DE4343FF"
+   ]
+  },
+  {
+   "fila_color_code": "11201",
+   "fila_id": "GFA01",
+   "fila_type": "PLA Matte",
+   "fila_color_name": {
+    "en": "Sakura Pink"
+   },
+   "fila_color": [
+    "#E8AFCFFF"
+   ]
+  },
+  {
+   "fila_color_code": "11202",
+   "fila_id": "GFA01",
+   "fila_type": "PLA Matte",
+   "fila_color_name": {
+    "en": "Dark Red"
+   },
+   "fila_color": [
+    "#BB3D43FF"
+   ]
+  },
+  {
+   "fila_color_code": "11203",
+   "fila_id": "GFA01",
+   "fila_type": "PLA Matte",
+   "fila_color_name": {
+    "en": "Terracotta"
+   },
+   "fila_color": [
+    "#B15533FF"
+   ]
+  },
+  {
+   "fila_color_code": "11204",
+   "fila_id": "GFA01",
+   "fila_type": "PLA Matte",
+   "fila_color_name": {
+    "en": "Plum"
+   },
+   "fila_color": [
+    "#950051FF"
+   ]
+  },
+  {
+   "fila_color_code": "11300",
+   "fila_id": "GFA01",
+   "fila_type": "PLA Matte",
+   "fila_color_name": {
+    "en": "Mandarin Orange"
+   },
+   "fila_color": [
+    "#F99963FF"
+   ]
+  },
+  {
+   "fila_color_code": "11400",
+   "fila_id": "GFA01",
+   "fila_type": "PLA Matte",
+   "fila_color_name": {
+    "en": "Lemon Yellow"
+   },
+   "fila_color": [
+    "#F7D959FF"
+   ]
+  },
+  {
+   "fila_color_code": "11401",
+   "fila_id": "GFA01",
+   "fila_type": "PLA Matte",
+   "fila_color_name": {
+    "en": "Desert Tan"
+   },
+   "fila_color": [
+    "#E8DBB7FF"
+   ]
+  },
+  {
+   "fila_color_code": "11500",
+   "fila_id": "GFA01",
+   "fila_type": "PLA Matte",
+   "fila_color_name": {
+    "en": "Grass Green"
+   },
+   "fila_color": [
+    "#61C680FF"
+   ]
+  },
+  {
+   "fila_color_code": "11501",
+   "fila_id": "GFA01",
+   "fila_type": "PLA Matte",
+   "fila_color_name": {
+    "en": "Dark Green"
+   },
+   "fila_color": [
+    "#68724DFF"
+   ]
+  },
+  {
+   "fila_color_code": "11502",
+   "fila_id": "GFA01",
+   "fila_type": "PLA Matte",
+   "fila_color_name": {
+    "en": "Apple Green"
+   },
+   "fila_color": [
+    "#C2E189FF"
+   ]
+  },
+  {
+   "fila_color_code": "11600",
+   "fila_id": "GFA01",
+   "fila_type": "PLA Matte",
+   "fila_color_name": {
+    "en": "Marine Blue"
+   },
+   "fila_color": [
+    "#0078BFFF"
+   ]
+  },
+  {
+   "fila_color_code": "11601",
+   "fila_id": "GFA01",
+   "fila_type": "PLA Matte",
+   "fila_color_name": {
+    "en": "Ice Blue"
+   },
+   "fila_color": [
+    "#A3D8E1FF"
+   ]
+  },
+  {
+   "fila_color_code": "11602",
+   "fila_id": "GFA01",
+   "fila_type": "PLA Matte",
+   "fila_color_name": {
+    "en": "Dark Blue"
+   },
+   "fila_color": [
+    "#042F56FF"
+   ]
+  },
+  {
+   "fila_color_code": "11603",
+   "fila_id": "GFA01",
+   "fila_type": "PLA Matte",
+   "fila_color_name": {
+    "en": "Sky Blue"
+   },
+   "fila_color": [
+    "#56B7E6FF"
+   ]
+  },
+  {
+   "fila_color_code": "11700",
+   "fila_id": "GFA01",
+   "fila_type": "PLA Matte",
+   "fila_color_name": {
+    "en": "Lilac Purple"
+   },
+   "fila_color": [
+    "#AE96D4FF"
+   ]
+  },
+  {
+   "fila_color_code": "11800",
+   "fila_id": "GFA01",
+   "fila_type": "PLA Matte",
+   "fila_color_name": {
+    "en": "Latte Brown"
+   },
+   "fila_color": [
+    "#D3B7A7FF"
+   ]
+  },
+  {
+   "fila_color_code": "11801",
+   "fila_id": "GFA01",
+   "fila_type": "PLA Matte",
+   "fila_color_name": {
+    "en": "Dark Brown"
+   },
+   "fila_color": [
+    "#7D6556FF"
+   ]
+  },
+  {
+   "fila_color_code": "11802",
+   "fila_id": "GFA01",
+   "fila_type": "PLA Matte",
+   "fila_color_name": {
+    "en": "Dark Chocolate"
+   },
+   "fila_color": [
+    "#4D3324FF"
+   ]
+  },
+  {
+   "fila_color_code": "11803",
+   "fila_id": "GFA01",
+   "fila_type": "PLA Matte",
+   "fila_color_name": {
+    "en": "Caramel"
+   },
+   "fila_color": [
+    "#AE835BFF"
+   ]
+  },
+  {
+   "fila_color_code": "12100",
+   "fila_id": "GFA09",
+   "fila_type": "PLA Tough",
+   "fila_color_name": {
+    "en": "White"
+   },
+   "fila_color": [
+    "#F9F7F4FF"
+   ]
+  },
+  {
+   "fila_color_code": "12101",
+   "fila_id": "GFA09",
+   "fila_type": "PLA Tough",
+   "fila_color_name": {
+    "en": "Black"
+   },
+   "fila_color": [
+    "#25282AFF"
+   ]
+  },
+  {
+   "fila_color_code": "12102",
+   "fila_id": "GFA09",
+   "fila_type": "PLA Tough",
+   "fila_color_name": {
+    "en": "Gray"
+   },
+   "fila_color": [
+    "#515A6CFF"
+   ]
+  },
+  {
+   "fila_color_code": "12103",
+   "fila_id": "GFA09",
+   "fila_type": "PLA Tough",
+   "fila_color_name": {
+    "en": "Silver"
+   },
+   "fila_color": [
+    "#898D8DFF"
+   ]
+  },
+  {
+   "fila_color_code": "12104",
+   "fila_id": "GFA10",
+   "fila_type": "PLA Tough+",
+   "fila_color_name": {
+    "en": "Black"
+   },
+   "fila_color": [
+    "#000000FF"
+   ]
+  },
+  {
+   "fila_color_code": "12105",
+   "fila_id": "GFA10",
+   "fila_type": "PLA Tough+",
+   "fila_color_name": {
+    "en": "Gray"
+   },
+   "fila_color": [
+    "#AFB1AEFF"
+   ]
+  },
+  {
+   "fila_color_code": "12106",
+   "fila_id": "GFA10",
+   "fila_type": "PLA Tough+",
+   "fila_color_name": {
+    "en": "Silver"
+   },
+   "fila_color": [
+    "#959698FF"
+   ]
+  },
+  {
+   "fila_color_code": "12107",
+   "fila_id": "GFA10",
+   "fila_type": "PLA Tough+",
+   "fila_color_name": {
+    "en": "White"
+   },
+   "fila_color": [
+    "#FFFFFFFF"
+   ]
+  },
+  {
+   "fila_color_code": "12200",
+   "fila_id": "GFA09",
+   "fila_type": "PLA Tough",
+   "fila_color_name": {
+    "en": "Vermilion Red"
+   },
+   "fila_color": [
+    "#DD3C22FF"
+   ]
+  },
+  {
+   "fila_color_code": "12300",
+   "fila_id": "GFA09",
+   "fila_type": "PLA Tough",
+   "fila_color_name": {
+    "en": "Orange"
+   },
+   "fila_color": [
+    "#FF7F41FF"
+   ]
+  },
+  {
+   "fila_color_code": "12301",
+   "fila_id": "GFA10",
+   "fila_type": "PLA Tough+",
+   "fila_color_name": {
+    "en": "Orange"
+   },
+   "fila_color": [
+    "#DC3A27FF"
+   ]
+  },
+  {
+   "fila_color_code": "12400",
+   "fila_id": "GFA09",
+   "fila_type": "PLA Tough",
+   "fila_color_name": {
+    "en": "Yellow"
+   },
+   "fila_color": [
+    "#FEDB00FF"
+   ]
+  },
+  {
+   "fila_color_code": "12401",
+   "fila_id": "GFA10",
+   "fila_type": "PLA Tough+",
+   "fila_color_name": {
+    "en": "Yellow"
+   },
+   "fila_color": [
+    "#F4D53FFF"
+   ]
+  },
+  {
+   "fila_color_code": "12500",
+   "fila_id": "GFA09",
+   "fila_type": "PLA Tough",
+   "fila_color_name": {
+    "en": "Pine Green"
+   },
+   "fila_color": [
+    "#00482BFF"
+   ]
+  },
+  {
+   "fila_color_code": "12600",
+   "fila_id": "GFA09",
+   "fila_type": "PLA Tough",
+   "fila_color_name": {
+    "en": "Light Blue"
+   },
+   "fila_color": [
+    "#0085ADFF"
+   ]
+  },
+  {
+   "fila_color_code": "12601",
+   "fila_id": "GFA10",
+   "fila_type": "PLA Tough+",
+   "fila_color_name": {
+    "en": "Cyan"
+   },
+   "fila_color": [
+    "#009BD8FF"
+   ]
+  },
+  {
+   "fila_color_code": "12700",
+   "fila_id": "GFA09",
+   "fila_type": "PLA Tough",
+   "fila_color_name": {
+    "en": "Lavender Blue"
+   },
+   "fila_color": [
+    "#6667ABFF"
+   ]
+  },
+  {
+   "fila_color_code": "13100",
+   "fila_id": "GFA02",
+   "fila_type": "PLA Metal",
+   "fila_color_name": {
+    "en": "Iron Gray Metallic"
+   },
+   "fila_color": [
+    "#43403DFF"
+   ]
+  },
+  {
+   "fila_color_code": "13101",
+   "fila_id": "GFA08",
+   "fila_type": "PLA Sparkle",
+   "fila_color_name": {
+    "en": "Onyx Black Sparkle"
+   },
+   "fila_color": [
+    "#2D2B28FF"
+   ]
+  },
+  {
+   "fila_color_code": "13102",
+   "fila_id": "GFA08",
+   "fila_type": "PLA Sparkle",
+   "fila_color_name": {
+    "en": "Slate Gray Sparkle"
+   },
+   "fila_color": [
+    "#8E9089FF"
+   ]
+  },
+  {
+   "fila_color_code": "13103",
+   "fila_id": "GFA07",
+   "fila_type": "PLA Marble",
+   "fila_color_name": {
+    "en": "White Marble"
+   },
+   "fila_color": [
+    "#F7F3F0FF"
+   ]
+  },
+  {
+   "fila_color_code": "13104",
+   "fila_id": "GFA05",
+   "fila_type": "PLA Silk",
+   "fila_color_name": {
+    "en": "Silver"
+   },
+   "fila_color": [
+    "#EAECEBFF"
+   ]
+  },
+  {
+   "fila_color_code": "13105",
+   "fila_id": "GFA05",
+   "fila_type": "PLA Silk",
+   "fila_color_name": {
+    "en": "White"
+   },
+   "fila_color": [
+    "#FFFFFFFF"
+   ]
+  },
+  {
+   "fila_color_code": "13106",
+   "fila_id": "GFA16",
+   "fila_type": "PLA Wood",
+   "fila_color_name": {
+    "en": "White Oak"
+   },
+   "fila_color": [
+    "#D6CCA3FF"
+   ]
+  },
+  {
+   "fila_color_code": "13107",
+   "fila_id": "GFA16",
+   "fila_type": "PLA Wood",
+   "fila_color_name": {
+    "en": "Black Walnut"
+   },
+   "fila_color": [
+    "#4F3F24FF"
+   ]
+  },
+  {
+   "fila_color_code": "13108",
+   "fila_id": "GFA06",
+   "fila_type": "PLA Silk+",
+   "fila_color_name": {
+    "en": "Titan Gray"
+   },
+   "fila_color": [
+    "#5F6367FF"
+   ]
+  },
+  {
+   "fila_color_code": "13109",
+   "fila_id": "GFA06",
+   "fila_type": "PLA Silk+",
+   "fila_color_name": {
+    "en": "Silver"
+   },
+   "fila_color": [
+    "#C8C8C8FF"
+   ]
+  },
+  {
+   "fila_color_code": "13110",
+   "fila_id": "GFA06",
+   "fila_type": "PLA Silk+",
+   "fila_color_name": {
+    "en": "White"
+   },
+   "fila_color": [
+    "#FFFFFFFF"
+   ]
+  },
+  {
+   "fila_color_code": "13200",
+   "fila_id": "GFA08",
+   "fila_type": "PLA Sparkle",
+   "fila_color_name": {
+    "en": "Crimson Red Sparkle"
+   },
+   "fila_color": [
+    "#792B36FF"
+   ]
+  },
+  {
+   "fila_color_code": "13201",
+   "fila_id": "GFA07",
+   "fila_type": "PLA Marble",
+   "fila_color_name": {
+    "en": "Red Granite"
+   },
+   "fila_color": [
+    "#AD4E38FF"
+   ]
+  },
+  {
+   "fila_color_code": "13202",
+   "fila_id": "GFA05",
+   "fila_type": "PLA Silk",
+   "fila_color_name": {
+    "en": "Pink"
+   },
+   "fila_color": [
+    "#EEB1C1FF"
+   ]
+  },
+  {
+   "fila_color_code": "13203",
+   "fila_id": "GFA15",
+   "fila_type": "PLA Galaxy",
+   "fila_color_name": {
+    "en": "Brown"
+   },
+   "fila_color": [
+    "#684A43FF"
+   ]
+  },
+  {
+   "fila_color_code": "13204",
+   "fila_id": "GFA16",
+   "fila_type": "PLA Wood",
+   "fila_color_name": {
+    "en": "Rosewood"
+   },
+   "fila_color": [
+    "#4C241CFF"
+   ]
+  },
+  {
+   "fila_color_code": "13205",
+   "fila_id": "GFA06",
+   "fila_type": "PLA Silk+",
+   "fila_color_name": {
+    "en": "Candy Red"
+   },
+   "fila_color": [
+    "#D02727FF"
+   ]
+  },
+  {
+   "fila_color_code": "13206",
+   "fila_id": "GFA06",
+   "fila_type": "PLA Silk+",
+   "fila_color_name": {
+    "en": "Rose Gold"
+   },
+   "fila_color": [
+    "#BA9594FF"
+   ]
+  },
+  {
+   "fila_color_code": "13207",
+   "fila_id": "GFA06",
+   "fila_type": "PLA Silk+",
+   "fila_color_name": {
+    "en": "Pink"
+   },
+   "fila_color": [
+    "#F7ADA6FF"
+   ]
+  },
+  {
+   "fila_color_code": "13210",
+   "fila_id": "GFA17",
+   "fila_type": "PLA Translucent",
+   "fila_color_name": {
+    "en": "Red"
+   },
+   "fila_color": [
+    "#B5001180"
+   ]
+  },
+  {
+   "fila_color_code": "13211",
+   "fila_id": "GFA17",
+   "fila_type": "PLA Translucent",
+   "fila_color_name": {
+    "en": "Cherry Pink"
+   },
+   "fila_color": [
+    "#F5B6CD80"
+   ]
+  },
+  {
+   "fila_color_code": "13300",
+   "fila_id": "GFA05",
+   "fila_type": "PLA Silk",
+   "fila_color_name": {
+    "en": "Copper"
+   },
+   "fila_color": [
+    "#5E4B3CFF"
+   ]
+  },
+  {
+   "fila_color_code": "13301",
+   "fila_id": "GFA17",
+   "fila_type": "PLA Translucent",
+   "fila_color_name": {
+    "en": "Orange"
+   },
+   "fila_color": [
+    "#F74E0280"
+   ]
+  },
+  {
+   "fila_color_code": "13400",
+   "fila_id": "GFA02",
+   "fila_type": "PLA Metal",
+   "fila_color_name": {
+    "en": "Iridium Gold Metallic"
+   },
+   "fila_color": [
+    "#B39B84FF"
+   ]
+  },
+  {
+   "fila_color_code": "13401",
+   "fila_id": "GFA05",
+   "fila_type": "PLA Silk",
+   "fila_color_name": {
+    "en": "Gold"
+   },
+   "fila_color": [
+    "#E5B03DFF"
+   ]
+  },
+  {
+   "fila_color_code": "13402",
+   "fila_id": "GFA08",
+   "fila_type": "PLA Sparkle",
+   "fila_color_name": {
+    "en": "Classic Gold Sparkle"
+   },
+   "fila_color": [
+    "#CEA629FF"
+   ]
+  },
+  {
+   "fila_color_code": "13403",
+   "fila_id": "GFA16",
+   "fila_type": "PLA Wood",
+   "fila_color_name": {
+    "en": "Ochre Yellow"
+   },
+   "fila_color": [
+    "#C98935FF"
+   ]
+  },
+  {
+   "fila_color_code": "13404",
+   "fila_id": "GFA06",
+   "fila_type": "PLA Silk+",
+   "fila_color_name": {
+    "en": "Champagne"
+   },
+   "fila_color": [
+    "#F3CFB2FF"
+   ]
+  },
+  {
+   "fila_color_code": "13405",
+   "fila_id": "GFA06",
+   "fila_type": "PLA Silk+",
+   "fila_color_name": {
+    "en": "Gold"
+   },
+   "fila_color": [
+    "#F4A925FF"
+   ]
+  },
+  {
+   "fila_color_code": "13410",
+   "fila_id": "GFA17",
+   "fila_type": "PLA Translucent",
+   "fila_color_name": {
+    "en": "Mellow Yellow"
+   },
+   "fila_color": [
+    "#F5DBAB80"
+   ]
+  },
+  {
+   "fila_color_code": "13500",
+   "fila_id": "GFA02",
+   "fila_type": "PLA Metal",
+   "fila_color_name": {
+    "en": "Oxide Green Metallic"
+   },
+   "fila_color": [
+    "#1D7C6AFF"
+   ]
+  },
+  {
+   "fila_color_code": "13501",
+   "fila_id": "GFA08",
+   "fila_type": "PLA Sparkle",
+   "fila_color_name": {
+    "en": "Alpine Green Sparkle"
+   },
+   "fila_color": [
+    "#3F5443FF"
+   ]
+  },
+  {
+   "fila_color_code": "13502",
+   "fila_id": "GFA05",
+   "fila_type": "PLA Silk",
+   "fila_color_name": {
+    "en": "Green"
+   },
+   "fila_color": [
+    "#4CE4A0FF"
+   ]
+  },
+  {
+   "fila_color_code": "13503",
+   "fila_id": "GFA15",
+   "fila_type": "PLA Galaxy",
+   "fila_color_name": {
+    "en": "Green"
+   },
+   "fila_color": [
+    "#3B665EFF"
+   ]
+  },
+  {
+   "fila_color_code": "13504",
+   "fila_id": "GFA15",
+   "fila_type": "PLA Galaxy",
+   "fila_color_name": {
+    "en": "Nebulae"
+   },
+   "fila_color": [
+    "#424379FF"
+   ]
+  },
+  {
+   "fila_color_code": "13505",
+   "fila_id": "GFA16",
+   "fila_type": "PLA Wood",
+   "fila_color_name": {
+    "en": "Classic Birch"
+   },
+   "fila_color": [
+    "#918669FF"
+   ]
+  },
+  {
+   "fila_color_code": "13506",
+   "fila_id": "GFA06",
+   "fila_type": "PLA Silk+",
+   "fila_color_name": {
+    "en": "Candy Green"
+   },
+   "fila_color": [
+    "#018814FF"
+   ]
+  },
+  {
+   "fila_color_code": "13507",
+   "fila_id": "GFA06",
+   "fila_type": "PLA Silk+",
+   "fila_color_name": {
+    "en": "Mint"
+   },
+   "fila_color": [
+    "#96DCB9FF"
+   ]
+  },
+  {
+   "fila_color_code": "13510",
+   "fila_id": "GFA17",
+   "fila_type": "PLA Translucent",
+   "fila_color_name": {
+    "en": "Light Jade"
+   },
+   "fila_color": [
+    "#96D8AF80"
+   ]
+  },
+  {
+   "fila_color_code": "13600",
+   "fila_id": "GFA02",
+   "fila_type": "PLA Metal",
+   "fila_color_name": {
+    "en": "Cobalt Blue Metallic"
+   },
+   "fila_color": [
+    "#39699EFF"
+   ]
+  },
+  {
+   "fila_color_code": "13601",
+   "fila_id": "GFA05",
+   "fila_type": "PLA Silk",
+   "fila_color_name": {
+    "en": "Blue"
+   },
+   "fila_color": [
+    "#147BD1FF"
+   ]
+  },
+  {
+   "fila_color_code": "13602",
+   "fila_id": "GFA15",
+   "fila_type": "PLA Galaxy",
+   "fila_color_name": {
+    "en": "Purple"
+   },
+   "fila_color": [
+    "#594177FF"
+   ]
+  },
+  {
+   "fila_color_code": "13603",
+   "fila_id": "GFA06",
+   "fila_type": "PLA Silk+",
+   "fila_color_name": {
+    "en": "Baby Blue"
+   },
+   "fila_color": [
+    "#A8C6EEFF"
+   ]
+  },
+  {
+   "fila_color_code": "13604",
+   "fila_id": "GFA06",
+   "fila_type": "PLA Silk+",
+   "fila_color_name": {
+    "en": "Blue"
+   },
+   "fila_color": [
+    "#008BDAFF"
+   ]
+  },
+  {
+   "fila_color_code": "13610",
+   "fila_id": "GFA17",
+   "fila_type": "PLA Translucent",
+   "fila_color_name": {
+    "en": "Ice Blue"
+   },
+   "fila_color": [
+    "#B8CDE980"
+   ]
+  },
+  {
+   "fila_color_code": "13611",
+   "fila_id": "GFA17",
+   "fila_type": "PLA Translucent",
+   "fila_color_name": {
+    "en": "Blue"
+   },
+   "fila_color": [
+    "#0047BB80"
+   ]
+  },
+  {
+   "fila_color_code": "13612",
+   "fila_id": "GFA17",
+   "fila_type": "PLA Translucent",
+   "fila_color_name": {
+    "en": "Teal"
+   },
+   "fila_color": [
+    "#009FA180"
+   ]
+  },
+  {
+   "fila_color_code": "13700",
+   "fila_id": "GFA08",
+   "fila_type": "PLA Sparkle",
+   "fila_color_name": {
+    "en": "Royal Purple Sparkle"
+   },
+   "fila_color": [
+    "#483D8BFF"
+   ]
+  },
+  {
+   "fila_color_code": "13701",
+   "fila_id": "GFA05",
+   "fila_type": "PLA Silk",
+   "fila_color_name": {
+    "en": "Purple"
+   },
+   "fila_color": [
+    "#854CE4FF"
+   ]
+  },
+  {
+   "fila_color_code": "13702",
+   "fila_id": "GFA06",
+   "fila_type": "PLA Silk+",
+   "fila_color_name": {
+    "en": "Purple"
+   },
+   "fila_color": [
+    "#8671CBFF"
+   ]
+  },
+  {
+   "fila_color_code": "13710",
+   "fila_id": "GFA17",
+   "fila_type": "PLA Translucent",
+   "fila_color_name": {
+    "en": "Purple"
+   },
+   "fila_color": [
+    "#8344B080"
+   ]
+  },
+  {
+   "fila_color_code": "13711",
+   "fila_id": "GFA17",
+   "fila_type": "PLA Translucent",
+   "fila_color_name": {
+    "en": "Lavender"
+   },
+   "fila_color": [
+    "#B8ACD680"
+   ]
+  },
+  {
+   "fila_color_code": "13800",
+   "fila_id": "GFA02",
+   "fila_type": "PLA Metal",
+   "fila_color_name": {
+    "en": "Copper Brown Metallic"
+   },
+   "fila_color": [
+    "#AA6443FF"
+   ]
+  },
+  {
+   "fila_color_code": "13801",
+   "fila_id": "GFA16",
+   "fila_type": "PLA Wood",
+   "fila_color_name": {
+    "en": "Clay Brown"
+   },
+   "fila_color": [
+    "#995F11FF"
+   ]
+  },
+  {
+   "fila_color_code": "13901",
+   "fila_id": "GFA05",
+   "fila_type": "PLA Silk",
+   "fila_color_name": {
+    "en": "Gilded Rose"
+   },
+   "fila_color": [
+    "#FF9425FF",
+    "#C16784FF"
+   ]
+  },
+  {
+   "fila_color_code": "13902",
+   "fila_id": "GFA05",
+   "fila_type": "PLA Silk",
+   "fila_color_name": {
+    "en": "Midnight Blaze"
+   },
+   "fila_color": [
+    "#0047BBFF",
+    "#7D1B49FF"
+   ]
+  },
+  {
+   "fila_color_code": "13903",
+   "fila_id": "GFA05",
+   "fila_type": "PLA Silk",
+   "fila_color_name": {
+    "en": "Neon City"
+   },
+   "fila_color": [
+    "#0047BBFF",
+    "#BB22A3FF"
+   ]
+  },
+  {
+   "fila_color_code": "13904",
+   "fila_id": "GFA05",
+   "fila_type": "PLA Silk",
+   "fila_color_name": {
+    "en": "Blue Hawaii"
+   },
+   "fila_color": [
+    "#418FDEFF",
+    "#70C884FF"
+   ]
+  },
+  {
+   "fila_color_code": "13905",
+   "fila_id": "GFA05",
+   "fila_type": "PLA Silk",
+   "fila_color_name": {
+    "en": "Velvet Eclipse (Black-Red)"
+   },
+   "fila_color": [
+    "#000000FF",
+    "#A34342FF"
+   ]
+  },
+  {
+   "fila_color_code": "13906",
+   "fila_id": "GFA05",
+   "fila_type": "PLA Silk",
+   "fila_color_name": {
+    "en": "South Beach"
+   },
+   "fila_color": [
+    "#F772A4FF",
+    "#00918BFF"
+   ]
+  },
+  {
+   "fila_color_code": "13909",
+   "fila_id": "GFA05",
+   "fila_type": "PLA Silk",
+   "fila_color_name": {
+    "en": "Aurora Purple"
+   },
+   "fila_color": [
+    "#7F3696FF",
+    "#006EC9FF"
+   ]
+  },
+  {
+   "fila_color_code": "13912",
+   "fila_id": "GFA05",
+   "fila_type": "PLA Silk",
+   "fila_color_name": {
+    "en": "Dawn Radiance"
+   },
+   "fila_color": [
+    "#EC984CFF",
+    "#6CD4BCFF",
+    "#A66EB9FF",
+    "#D87694FF"
+   ]
+  },
+  {
+   "fila_color_code": "13913",
+   "fila_id": "GFA05",
+   "fila_type": "PLA Silk",
+   "fila_color_name": {
+    "en": "Mystic Magenta"
+   },
+   "fila_color": [
+    "#720062FF",
+    "#3a913fFF"
+   ]
+  },
+  {
+   "fila_color_code": "13916",
+   "fila_id": "GFA05",
+   "fila_type": "PLA Silk",
+   "fila_color_name": {
+    "en": "Phantom Blue"
+   },
+   "fila_color": [
+    "#00629bFF",
+    "#000000FF"
+   ]
+  },
+  {
+   "fila_color_code": "14100",
+   "fila_id": "GFA50",
+   "fila_type": "PLA-CF",
+   "fila_color_name": {
+    "en": "Black"
+   },
+   "fila_color": [
+    "#000000FF"
+   ]
+  },
+  {
+   "fila_color_code": "14101",
+   "fila_id": "GFA50",
+   "fila_type": "PLA-CF",
+   "fila_color_name": {
+    "en": "Lava Gray"
+   },
+   "fila_color": [
+    "#4d5054FF"
+   ]
+  },
+  {
+   "fila_color_code": "14102",
+   "fila_id": "GFA11",
+   "fila_type": "PLA Aero",
+   "fila_color_name": {
+    "en": "White"
+   },
+   "fila_color": [
+    "#FFFFFFFF"
+   ]
+  },
+  {
+   "fila_color_code": "14103",
+   "fila_id": "GFA11",
+   "fila_type": "PLA Aero",
+   "fila_color_name": {
+    "en": "Black"
+   },
+   "fila_color": [
+    "#000000FF"
+   ]
+  },
+  {
+   "fila_color_code": "14104",
+   "fila_id": "GFA11",
+   "fila_type": "PLA Aero",
+   "fila_color_name": {
+    "en": "Gray"
+   },
+   "fila_color": [
+    "#CDCECAFF"
+   ]
+  },
+  {
+   "fila_color_code": "14200",
+   "fila_id": "GFA50",
+   "fila_type": "PLA-CF",
+   "fila_color_name": {
+    "en": "Burgundy Red"
+   },
+   "fila_color": [
+    "#951e23FF"
+   ]
+  },
+  {
+   "fila_color_code": "14500",
+   "fila_id": "GFA50",
+   "fila_type": "PLA-CF",
+   "fila_color_name": {
+    "en": "Matcha Green"
+   },
+   "fila_color": [
+    "#5c9748FF"
+   ]
+  },
+  {
+   "fila_color_code": "14600",
+   "fila_id": "GFA50",
+   "fila_type": "PLA-CF",
+   "fila_color_name": {
+    "en": "Jeans Blue"
+   },
+   "fila_color": [
+    "#6e88bcFF"
+   ]
+  },
+  {
+   "fila_color_code": "14601",
+   "fila_id": "GFA50",
+   "fila_type": "PLA-CF",
+   "fila_color_name": {
+    "en": "Royal Blue"
+   },
+   "fila_color": [
+    "#2842ADFF"
+   ]
+  },
+  {
+   "fila_color_code": "14700",
+   "fila_id": "GFA50",
+   "fila_type": "PLA-CF",
+   "fila_color_name": {
+    "en": "Iris Purple"
+   },
+   "fila_color": [
+    "#69398EFF"
+   ]
+  },
+  {
+   "fila_color_code": "15100",
+   "fila_id": "GFA13",
+   "fila_type": "PLA Dynamic",
+   "fila_color_name": {
+    "en": "UV Color Changing - White to Coral"
+   },
+   "fila_color": [
+    "#FFFFFFFF"
+   ]
+  },
+  {
+   "fila_color_code": "15200",
+   "fila_id": "GFA12",
+   "fila_type": "PLA Glow",
+   "fila_color_name": {
+    "en": "Glow Pink"
+   },
+   "fila_color": [
+    "#F17B8FFF"
+   ]
+  },
+  {
+   "fila_color_code": "15300",
+   "fila_id": "GFA12",
+   "fila_type": "PLA Glow",
+   "fila_color_name": {
+    "en": "Glow Orange"
+   },
+   "fila_color": [
+    "#FF9D5BFF"
+   ]
+  },
+  {
+   "fila_color_code": "15400",
+   "fila_id": "GFA12",
+   "fila_type": "PLA Glow",
+   "fila_color_name": {
+    "en": "Glow Yellow"
+   },
+   "fila_color": [
+    "#F8FF80FF"
+   ]
+  },
+  {
+   "fila_color_code": "15500",
+   "fila_id": "GFA12",
+   "fila_type": "PLA Glow",
+   "fila_color_name": {
+    "en": "Glow Green"
+   },
+   "fila_color": [
+    "#A1FFACFF"
+   ]
+  },
+  {
+   "fila_color_code": "15600",
+   "fila_id": "GFA12",
+   "fila_type": "PLA Glow",
+   "fila_color_name": {
+    "en": "Glow Blue"
+   },
+   "fila_color": [
+    "#7AC0E9FF"
+   ]
+  },
+  {
+   "fila_color_code": "16100",
+   "fila_id": "GFA18",
+   "fila_type": "PLA Lite",
+   "fila_color_name": {
+    "en": "Black"
+   },
+   "fila_color": [
+    "#000000FF"
+   ]
+  },
+  {
+   "fila_color_code": "16101",
+   "fila_id": "GFA18",
+   "fila_type": "PLA Lite",
+   "fila_color_name": {
+    "en": "Gray"
+   },
+   "fila_color": [
+    "#999D9DFF"
+   ]
+  },
+  {
+   "fila_color_code": "16102",
+   "fila_id": "GFA18",
+   "fila_type": "PLA Lite",
+   "fila_color_name": {
+    "en": "Dark Gray"
+   },
+   "fila_color": [
+    "#8c8b8cFF"
+   ]
+  },
+  {
+   "fila_color_code": "16103",
+   "fila_id": "GFA18",
+   "fila_type": "PLA Lite",
+   "fila_color_name": {
+    "en": "White"
+   },
+   "fila_color": [
+    "#FFFFFFFF"
+   ]
+  },
+  {
+   "fila_color_code": "16200",
+   "fila_id": "GFA18",
+   "fila_type": "PLA Lite",
+   "fila_color_name": {
+    "en": "Red"
+   },
+   "fila_color": [
+    "#C6001AFF"
+   ]
+  },
+  {
+   "fila_color_code": "16301",
+   "fila_id": "GFA18",
+   "fila_type": "PLA Lite",
+   "fila_color_name": {
+    "en": "Orange"
+   },
+   "fila_color": [
+    "#FF671FFF"
+   ]
+  },
+  {
+   "fila_color_code": "16400",
+   "fila_id": "GFA18",
+   "fila_type": "PLA Lite",
+   "fila_color_name": {
+    "en": "Yellow"
+   },
+   "fila_color": [
+    "#EFE255FF"
+   ]
+  },
+  {
+   "fila_color_code": "16401",
+   "fila_id": "GFA18",
+   "fila_type": "PLA Lite",
+   "fila_color_name": {
+    "en": "Sunflower Yellow"
+   },
+   "fila_color": [
+    "#FFB549FF"
+   ]
+  },
+  {
+   "fila_color_code": "16501",
+   "fila_id": "GFA18",
+   "fila_type": "PLA Lite",
+   "fila_color_name": {
+    "en": "Green"
+   },
+   "fila_color": [
+    "#00BB31FF"
+   ]
+  },
+  {
+   "fila_color_code": "16600",
+   "fila_id": "GFA18",
+   "fila_type": "PLA Lite",
+   "fila_color_name": {
+    "en": "Cyan"
+   },
+   "fila_color": [
+    "#4DAFDAFF"
+   ]
+  },
+  {
+   "fila_color_code": "16601",
+   "fila_id": "GFA18",
+   "fila_type": "PLA Lite",
+   "fila_color_name": {
+    "en": "Blue"
+   },
+   "fila_color": [
+    "#004EA8FF"
+   ]
+  },
+  {
+   "fila_color_code": "16700",
+   "fila_id": "GFA18",
+   "fila_type": "PLA Lite",
+   "fila_color_name": {
+    "en": "Matte Beige"
+   },
+   "fila_color": [
+    "#ECC3B2FF"
+   ]
+  },
+  {
+   "fila_color_code": "16800",
+   "fila_id": "GFA18",
+   "fila_type": "PLA Lite",
+   "fila_color_name": {
+    "en": "Cocoa Brown"
+   },
+   "fila_color": [
+    "#745335FF"
+   ]
+  },
+  {
+   "fila_color_code": "17100",
+   "fila_id": "GFA19",
+   "fila_type": "PLA Pure",
+   "fila_color_name": {
+    "en": "Pure White"
+   },
+   "fila_color": [
+    "#FFFFFFFF"
+   ]
+  },
+  {
+   "fila_color_code": "17101",
+   "fila_id": "GFA19",
+   "fila_type": "PLA Pure",
+   "fila_color_name": {
+    "en": "Absolute Black"
+   },
+   "fila_color": [
+    "#000000FF"
+   ]
+  },
+  {
+   "fila_color_code": "17200",
+   "fila_id": "GFA19",
+   "fila_type": "PLA Pure",
+   "fila_color_name": {
+    "en": "Milky Pink"
+   },
+   "fila_color": [
+    "#f7ced7FF"
+   ]
+  },
+  {
+   "fila_color_code": "17300",
+   "fila_id": "GFA19",
+   "fila_type": "PLA Pure",
+   "fila_color_name": {
+    "en": "Apricot"
+   },
+   "fila_color": [
+    "#ffb673FF"
+   ]
+  },
+  {
+   "fila_color_code": "17600",
+   "fila_id": "GFA19",
+   "fila_type": "PLA Pure",
+   "fila_color_name": {
+    "en": "Baby Blue"
+   },
+   "fila_color": [
+    "#a4dbe8FF"
+   ]
+  },
+  {
+   "fila_color_code": "18100",
+   "fila_id": "GFA20",
+   "fila_type": "PLA Palette",
+   "fila_color_name": {
+    "en": "White"
+   },
+   "fila_color": [
+    "#ffffffFF"
+   ]
+  },
+  {
+   "fila_color_code": "18101",
+   "fila_id": "GFA20",
+   "fila_type": "PLA Palette",
+   "fila_color_name": {
+    "en": "Key"
+   },
+   "fila_color": [
+    "#000000FF"
+   ]
+  },
+  {
+   "fila_color_code": "18200",
+   "fila_id": "GFA20",
+   "fila_type": "PLA Palette",
+   "fila_color_name": {
+    "en": "Magenta"
+   },
+   "fila_color": [
+    "#E24585FF"
+   ]
+  },
+  {
+   "fila_color_code": "18400",
+   "fila_id": "GFA20",
+   "fila_type": "PLA Palette",
+   "fila_color_name": {
+    "en": "Yellow"
+   },
+   "fila_color": [
+    "#fce300FF"
+   ]
+  },
+  {
+   "fila_color_code": "18600",
+   "fila_id": "GFA20",
+   "fila_type": "PLA Palette",
+   "fila_color_name": {
+    "en": "Cyan"
+   },
+   "fila_color": [
+    "#0090daFF"
+   ]
+  },
+  {
+   "fila_color_code": "30105",
+   "fila_id": "GFG00",
+   "fila_type": "PETG Basic",
+   "fila_color_name": {
+    "en": "Black"
+   },
+   "fila_color": [
+    "#000000FF"
+   ]
+  },
+  {
+   "fila_color_code": "30106",
+   "fila_id": "GFG00",
+   "fila_type": "PETG Basic",
+   "fila_color_name": {
+    "en": "White"
+   },
+   "fila_color": [
+    "#FFFFFFFF"
+   ]
+  },
+  {
+   "fila_color_code": "30107",
+   "fila_id": "GFG00",
+   "fila_type": "PETG Basic",
+   "fila_color_name": {
+    "en": "Gray"
+   },
+   "fila_color": [
+    "#7F7E83FF"
+   ]
+  },
+  {
+   "fila_color_code": "30108",
+   "fila_id": "GFG00",
+   "fila_type": "PETG Basic",
+   "fila_color_name": {
+    "en": "Misty Blue"
+   },
+   "fila_color": [
+    "#688197FF"
+   ]
+  },
+  {
+   "fila_color_code": "30201",
+   "fila_id": "GFG00",
+   "fila_type": "PETG Basic",
+   "fila_color_name": {
+    "en": "Red"
+   },
+   "fila_color": [
+    "#D6001CFF"
+   ]
+  },
+  {
+   "fila_color_code": "30301",
+   "fila_id": "GFG00",
+   "fila_type": "PETG Basic",
+   "fila_color_name": {
+    "en": "Orange"
+   },
+   "fila_color": [
+    "#FF671FFF"
+   ]
+  },
+  {
+   "fila_color_code": "30402",
+   "fila_id": "GFG00",
+   "fila_type": "PETG Basic",
+   "fila_color_name": {
+    "en": "Yellow"
+   },
+   "fila_color": [
+    "#FCE300FF"
+   ]
+  },
+  {
+   "fila_color_code": "30403",
+   "fila_id": "GFG00",
+   "fila_type": "PETG Basic",
+   "fila_color_name": {
+    "en": "Dark Beige"
+   },
+   "fila_color": [
+    "#dbc8b6FF"
+   ]
+  },
+  {
+   "fila_color_code": "30404",
+   "fila_id": "GFG00",
+   "fila_type": "PETG Basic",
+   "fila_color_name": {
+    "en": "Sunflower Yellow"
+   },
+   "fila_color": [
+    "#FFB81CFF"
+   ]
+  },
+  {
+   "fila_color_code": "30502",
+   "fila_id": "GFG00",
+   "fila_type": "PETG Basic",
+   "fila_color_name": {
+    "en": "Green"
+   },
+   "fila_color": [
+    "#009639FF"
+   ]
+  },
+  {
+   "fila_color_code": "30503",
+   "fila_id": "GFG00",
+   "fila_type": "PETG Basic",
+   "fila_color_name": {
+    "en": "Pine Green"
+   },
+   "fila_color": [
+    "#034638FF"
+   ]
+  },
+  {
+   "fila_color_code": "30504",
+   "fila_id": "GFG00",
+   "fila_type": "PETG Basic",
+   "fila_color_name": {
+    "en": "Bright Green"
+   },
+   "fila_color": [
+    "#97D700FF"
+   ]
+  },
+  {
+   "fila_color_code": "30603",
+   "fila_id": "GFG00",
+   "fila_type": "PETG Basic",
+   "fila_color_name": {
+    "en": "Reflex Blue"
+   },
+   "fila_color": [
+    "#001489FF"
+   ]
+  },
+  {
+   "fila_color_code": "30604",
+   "fila_id": "GFG00",
+   "fila_type": "PETG Basic",
+   "fila_color_name": {
+    "en": "Navy Blue"
+   },
+   "fila_color": [
+    "#0086d6FF"
+   ]
+  },
+  {
+   "fila_color_code": "30701",
+   "fila_id": "GFG00",
+   "fila_type": "PETG Basic",
+   "fila_color_name": {
+    "en": "Purple"
+   },
+   "fila_color": [
+    "#8A75D1FF"
+   ]
+  },
+  {
+   "fila_color_code": "30702",
+   "fila_id": "GFG00",
+   "fila_type": "PETG Basic",
+   "fila_color_name": {
+    "en": "Hot Pink"
+   },
+   "fila_color": [
+    "#F277C6FF"
+   ]
+  },
+  {
+   "fila_color_code": "30800",
+   "fila_id": "GFG00",
+   "fila_type": "PETG Basic",
+   "fila_color_name": {
+    "en": "Dark Brown"
+   },
+   "fila_color": [
+    "#4f2c1dFF"
+   ]
+  },
+  {
+   "fila_color_code": "31100",
+   "fila_id": "GFG50",
+   "fila_type": "PETG-CF",
+   "fila_color_name": {
+    "en": "Black"
+   },
+   "fila_color": [
+    "#000000FF"
+   ]
+  },
+  {
+   "fila_color_code": "31101",
+   "fila_id": "GFG50",
+   "fila_type": "PETG-CF",
+   "fila_color_name": {
+    "en": "Titan Gray"
+   },
+   "fila_color": [
+    "#565656FF"
+   ]
+  },
+  {
+   "fila_color_code": "31200",
+   "fila_id": "GFG50",
+   "fila_type": "PETG-CF",
+   "fila_color_name": {
+    "en": "Brick Red"
+   },
+   "fila_color": [
+    "#9f332aFF"
+   ]
+  },
+  {
+   "fila_color_code": "31500",
+   "fila_id": "GFG50",
+   "fila_type": "PETG-CF",
+   "fila_color_name": {
+    "en": "Malachite Green"
+   },
+   "fila_color": [
+    "#16b08eFF"
+   ]
+  },
+  {
+   "fila_color_code": "31600",
+   "fila_id": "GFG50",
+   "fila_type": "PETG-CF",
+   "fila_color_name": {
+    "en": "Indigo Blue"
+   },
+   "fila_color": [
+    "#324585FF"
+   ]
+  },
+  {
+   "fila_color_code": "31700",
+   "fila_id": "GFG50",
+   "fila_type": "PETG-CF",
+   "fila_color_name": {
+    "en": "Violet Purple"
+   },
+   "fila_color": [
+    "#583061FF"
+   ]
+  },
+  {
+   "fila_color_code": "32100",
+   "fila_id": "GFG01",
+   "fila_type": "PETG Translucent",
+   "fila_color_name": {
+    "en": "Translucent Gray"
+   },
+   "fila_color": [
+    "#8E8E8E80"
+   ]
+  },
+  {
+   "fila_color_code": "32101",
+   "fila_id": "GFG01",
+   "fila_type": "PETG Translucent",
+   "fila_color_name": {
+    "en": "Clear"
+   },
+   "fila_color": [
+    "#00000000"
+   ]
+  },
+  {
+   "fila_color_code": "32200",
+   "fila_id": "GFG01",
+   "fila_type": "PETG Translucent",
+   "fila_color_name": {
+    "en": "Translucent Pink"
+   },
+   "fila_color": [
+    "#F9C1BD80"
+   ]
+  },
+  {
+   "fila_color_code": "32300",
+   "fila_id": "GFG01",
+   "fila_type": "PETG Translucent",
+   "fila_color_name": {
+    "en": "Translucent Orange"
+   },
+   "fila_color": [
+    "#FF911A80"
+   ]
+  },
+  {
+   "fila_color_code": "32500",
+   "fila_id": "GFG01",
+   "fila_type": "PETG Translucent",
+   "fila_color_name": {
+    "en": "Translucent Olive"
+   },
+   "fila_color": [
+    "#748C4580"
+   ]
+  },
+  {
+   "fila_color_code": "32501",
+   "fila_id": "GFG01",
+   "fila_type": "PETG Translucent",
+   "fila_color_name": {
+    "en": "Translucent Teal"
+   },
+   "fila_color": [
+    "#77EDD780"
+   ]
+  },
+  {
+   "fila_color_code": "32600",
+   "fila_id": "GFG01",
+   "fila_type": "PETG Translucent",
+   "fila_color_name": {
+    "en": "Translucent Light Blue"
+   },
+   "fila_color": [
+    "#61B0FF80"
+   ]
+  },
+  {
+   "fila_color_code": "32700",
+   "fila_id": "GFG01",
+   "fila_type": "PETG Translucent",
+   "fila_color_name": {
+    "en": "Translucent Purple"
+   },
+   "fila_color": [
+    "#D6ABFF80"
+   ]
+  },
+  {
+   "fila_color_code": "32800",
+   "fila_id": "GFG01",
+   "fila_type": "PETG Translucent",
+   "fila_color_name": {
+    "en": "Translucent Brown"
+   },
+   "fila_color": [
+    "#C9A38180"
+   ]
+  },
+  {
+   "fila_color_code": "33100",
+   "fila_id": "GFG02",
+   "fila_type": "PETG HF",
+   "fila_color_name": {
+    "en": "White"
+   },
+   "fila_color": [
+    "#FFFFFFFF"
+   ]
+  },
+  {
+   "fila_color_code": "33101",
+   "fila_id": "GFG02",
+   "fila_type": "PETG HF",
+   "fila_color_name": {
+    "en": "Gray"
+   },
+   "fila_color": [
+    "#ADB1B2FF"
+   ]
+  },
+  {
+   "fila_color_code": "33102",
+   "fila_id": "GFG02",
+   "fila_type": "PETG HF",
+   "fila_color_name": {
+    "en": "Black"
+   },
+   "fila_color": [
+    "#000000FF"
+   ]
+  },
+  {
+   "fila_color_code": "33103",
+   "fila_id": "GFG02",
+   "fila_type": "PETG HF",
+   "fila_color_name": {
+    "en": "Dark Gray"
+   },
+   "fila_color": [
+    "#515151FF"
+   ]
+  },
+  {
+   "fila_color_code": "33200",
+   "fila_id": "GFG02",
+   "fila_type": "PETG HF",
+   "fila_color_name": {
+    "en": "Red"
+   },
+   "fila_color": [
+    "#BC0900FF"
+   ]
+  },
+  {
+   "fila_color_code": "33300",
+   "fila_id": "GFG02",
+   "fila_type": "PETG HF",
+   "fila_color_name": {
+    "en": "Orange"
+   },
+   "fila_color": [
+    "#F75403FF"
+   ]
+  },
+  {
+   "fila_color_code": "33400",
+   "fila_id": "GFG02",
+   "fila_type": "PETG HF",
+   "fila_color_name": {
+    "en": "Yellow"
+   },
+   "fila_color": [
+    "#FFD00BFF"
+   ]
+  },
+  {
+   "fila_color_code": "33401",
+   "fila_id": "GFG02",
+   "fila_type": "PETG HF",
+   "fila_color_name": {
+    "en": "Cream"
+   },
+   "fila_color": [
+    "#F9DFB9FF"
+   ]
+  },
+  {
+   "fila_color_code": "33500",
+   "fila_id": "GFG02",
+   "fila_type": "PETG HF",
+   "fila_color_name": {
+    "en": "Green"
+   },
+   "fila_color": [
+    "#00AE42FF"
+   ]
+  },
+  {
+   "fila_color_code": "33501",
+   "fila_id": "GFG02",
+   "fila_type": "PETG HF",
+   "fila_color_name": {
+    "en": "Lime Green"
+   },
+   "fila_color": [
+    "#6EE53CFF"
+   ]
+  },
+  {
+   "fila_color_code": "33502",
+   "fila_id": "GFG02",
+   "fila_type": "PETG HF",
+   "fila_color_name": {
+    "en": "Forest Green"
+   },
+   "fila_color": [
+    "#39541AFF"
+   ]
+  },
+  {
+   "fila_color_code": "33600",
+   "fila_id": "GFG02",
+   "fila_type": "PETG HF",
+   "fila_color_name": {
+    "en": "Blue"
+   },
+   "fila_color": [
+    "#002E96FF"
+   ]
+  },
+  {
+   "fila_color_code": "33601",
+   "fila_id": "GFG02",
+   "fila_type": "PETG HF",
+   "fila_color_name": {
+    "en": "Lake Blue"
+   },
+   "fila_color": [
+    "#1F79E5FF"
+   ]
+  },
+  {
+   "fila_color_code": "33801",
+   "fila_id": "GFG02",
+   "fila_type": "PETG HF",
+   "fila_color_name": {
+    "en": "Peanut Brown"
+   },
+   "fila_color": [
+    "#875718FF"
+   ]
+  },
+  {
+   "fila_color_code": "35100",
+   "fila_id": "GFG03",
+   "fila_type": "PETG Matte",
+   "fila_color_name": {
+    "en": "White"
+   },
+   "fila_color": [
+    "#FFFFFFFF"
+   ]
+  },
+  {
+   "fila_color_code": "35101",
+   "fila_id": "GFG03",
+   "fila_type": "PETG Matte",
+   "fila_color_name": {
+    "en": "Black"
+   },
+   "fila_color": [
+    "#000000FF"
+   ]
+  },
+  {
+   "fila_color_code": "35102",
+   "fila_id": "GFG03",
+   "fila_type": "PETG Matte",
+   "fila_color_name": {
+    "en": "Gray"
+   },
+   "fila_color": [
+    "#7F7E83FF"
+   ]
+  },
+  {
+   "fila_color_code": "35200",
+   "fila_id": "GFG03",
+   "fila_type": "PETG Matte",
+   "fila_color_name": {
+    "en": "Red"
+   },
+   "fila_color": [
+    "#D6001CFF"
+   ]
+  },
+  {
+   "fila_color_code": "35300",
+   "fila_id": "GFG03",
+   "fila_type": "PETG Matte",
+   "fila_color_name": {
+    "en": "Orange"
+   },
+   "fila_color": [
+    "#FF671FFF"
+   ]
+  },
+  {
+   "fila_color_code": "35400",
+   "fila_id": "GFG03",
+   "fila_type": "PETG Matte",
+   "fila_color_name": {
+    "en": "Yellow"
+   },
+   "fila_color": [
+    "#FFD100FF"
+   ]
+  },
+  {
+   "fila_color_code": "35500",
+   "fila_id": "GFG03",
+   "fila_type": "PETG Matte",
+   "fila_color_name": {
+    "en": "Lime"
+   },
+   "fila_color": [
+    "#c0df16FF"
+   ]
+  },
+  {
+   "fila_color_code": "35501",
+   "fila_id": "GFG03",
+   "fila_type": "PETG Matte",
+   "fila_color_name": {
+    "en": "Avocado Green"
+   },
+   "fila_color": [
+    "#bce194FF"
+   ]
+  },
+  {
+   "fila_color_code": "35600",
+   "fila_id": "GFG03",
+   "fila_type": "PETG Matte",
+   "fila_color_name": {
+    "en": "Baby Blue"
+   },
+   "fila_color": [
+    "#B9D9EBFF"
+   ]
+  },
+  {
+   "fila_color_code": "35601",
+   "fila_id": "GFG03",
+   "fila_type": "PETG Matte",
+   "fila_color_name": {
+    "en": "Cyan"
+   },
+   "fila_color": [
+    "#00a9e0FF"
+   ]
+  },
+  {
+   "fila_color_code": "35602",
+   "fila_id": "GFG03",
+   "fila_type": "PETG Matte",
+   "fila_color_name": {
+    "en": "Dark Blue"
+   },
+   "fila_color": [
+    "#003087FF"
+   ]
+  },
+  {
+   "fila_color_code": "35603",
+   "fila_id": "GFG03",
+   "fila_type": "PETG Matte",
+   "fila_color_name": {
+    "en": "Turquoise"
+   },
+   "fila_color": [
+    "#00c7b1FF"
+   ]
+  },
+  {
+   "fila_color_code": "35700",
+   "fila_id": "GFG03",
+   "fila_type": "PETG Matte",
+   "fila_color_name": {
+    "en": "Pink"
+   },
+   "fila_color": [
+    "#FABBCBFF"
+   ]
+  },
+  {
+   "fila_color_code": "35701",
+   "fila_id": "GFG03",
+   "fila_type": "PETG Matte",
+   "fila_color_name": {
+    "en": "Rose Beige"
+   },
+   "fila_color": [
+    "#F0BDA5FF"
+   ]
+  },
+  {
+   "fila_color_code": "35702",
+   "fila_id": "GFG03",
+   "fila_type": "PETG Matte",
+   "fila_color_name": {
+    "en": "Violet"
+   },
+   "fila_color": [
+    "#A7A4E0FF"
+   ]
+  },
+  {
+   "fila_color_code": "35703",
+   "fila_id": "GFG03",
+   "fila_type": "PETG Matte",
+   "fila_color_name": {
+    "en": "Hot Pink"
+   },
+   "fila_color": [
+    "#EF4A81FF"
+   ]
+  },
+  {
+   "fila_color_code": "35801",
+   "fila_id": "GFG03",
+   "fila_type": "PETG Matte",
+   "fila_color_name": {
+    "en": "Caramel"
+   },
+   "fila_color": [
+    "#bf9474FF"
+   ]
+  },
+  {
+   "fila_color_code": "40100",
+   "fila_id": "GFB00",
+   "fila_type": "ABS",
+   "fila_color_name": {
+    "en": "White"
+   },
+   "fila_color": [
+    "#FFFFFFFF"
+   ]
+  },
+  {
+   "fila_color_code": "40101",
+   "fila_id": "GFB00",
+   "fila_type": "ABS",
+   "fila_color_name": {
+    "en": "Black"
+   },
+   "fila_color": [
+    "#000000FF"
+   ]
+  },
+  {
+   "fila_color_code": "40102",
+   "fila_id": "GFB00",
+   "fila_type": "ABS",
+   "fila_color_name": {
+    "en": "Silver"
+   },
+   "fila_color": [
+    "#87909AFF"
+   ]
+  },
+  {
+   "fila_color_code": "40200",
+   "fila_id": "GFB00",
+   "fila_type": "ABS",
+   "fila_color_name": {
+    "en": "Red"
+   },
+   "fila_color": [
+    "#D32941FF"
+   ]
+  },
+  {
+   "fila_color_code": "40300",
+   "fila_id": "GFB00",
+   "fila_type": "ABS",
+   "fila_color_name": {
+    "en": "Orange"
+   },
+   "fila_color": [
+    "#FF6A13FF"
+   ]
+  },
+  {
+   "fila_color_code": "40400",
+   "fila_id": "GFB00",
+   "fila_type": "ABS",
+   "fila_color_name": {
+    "en": "Yellow"
+   },
+   "fila_color": [
+    "#FCE900FF"
+   ]
+  },
+  {
+   "fila_color_code": "40401",
+   "fila_id": "GFB00",
+   "fila_type": "ABS",
+   "fila_color_name": {
+    "en": "Beige"
+   },
+   "fila_color": [
+    "#DFD1A7FF"
+   ]
+  },
+  {
+   "fila_color_code": "40402",
+   "fila_id": "GFB00",
+   "fila_type": "ABS",
+   "fila_color_name": {
+    "en": "Tangerine Yellow"
+   },
+   "fila_color": [
+    "#FFC72CFF"
+   ]
+  },
+  {
+   "fila_color_code": "40500",
+   "fila_id": "GFB00",
+   "fila_type": "ABS",
+   "fila_color_name": {
+    "en": "Bambu Green"
+   },
+   "fila_color": [
+    "#00AE42FF"
+   ]
+  },
+  {
+   "fila_color_code": "40501",
+   "fila_id": "GFB00",
+   "fila_type": "ABS",
+   "fila_color_name": {
+    "en": "Mint"
+   },
+   "fila_color": [
+    "#7AE1BFFF"
+   ]
+  },
+  {
+   "fila_color_code": "40502",
+   "fila_id": "GFB00",
+   "fila_type": "ABS",
+   "fila_color_name": {
+    "en": "Olive"
+   },
+   "fila_color": [
+    "#789D4AFF"
+   ]
+  },
+  {
+   "fila_color_code": "40600",
+   "fila_id": "GFB00",
+   "fila_type": "ABS",
+   "fila_color_name": {
+    "en": "Blue"
+   },
+   "fila_color": [
+    "#0A2CA5FF"
+   ]
+  },
+  {
+   "fila_color_code": "40601",
+   "fila_id": "GFB00",
+   "fila_type": "ABS",
+   "fila_color_name": {
+    "en": "Azure"
+   },
+   "fila_color": [
+    "#489FDFFF"
+   ]
+  },
+  {
+   "fila_color_code": "40602",
+   "fila_id": "GFB00",
+   "fila_type": "ABS",
+   "fila_color_name": {
+    "en": "Navy Blue"
+   },
+   "fila_color": [
+    "#0C2340FF"
+   ]
+  },
+  {
+   "fila_color_code": "40700",
+   "fila_id": "GFB00",
+   "fila_type": "ABS",
+   "fila_color_name": {
+    "en": "Purple"
+   },
+   "fila_color": [
+    "#AF1685FF"
+   ]
+  },
+  {
+   "fila_color_code": "40701",
+   "fila_id": "GFB00",
+   "fila_type": "ABS",
+   "fila_color_name": {
+    "en": "Lavender"
+   },
+   "fila_color": [
+    "#7248BDFF"
+   ]
+  },
+  {
+   "fila_color_code": "41100",
+   "fila_id": "GFB50",
+   "fila_type": "ABS-GF",
+   "fila_color_name": {
+    "en": "White"
+   },
+   "fila_color": [
+    "#FFFFFFFF"
+   ]
+  },
+  {
+   "fila_color_code": "41101",
+   "fila_id": "GFB50",
+   "fila_type": "ABS-GF",
+   "fila_color_name": {
+    "en": "Black"
+   },
+   "fila_color": [
+    "#000000FF"
+   ]
+  },
+  {
+   "fila_color_code": "41102",
+   "fila_id": "GFB50",
+   "fila_type": "ABS-GF",
+   "fila_color_name": {
+    "en": "Gray"
+   },
+   "fila_color": [
+    "#C6C6C6FF"
+   ]
+  },
+  {
+   "fila_color_code": "41200",
+   "fila_id": "GFB50",
+   "fila_type": "ABS-GF",
+   "fila_color_name": {
+    "en": "Red"
+   },
+   "fila_color": [
+    "#E83100FF"
+   ]
+  },
+  {
+   "fila_color_code": "41300",
+   "fila_id": "GFB50",
+   "fila_type": "ABS-GF",
+   "fila_color_name": {
+    "en": "Orange"
+   },
+   "fila_color": [
+    "#F48438FF"
+   ]
+  },
+  {
+   "fila_color_code": "41400",
+   "fila_id": "GFB50",
+   "fila_type": "ABS-GF",
+   "fila_color_name": {
+    "en": "Yellow"
+   },
+   "fila_color": [
+    "#FFE133FF"
+   ]
+  },
+  {
+   "fila_color_code": "41500",
+   "fila_id": "GFB50",
+   "fila_type": "ABS-GF",
+   "fila_color_name": {
+    "en": "Green"
+   },
+   "fila_color": [
+    "#61BF36FF"
+   ]
+  },
+  {
+   "fila_color_code": "41600",
+   "fila_id": "GFB50",
+   "fila_type": "ABS-GF",
+   "fila_color_name": {
+    "en": "Blue"
+   },
+   "fila_color": [
+    "#0C3B95FF"
+   ]
+  },
+  {
+   "fila_color_code": "45100",
+   "fila_id": "GFB01",
+   "fila_type": "ASA",
+   "fila_color_name": {
+    "en": "White"
+   },
+   "fila_color": [
+    "#FFFAF2FF"
+   ]
+  },
+  {
+   "fila_color_code": "45101",
+   "fila_id": "GFB01",
+   "fila_type": "ASA",
+   "fila_color_name": {
+    "en": "Black"
+   },
+   "fila_color": [
+    "#000000FF"
+   ]
+  },
+  {
+   "fila_color_code": "45102",
+   "fila_id": "GFB01",
+   "fila_type": "ASA",
+   "fila_color_name": {
+    "en": "Gray"
+   },
+   "fila_color": [
+    "#8A949EFF"
+   ]
+  },
+  {
+   "fila_color_code": "45200",
+   "fila_id": "GFB01",
+   "fila_type": "ASA",
+   "fila_color_name": {
+    "en": "Red"
+   },
+   "fila_color": [
+    "#E02928FF"
+   ]
+  },
+  {
+   "fila_color_code": "45500",
+   "fila_id": "GFB01",
+   "fila_type": "ASA",
+   "fila_color_name": {
+    "en": "Green"
+   },
+   "fila_color": [
+    "#00A6A0FF"
+   ]
+  },
+  {
+   "fila_color_code": "45600",
+   "fila_id": "GFB01",
+   "fila_type": "ASA",
+   "fila_color_name": {
+    "en": "Blue"
+   },
+   "fila_color": [
+    "#2140B4FF"
+   ]
+  },
+  {
+   "fila_color_code": "46100",
+   "fila_id": "GFB02",
+   "fila_type": "ASA Aero",
+   "fila_color_name": {
+    "en": "White"
+   },
+   "fila_color": [
+    "#F5F1DDFF"
+   ]
+  },
+  {
+   "fila_color_code": "46101",
+   "fila_id": "GFB51",
+   "fila_type": "ASA-CF",
+   "fila_color_name": {
+    "en": "Black"
+   },
+   "fila_color": [
+    "#000000FF"
+   ]
+  },
+  {
+   "fila_color_code": "50100",
+   "fila_id": "GFU01",
+   "fila_type": "TPU 95A",
+   "fila_color_name": {
+    "en": "White"
+   },
+   "fila_color": [
+    "#FFFFFFFF"
+   ]
+  },
+  {
+   "fila_color_code": "50101",
+   "fila_id": "GFU01",
+   "fila_type": "TPU 95A",
+   "fila_color_name": {
+    "en": "Black"
+   },
+   "fila_color": [
+    "#000000FF"
+   ]
+  },
+  {
+   "fila_color_code": "51100",
+   "fila_id": "GFU00",
+   "fila_type": "TPU 95A HF",
+   "fila_color_name": {
+    "en": "Black"
+   },
+   "fila_color": [
+    "#101820FF"
+   ]
+  },
+  {
+   "fila_color_code": "51101",
+   "fila_id": "GFU00",
+   "fila_type": "TPU 95A HF",
+   "fila_color_name": {
+    "en": "Gray"
+   },
+   "fila_color": [
+    "#898D8DFF"
+   ]
+  },
+  {
+   "fila_color_code": "51102",
+   "fila_id": "GFU00",
+   "fila_type": "TPU 95A HF",
+   "fila_color_name": {
+    "en": "White"
+   },
+   "fila_color": [
+    "#FFFFFFFF"
+   ]
+  },
+  {
+   "fila_color_code": "51103",
+   "fila_id": "GFU03",
+   "fila_type": "TPU 90A",
+   "fila_color_name": {
+    "en": "Black"
+   },
+   "fila_color": [
+    "#000000FF"
+   ]
+  },
+  {
+   "fila_color_code": "51105",
+   "fila_id": "GFU03",
+   "fila_type": "TPU 90A",
+   "fila_color_name": {
+    "en": "White"
+   },
+   "fila_color": [
+    "#FFFFFFFF"
+   ]
+  },
+  {
+   "fila_color_code": "51106",
+   "fila_id": "GFU03",
+   "fila_type": "TPU 90A",
+   "fila_color_name": {
+    "en": "Quicksilver"
+   },
+   "fila_color": [
+    "#9ea2a2FF"
+   ]
+  },
+  {
+   "fila_color_code": "51107",
+   "fila_id": "GFU04",
+   "fila_type": "TPU 85A",
+   "fila_color_name": {
+    "en": "Black"
+   },
+   "fila_color": [
+    "#000000FF"
+   ]
+  },
+  {
+   "fila_color_code": "51200",
+   "fila_id": "GFU00",
+   "fila_type": "TPU 95A HF",
+   "fila_color_name": {
+    "en": "Red"
+   },
+   "fila_color": [
+    "#C8102EFF"
+   ]
+  },
+  {
+   "fila_color_code": "51201",
+   "fila_id": "GFU04",
+   "fila_type": "TPU 85A",
+   "fila_color_name": {
+    "en": "Rose Beige/Flesh"
+   },
+   "fila_color": [
+    "#F3CFB2FF"
+   ]
+  },
+  {
+   "fila_color_code": "51305",
+   "fila_id": "GFU04",
+   "fila_type": "TPU 85A",
+   "fila_color_name": {
+    "en": "Neon Orange"
+   },
+   "fila_color": [
+    "#F68B1BFF"
+   ]
+  },
+  {
+   "fila_color_code": "51400",
+   "fila_id": "GFU00",
+   "fila_type": "TPU 95A HF",
+   "fila_color_name": {
+    "en": "Yellow"
+   },
+   "fila_color": [
+    "#F3E600FF"
+   ]
+  },
+  {
+   "fila_color_code": "51500",
+   "fila_id": "GFU04",
+   "fila_type": "TPU 85A",
+   "fila_color_name": {
+    "en": "Light Cyan"
+   },
+   "fila_color": [
+    "#C3E2D6FF"
+   ]
+  },
+  {
+   "fila_color_code": "51501",
+   "fila_id": "GFU04",
+   "fila_type": "TPU 85A",
+   "fila_color_name": {
+    "en": "Lime Green"
+   },
+   "fila_color": [
+    "#CDEA80FF"
+   ]
+  },
+  {
+   "fila_color_code": "51600",
+   "fila_id": "GFU00",
+   "fila_type": "TPU 95A HF",
+   "fila_color_name": {
+    "en": "Blue"
+   },
+   "fila_color": [
+    "#0072CEFF"
+   ]
+  },
+  {
+   "fila_color_code": "51601",
+   "fila_id": "GFU03",
+   "fila_type": "TPU 90A",
+   "fila_color_name": {
+    "en": "Crystal Blue"
+   },
+   "fila_color": [
+    "#7eb4e180"
+   ]
+  },
+  {
+   "fila_color_code": "51700",
+   "fila_id": "GFU03",
+   "fila_type": "TPU 90A",
+   "fila_color_name": {
+    "en": "Grape Jelly"
+   },
+   "fila_color": [
+    "#D6ABFF80"
+   ]
+  },
+  {
+   "fila_color_code": "51800",
+   "fila_id": "GFU03",
+   "fila_type": "TPU 90A",
+   "fila_color_name": {
+    "en": "Cocoa Brown"
+   },
+   "fila_color": [
+    "#5C4738FF"
+   ]
+  },
+  {
+   "fila_color_code": "51900",
+   "fila_id": "GFU03",
+   "fila_type": "TPU 90A",
+   "fila_color_name": {
+    "en": "Frozen"
+   },
+   "fila_color": [
+    "#40B6E4FF",
+    "#FFFFFFFF"
+   ]
+  },
+  {
+   "fila_color_code": "51901",
+   "fila_id": "GFU03",
+   "fila_type": "TPU 90A",
+   "fila_color_name": {
+    "en": "Blaze"
+   },
+   "fila_color": [
+    "#D21B3CFF",
+    "#F1AAA8FF"
+   ]
+  },
+  {
+   "fila_color_code": "53100",
+   "fila_id": "GFU02",
+   "fila_type": "TPU for AMS",
+   "fila_color_name": {
+    "en": "White"
+   },
+   "fila_color": [
+    "#FFFFFFFF"
+   ]
+  },
+  {
+   "fila_color_code": "53101",
+   "fila_id": "GFU02",
+   "fila_type": "TPU for AMS",
+   "fila_color_name": {
+    "en": "Black"
+   },
+   "fila_color": [
+    "#000000FF"
+   ]
+  },
+  {
+   "fila_color_code": "53102",
+   "fila_id": "GFU02",
+   "fila_type": "TPU for AMS",
+   "fila_color_name": {
+    "en": "Gray"
+   },
+   "fila_color": [
+    "#939393FF"
+   ]
+  },
+  {
+   "fila_color_code": "53200",
+   "fila_id": "GFU02",
+   "fila_type": "TPU for AMS",
+   "fila_color_name": {
+    "en": "Red"
+   },
+   "fila_color": [
+    "#ED0000FF"
+   ]
+  },
+  {
+   "fila_color_code": "53400",
+   "fila_id": "GFU02",
+   "fila_type": "TPU for AMS",
+   "fila_color_name": {
+    "en": "Yellow"
+   },
+   "fila_color": [
+    "#F9EF41FF"
+   ]
+  },
+  {
+   "fila_color_code": "53500",
+   "fila_id": "GFU02",
+   "fila_type": "TPU for AMS",
+   "fila_color_name": {
+    "en": "Neon Green"
+   },
+   "fila_color": [
+    "#90FF1AFF"
+   ]
+  },
+  {
+   "fila_color_code": "53600",
+   "fila_id": "GFU02",
+   "fila_type": "TPU for AMS",
+   "fila_color_name": {
+    "en": "Blue"
+   },
+   "fila_color": [
+    "#5898DDFF"
+   ]
+  },
+  {
+   "fila_color_code": "56100",
+   "fila_id": "GFU06",
+   "fila_type": "TPU 75A (2.85mm)",
+   "fila_color_name": {
+    "en": "Black"
+   },
+   "fila_color": [
+    "#000000FF"
+   ]
+  },
+  {
+   "fila_color_code": "56200",
+   "fila_id": "GFU06",
+   "fila_type": "TPU 75A (2.85mm)",
+   "fila_color_name": {
+    "en": "Red"
+   },
+   "fila_color": [
+    "#e4002bFF"
+   ]
+  },
+  {
+   "fila_color_code": "56300",
+   "fila_id": "GFU06",
+   "fila_type": "TPU 75A (2.85mm)",
+   "fila_color_name": {
+    "en": "Mandarin Orange"
+   },
+   "fila_color": [
+    "#ffa06aFF"
+   ]
+  },
+  {
+   "fila_color_code": "56400",
+   "fila_id": "GFU06",
+   "fila_type": "TPU 75A (2.85mm)",
+   "fila_color_name": {
+    "en": "Lemon Yellow"
+   },
+   "fila_color": [
+    "#fbdb65FF"
+   ]
+  },
+  {
+   "fila_color_code": "56401",
+   "fila_id": "GFU06",
+   "fila_type": "TPU 75A (2.85mm)",
+   "fila_color_name": {
+    "en": "Dark Ivory"
+   },
+   "fila_color": [
+    "#f1e6b2FF"
+   ]
+  },
+  {
+   "fila_color_code": "56500",
+   "fila_id": "GFU06",
+   "fila_type": "TPU 75A (2.85mm)",
+   "fila_color_name": {
+    "en": "Dark Green"
+   },
+   "fila_color": [
+    "#617354FF"
+   ]
+  },
+  {
+   "fila_color_code": "56501",
+   "fila_id": "GFU06",
+   "fila_type": "TPU 75A (2.85mm)",
+   "fila_color_name": {
+    "en": "Grass Green"
+   },
+   "fila_color": [
+    "#7ccc6cFF"
+   ]
+  },
+  {
+   "fila_color_code": "56600",
+   "fila_id": "GFU06",
+   "fila_type": "TPU 75A (2.85mm)",
+   "fila_color_name": {
+    "en": "Cyan"
+   },
+   "fila_color": [
+    "#00a3e1FF"
+   ]
+  },
+  {
+   "fila_color_code": "56700",
+   "fila_id": "GFU06",
+   "fila_type": "TPU 75A (2.85mm)",
+   "fila_color_name": {
+    "en": "Purple"
+   },
+   "fila_color": [
+    "#ad96dcFF"
+   ]
+  },
+  {
+   "fila_color_code": "56701",
+   "fila_id": "GFU06",
+   "fila_type": "TPU 75A (2.85mm)",
+   "fila_color_name": {
+    "en": "Pink"
+   },
+   "fila_color": [
+    "#fabbcbFF"
+   ]
+  },
+  {
+   "fila_color_code": "60100",
+   "fila_id": "GFC00",
+   "fila_type": "PC",
+   "fila_color_name": {
+    "en": "White"
+   },
+   "fila_color": [
+    "#FFFFFFFF"
+   ]
+  },
+  {
+   "fila_color_code": "60101",
+   "fila_id": "GFC00",
+   "fila_type": "PC",
+   "fila_color_name": {
+    "en": "Black"
+   },
+   "fila_color": [
+    "#000000FF"
+   ]
+  },
+  {
+   "fila_color_code": "60102",
+   "fila_id": "GFC00",
+   "fila_type": "PC",
+   "fila_color_name": {
+    "en": "Clear Black"
+   },
+   "fila_color": [
+    "#68686580"
+   ]
+  },
+  {
+   "fila_color_code": "60103",
+   "fila_id": "GFC00",
+   "fila_type": "PC",
+   "fila_color_name": {
+    "en": "Transparent"
+   },
+   "fila_color": [
+    "#00000000"
+   ]
+  },
+  {
+   "fila_color_code": "63100",
+   "fila_id": "GFC01",
+   "fila_type": "PC FR",
+   "fila_color_name": {
+    "en": "Black"
+   },
+   "fila_color": [
+    "#000000FF"
+   ]
+  },
+  {
+   "fila_color_code": "63101",
+   "fila_id": "GFC01",
+   "fila_type": "PC FR",
+   "fila_color_name": {
+    "en": "White"
+   },
+   "fila_color": [
+    "#FFFFFFFF"
+   ]
+  },
+  {
+   "fila_color_code": "63102",
+   "fila_id": "GFC01",
+   "fila_type": "PC FR",
+   "fila_color_name": {
+    "en": "Gray"
+   },
+   "fila_color": [
+    "#A8A8AAFF"
+   ]
+  },
+  {
+   "fila_color_code": "65102",
+   "fila_id": "GFS05",
+   "fila_type": "Support for PLA/PETG",
+   "fila_color_name": {
+    "en": "Nature"
+   },
+   "fila_color": [
+    "#00000000"
+   ]
+  },
+  {
+   "fila_color_code": "65103",
+   "fila_id": "GFS05",
+   "fila_type": "Support for PLA/PETG",
+   "fila_color_name": {
+    "en": "Black"
+   },
+   "fila_color": [
+    "#000000FF"
+   ]
+  },
+  {
+   "fila_color_code": "65104",
+   "fila_id": "GFS02",
+   "fila_type": "Support for PLA",
+   "fila_color_name": {
+    "en": "White"
+   },
+   "fila_color": [
+    "#FFFFFFFF"
+   ]
+  },
+  {
+   "fila_color_code": "65500",
+   "fila_id": "GFS03",
+   "fila_type": "Support for PA/PET",
+   "fila_color_name": {
+    "en": "Green"
+   },
+   "fila_color": [
+    "#C0DF16FF"
+   ]
+  },
+  {
+   "fila_color_code": "66100",
+   "fila_id": "GFS06",
+   "fila_type": "Support for ABS",
+   "fila_color_name": {
+    "en": "White"
+   },
+   "fila_color": [
+    "#FFFFFFFF"
+   ]
+  },
+  {
+   "fila_color_code": "66400",
+   "fila_id": "GFS04",
+   "fila_type": "PVA",
+   "fila_color_name": {
+    "en": "Clear"
+   },
+   "fila_color": [
+    "#F0F1A880"
+   ]
+  },
+  {
+   "fila_color_code": "70100",
+   "fila_id": "GFN04",
+   "fila_type": "PAHT-CF",
+   "fila_color_name": {
+    "en": "Black"
+   },
+   "fila_color": [
+    "#000000FF"
+   ]
+  },
+  {
+   "fila_color_code": "71100",
+   "fila_id": "GFT01",
+   "fila_type": "PET-CF",
+   "fila_color_name": {
+    "en": "Black"
+   },
+   "fila_color": [
+    "#000000FF"
+   ]
+  },
+  {
+   "fila_color_code": "72100",
+   "fila_id": "GFN05",
+   "fila_type": "PA6-CF",
+   "fila_color_name": {
+    "en": "Black"
+   },
+   "fila_color": [
+    "#000000FF"
+   ]
+  },
+  {
+   "fila_color_code": "72102",
+   "fila_id": "GFN08",
+   "fila_type": "PA6-GF",
+   "fila_color_name": {
+    "en": "White"
+   },
+   "fila_color": [
+    "#EAEAE4FF"
+   ]
+  },
+  {
+   "fila_color_code": "72103",
+   "fila_id": "GFN08",
+   "fila_type": "PA6-GF",
+   "fila_color_name": {
+    "en": "Gray"
+   },
+   "fila_color": [
+    "#353533FF"
+   ]
+  },
+  {
+   "fila_color_code": "72104",
+   "fila_id": "GFN08",
+   "fila_type": "PA6-GF",
+   "fila_color_name": {
+    "en": "Black"
+   },
+   "fila_color": [
+    "#000000FF"
+   ]
+  },
+  {
+   "fila_color_code": "72200",
+   "fila_id": "GFN08",
+   "fila_type": "PA6-GF",
+   "fila_color_name": {
+    "en": "Orange"
+   },
+   "fila_color": [
+    "#FF4800FF"
+   ]
+  },
+  {
+   "fila_color_code": "72400",
+   "fila_id": "GFN08",
+   "fila_type": "PA6-GF",
+   "fila_color_name": {
+    "en": "Yellow"
+   },
+   "fila_color": [
+    "#FFCE00FF"
+   ]
+  },
+  {
+   "fila_color_code": "72500",
+   "fila_id": "GFN08",
+   "fila_type": "PA6-GF",
+   "fila_color_name": {
+    "en": "Lime"
+   },
+   "fila_color": [
+    "#C5ED48FF"
+   ]
+  },
+  {
+   "fila_color_code": "72600",
+   "fila_id": "GFN08",
+   "fila_type": "PA6-GF",
+   "fila_color_name": {
+    "en": "Blue"
+   },
+   "fila_color": [
+    "#75AED8FF"
+   ]
+  },
+  {
+   "fila_color_code": "72800",
+   "fila_id": "GFN08",
+   "fila_type": "PA6-GF",
+   "fila_color_name": {
+    "en": "Brown"
+   },
+   "fila_color": [
+    "#5B492FFF"
+   ]
+  },
+  {
+   "fila_color_code": "73100",
+   "fila_id": "GFN06",
+   "fila_type": "PPA-CF",
+   "fila_color_name": {
+    "en": "Black"
+   },
+   "fila_color": [
+    "#000000FF"
+   ]
+  },
+  {
+   "fila_color_code": "76100",
+   "fila_id": "GFT02",
+   "fila_type": "PPS-CF",
+   "fila_color_name": {
+    "en": "Black"
+   },
+   "fila_color": [
+    "#000000FF"
+   ]
+  }
+ ]
+}

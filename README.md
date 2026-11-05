@@ -17,7 +17,7 @@ In code, `FilamentProduct` is a catalog item and `Spool` is a physical spool you
    docker compose build
    docker compose run --rm app php artisan key:generate --show   # paste into APP_KEY
    docker compose run --rm app php artisan migrate --force
-   docker compose run --rm app php artisan catalog:import https://raw.githubusercontent.com/Donkie/SpoolmanDB/main/filaments/bambulab.json --format=spoolmandb
+   docker compose run --rm app php artisan db:seed --force   # all Bambu Lab filaments
    docker compose --profile tunnel up -d
    ```
 3. Register `https://filament.gekophetweb.nl/auth/callback` as the redirect URI at your IdP.
@@ -29,10 +29,16 @@ The config, route, view and event caches are built when the container starts (se
 
 ## Catalog
 
-`php artisan catalog:import <file|https-url> [--format=csv|spoolmandb]` is idempotent on `article_number`.
+`php artisan db:seed` (or `--class=BambuLabCatalogSeeder`) loads every Bambu Lab filament from
+`database/data/bambulab-filaments.json`: a snapshot of Bambu Studio's `filaments_color_codes.json`, with
+Bambu's own article numbers (e.g. `10100` = PLA Basic Jade White), English names, type and hex color.
+Re-running it is safe.
 
+`php artisan catalog:import <file|https-url> [--format=csv|bambustudio|spoolmandb]` is idempotent on `article_number`.
+
+- **bambustudio**: pull the latest list straight from upstream:
+  `php artisan catalog:import https://raw.githubusercontent.com/bambulab/BambuStudio/master/resources/profiles/BBL/filament/filaments_color_codes.json --format=bambustudio`
 - **CSV** columns: `brand,material,line,article_name,article_number,color_hex,color_hex_2,diameter,nominal_weight,has_refill,product_url`.
-  Use it for real Bambu Lab SKUs from the store.
 - **SpoolmanDB** has no SKUs, so those products get a stable `SDB-...` article number. Its hex values are approximate.
 
 `color_family` is computed from the hex color on import.

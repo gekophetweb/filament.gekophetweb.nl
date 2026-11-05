@@ -91,6 +91,54 @@ class ImportCatalog
     }
 
     /**
+     * Convert Bambu Studio's filaments_color_codes.json (or the trimmed copy in
+     * database/data) into rows. fila_color_code is Bambu Lab's own article number.
+     *
+     * "PLA Basic" -> material PLA, line Basic; "PETG-CF" -> material PETG-CF, no line.
+     * Alpha is dropped from #RRGGBBAA; fully transparent colors (clear) become white.
+     * Multi-color filaments keep their first two colors.
+     *
+     * @param  array<string, mixed>  $data
+     * @return \Generator<int, array<string, mixed>>
+     */
+    public function fromBambuStudio(array $data): \Generator
+    {
+        foreach ($data['data'] ?? [] as $filament) {
+            $type = trim((string) ($filament['fila_type'] ?? ''));
+            $diameter = 1.75;
+
+            if (preg_match('/\s*\((\d+(?:\.\d+)?)\s*mm\)$/i', $type, $m)) {
+                $diameter = (float) $m[1];
+                $type = trim(substr($type, 0, -strlen($m[0])));
+            }
+
+            [$material, $line] = str_starts_with($type, 'Support')
+                ? ['Support', trim(Str::after($type, 'Support'))]
+                : array_pad(explode(' ', $type, 2), 2, null);
+
+            $hexes = array_map(function (string $rgba): string {
+                $rgba = ltrim($rgba, '#');
+
+                return strlen($rgba) === 8 && strtoupper(substr($rgba, 6, 2)) === '00' ? '#FFFFFF' : '#'.substr($rgba, 0, 6);
+            }, array_values((array) ($filament['fila_color'] ?? [])));
+
+            yield [
+                'brand' => 'Bambu Lab',
+                'material' => $material !== '' ? $material : 'Unknown',
+                'line' => $line !== '' ? $line : null,
+                'article_name' => (string) ($filament['fila_color_name']['en'] ?? ''),
+                'article_number' => (string) ($filament['fila_color_code'] ?? ''),
+                'color_hex' => $hexes[0] ?? null,
+                'color_hex_2' => $hexes[1] ?? null,
+                'diameter' => $diameter,
+                'nominal_weight' => 1000,
+                'has_refill' => false,
+                'product_url' => null,
+            ];
+        }
+    }
+
+    /**
      * Convert a SpoolmanDB manufacturer file (filaments/<brand>.json) into rows.
      * SpoolmanDB has no SKUs, so article_number becomes a stable "SDB-..." slug.
      *

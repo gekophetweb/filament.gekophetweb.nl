@@ -8,7 +8,7 @@ use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Http;
 
-#[Signature('catalog:import {source : CSV/JSON file path, or an https URL} {--format=csv : csv or spoolmandb}')]
+#[Signature('catalog:import {source : CSV/JSON file path, or an https URL} {--format=csv : csv, bambustudio or spoolmandb}')]
 #[Description('Import (or re-import) filament products; idempotent on article_number')]
 class ImportCatalogCommand extends Command
 {
@@ -28,12 +28,13 @@ class ImportCatalogCommand extends Command
 
         $rows = match ($this->option('format')) {
             'csv' => $import->readCsv($contents),
+            'bambustudio' => $import->fromBambuStudio(json_decode($contents, true, flags: JSON_THROW_ON_ERROR)),
             'spoolmandb' => $import->fromSpoolmanDb(json_decode($contents, true, flags: JSON_THROW_ON_ERROR)),
             default => null,
         };
 
         if ($rows === null) {
-            $this->error('Unknown --format; use csv or spoolmandb.');
+            $this->error('Unknown --format; use csv, bambustudio or spoolmandb.');
 
             return self::FAILURE;
         }
