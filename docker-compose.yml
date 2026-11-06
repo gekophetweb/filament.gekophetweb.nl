@@ -2,13 +2,16 @@
 name: filament
 
 services:
+  # .env is bind-mounted read-only (not env_file), so values are read by the app on
+  # every start. What the installation writes itself (APP_KEY, the setup wizard's SSO
+  # settings) goes to storage/app/.env.local in the app_storage volume and wins over .env.
   app:
     build: { context: ., target: app }
-    env_file: .env
     depends_on:
       db: { condition: service_healthy }
       redis: { condition: service_healthy }
     volumes:
+      - ./.env:/app/.env:ro
       - app_storage:/app/storage
     networks: [frontend, backend]
     ports:
@@ -19,9 +22,10 @@ services:
     build: { context: ., target: app }
     command: php artisan queue:work --tries=3 --max-time=3600
     healthcheck: { disable: true }   # image check probes the web port
-    env_file: .env
-    depends_on: [db, redis]
+    depends_on:   # app generates APP_KEY on first start
+      app: { condition: service_healthy }
     volumes:
+      - ./.env:/app/.env:ro
       - app_storage:/app/storage
     networks: [backend]
     restart: unless-stopped
@@ -30,8 +34,11 @@ services:
     build: { context: ., target: app }
     command: php artisan schedule:work
     healthcheck: { disable: true }
-    env_file: .env
-    depends_on: [db, redis]
+    depends_on:
+      app: { condition: service_healthy }
+    volumes:
+      - ./.env:/app/.env:ro
+      - app_storage:/app/storage
     networks: [backend]
     restart: unless-stopped
 

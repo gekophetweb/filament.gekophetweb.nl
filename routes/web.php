@@ -1,11 +1,18 @@
 <?php
 
+use App\Http\Controllers\Auth\SetupSignInTestController;
 use App\Http\Controllers\Auth\SsoController;
 use App\Livewire\Catalog;
 use App\Livewire\Devices;
+use App\Livewire\Setup;
 use App\Livewire\SpoolDetail;
 use App\Livewire\Spools;
 use Illuminate\Support\Facades\Route;
+
+// First-run setup. EnsureSetupComplete keeps these local-only and returns 404 once setup is done.
+Route::get('/setup', Setup::class)->middleware('throttle:login')->name('setup');
+Route::get('/setup/test', [SetupSignInTestController::class, 'redirect'])->middleware('throttle:login')->name('setup.test');
+Route::get('/setup/callback', [SetupSignInTestController::class, 'callback'])->middleware('throttle:sso-callback')->name('setup.callback');
 
 // Only the login page and the SSO round trip are reachable without a session.
 Route::middleware('guest')->group(function () {

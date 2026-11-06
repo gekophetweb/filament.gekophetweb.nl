@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Support\Setup\SetupState;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -33,6 +34,12 @@ class EnsureIpAllowed
 
     private function allowed(?string $ip, string $surface): bool
     {
+        // Before setup the web allow-list is usually still empty; EnsureSetupComplete
+        // then limits the web surface to direct local requests instead.
+        if ($surface === 'web' && ! app(SetupState::class)->isComplete()) {
+            return true;
+        }
+
         $ranges = config("access.ips.{$surface}", []);
 
         if ($ranges === []) {

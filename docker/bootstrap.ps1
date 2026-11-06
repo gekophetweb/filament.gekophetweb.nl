@@ -10,8 +10,8 @@ composer require --no-interaction --ignore-platform-reqs \
 composer require --dev --no-interaction --ignore-platform-reqs pestphp/pest pestphp/pest-plugin-laravel
 '@
 if (-not (Test-Path .env)) { Copy-Item .env.example .env }
-Write-Host "Edit .env (passwords, SSO), then run:"
+Write-Host "Set the passwords in .env, then run:"
 Write-Host "  docker compose build"
-Write-Host "  docker compose run --rm app php artisan key:generate"
-Write-Host "  docker compose run --rm app php artisan migrate --force"
 Write-Host "  docker compose up -d"
+Write-Host "  docker compose exec app php artisan migrate --force"
+Write-Host "  docker compose logs app | Select-String 'Setup URL'   # open it to configure SSO"

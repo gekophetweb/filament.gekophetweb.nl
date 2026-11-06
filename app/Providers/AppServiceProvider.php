@@ -7,9 +7,9 @@ use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
+use Laravel\Sanctum\PersonalAccessToken;
 use Laravel\Socialite\Contracts\Factory as Socialite;
 use Laravel\Socialite\SocialiteManager;
-use Laravel\Sanctum\PersonalAccessToken;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -35,10 +35,11 @@ class AppServiceProvider extends ServiceProvider
             'redirect' => $sso['redirect'],
         ])]);
 
-        $this->app->afterResolving(Socialite::class, function (SocialiteManager $manager) use ($sso): void {
+        // Read at resolve time, so the setup wizard can test unsaved settings.
+        $this->app->afterResolving(Socialite::class, function (SocialiteManager $manager): void {
             $manager->extend('oidc', fn () => $manager
                 ->buildProvider(OidcProvider::class, config('services.oidc'))
-                ->setIssuer((string) $sso['issuer']));
+                ->setIssuer((string) config('services.sso.issuer')));
         });
     }
 

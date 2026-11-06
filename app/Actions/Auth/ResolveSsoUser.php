@@ -47,9 +47,17 @@ class ResolveSsoUser
 
     public function isAllowed(string $email): bool
     {
+        return self::matchesAllowList($email, config('access.allowed_emails', []));
+    }
+
+    /**
+     * @param  list<string>  $entries  Lower-case emails and/or "@domain" entries.
+     */
+    public static function matchesAllowList(string $email, array $entries): bool
+    {
         $email = Str::lower($email);
 
-        foreach (config('access.allowed_emails', []) as $entry) {
+        foreach ($entries as $entry) {
             if ($entry === $email || (str_starts_with($entry, '@') && str_ends_with($email, $entry))) {
                 return true;
             }
