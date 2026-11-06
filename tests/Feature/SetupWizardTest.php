@@ -237,6 +237,7 @@ describe('steps', function () {
     it('validates who may sign in', function (string $field, string $value, string $message) {
         Livewire::test(Setup::class)
             ->set('step', 3)
+            ->set('audience', 'listed')
             ->set(['allowed_emails' => 'me@example.com', 'ips_web' => '192.168.1.0/24'])
             ->set($field, $value)
             ->call('next')
@@ -254,11 +255,45 @@ describe('steps', function () {
     it('normalizes the access lists', function () {
         Livewire::test(Setup::class)
             ->set('step', 3)
+            ->set('audience', 'listed')
             ->set(['allowed_emails' => " Me@Example.com ;\n@family.example, me@example.com ", 'ips_web' => '192.168.1.0/24  2001:db8::/32'])
             ->call('next')
             ->assertHasNoErrors()
             ->assertSet('allowed_emails', 'me@example.com,@family.example')
             ->assertSet('ips_web', '192.168.1.0/24,2001:db8::/32');
+    });
+
+    it('opens sign-up and every network to everyone by default', function () {
+        Livewire::test(Setup::class)
+            ->set('step', 3)
+            ->call('next')
+            ->assertHasNoErrors()
+            ->assertSet('step', 4)
+            ->assertSet('allowed_emails', '*')
+            ->assertSet('ips_web', '*')
+            ->assertSet('ips_api', '*')
+            ->assertSet('ips_mcp', '*');
+    });
+
+    it('clears the open values when switching to a list', function () {
+        Livewire::test(Setup::class)
+            ->set(['step' => 3, 'allowed_emails' => '*', 'ips_web' => '*', 'ips_api' => '*', 'ips_mcp' => '*'])
+            ->set('audience', 'listed')
+            ->assertSet('allowed_emails', '')
+            ->assertSet('ips_web', '')
+            ->call('next')
+            ->assertHasErrors(['allowed_emails', 'ips_web']);
+    });
+
+    it('reduces a list that contains * to *', function () {
+        Livewire::test(Setup::class)
+            ->set('step', 3)
+            ->set('audience', 'listed')
+            ->set(['allowed_emails' => 'me@example.com, *', 'ips_web' => '192.168.1.0/24, *'])
+            ->call('next')
+            ->assertHasNoErrors()
+            ->assertSet('allowed_emails', '*')
+            ->assertSet('ips_web', '*');
     });
 
     it('needs a successful test sign-in to leave step 4', function () {

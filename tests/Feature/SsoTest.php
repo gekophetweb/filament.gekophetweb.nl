@@ -73,3 +73,21 @@ it('logs out', function () {
     $this->actingAs(user())->post('/logout')->assertRedirect('/login');
     $this->assertGuest();
 });
+
+it('creates an account for any verified email with open sign-up', function () {
+    config(['access.allowed_emails' => ['*']]);
+    Socialite::fake('oidc', ssoIdentity('sub-new', 'stranger@example.org'));
+
+    $this->get('/auth/callback')->assertRedirect(route('catalog'));
+
+    expect(User::sole()->email)->toBe('stranger@example.org');
+    $this->assertAuthenticated();
+});
+
+it('still rejects unverified emails with open sign-up', function () {
+    config(['access.allowed_emails' => ['*']]);
+    Socialite::fake('oidc', ssoIdentity('sub-new', 'stranger@example.org', ['email_verified' => false]));
+
+    $this->get('/auth/callback')->assertRedirect('/login');
+    $this->assertGuest();
+});

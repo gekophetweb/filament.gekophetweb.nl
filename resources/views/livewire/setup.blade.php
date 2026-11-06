@@ -196,6 +196,30 @@
             @elseif ($step === 3)
                 <h2 class="text-lg font-semibold">Who may use the app?</h2>
 
+                <div class="mt-4 grid gap-2 sm:grid-cols-2">
+                    @foreach ([
+                        'everyone' => ['Anyone (open sign-up)', 'Everyone with an account at the provider can create an account here, from any network. Each person only sees their own spools.'],
+                        'listed' => ['Only people I list', 'Only the accounts and networks you enter below. For a private installation.'],
+                    ] as $key => [$title, $description])
+                        <label wire:key="audience-{{ $key }}" @class([
+                            'cursor-pointer rounded-lg border px-3 py-2 text-sm',
+                            'border-emerald-600 bg-emerald-50' => $audience === $key,
+                            'border-stone-300 hover:border-stone-400' => $audience !== $key,
+                        ])>
+                            <input type="radio" wire:model.live="audience" value="{{ $key }}" class="sr-only">
+                            <span class="font-medium">{{ $title }}</span>
+                            <span class="mt-0.5 block text-xs text-stone-500">{{ $description }}</span>
+                        </label>
+                    @endforeach
+                </div>
+
+                @if ($audience === 'everyone')
+                    <p class="mt-4 text-sm text-stone-600">The website, the Android app API and the MCP server accept every IP address; sign-in, tokens and rate limits still protect them. The first sign-in creates the account.</p>
+                    @if ($preset === 'google')
+                        <p class="mt-2 rounded bg-amber-50 px-3 py-2 text-sm text-amber-900">Google only lets the test users on the OAuth consent screen sign in while the app is in "Testing". Publish the app there (Audience → Publish app) before you open it to everyone.</p>
+                    @endif
+                    @error('allowed_emails') <p class="mt-1 text-sm text-red-700">{{ $message }}</p> @enderror
+                @else
                 <label class="mt-4 block text-sm font-medium" for="allowed_emails">Allowed accounts</label>
                 <textarea id="allowed_emails" wire:model="allowed_emails" rows="3" placeholder="me@example.com, @family.example"
                           class="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2 font-mono text-sm"></textarea>
@@ -203,7 +227,7 @@
                 <p class="mt-1 text-xs text-stone-500">Full email addresses and/or whole domains starting with @, separated by commas or new lines. Anyone else is refused, even with a valid account at the provider.</p>
 
                 <h3 class="mt-6 text-sm font-semibold">From which networks?</h3>
-                <p class="mt-1 text-xs text-stone-500">Visitors through the Cloudflare Tunnel are seen by their public IP. Use your home's public IP and/or ranges such as <code class="font-mono">192.168.1.0/24</code>, comma separated.</p>
+                <p class="mt-1 text-xs text-stone-500">Visitors through the Cloudflare Tunnel are seen by their public IP (your home's public IP, not a <code class="font-mono">192.168.x.x</code> address). Comma separated; <code class="font-mono">*</code> means any address.</p>
 
                 @foreach (['ips_web' => 'Website (required)', 'ips_api' => 'Android app API (empty = blocked)', 'ips_mcp' => 'MCP server (empty = blocked)'] as $field => $label)
                     <div wire:key="{{ $field }}">
@@ -213,6 +237,7 @@
                         @error($field) <p class="mt-1 text-sm text-red-700">{{ $message }}</p> @enderror
                     </div>
                 @endforeach
+                @endif
             @elseif ($step === 4)
                 <h2 class="text-lg font-semibold">Test the sign-in</h2>
                 <p class="mt-2 text-sm text-stone-600">Sign in once with these settings before anything is saved, so a wrong value cannot lock you out. The provider sends you back to <code class="font-mono">{{ $testCallback }}</code>.</p>
@@ -240,10 +265,10 @@
                     <dt class="text-stone-500">Issuer</dt><dd class="font-mono break-all">{{ $issuer }}</dd>
                     <dt class="text-stone-500">Client ID</dt><dd class="font-mono break-all">{{ $client_id }}</dd>
                     <dt class="text-stone-500">Client secret</dt><dd class="font-mono">••••••••</dd>
-                    <dt class="text-stone-500">Allowed accounts</dt><dd class="font-mono break-all">{{ $allowed_emails }}</dd>
-                    <dt class="text-stone-500">Website IPs</dt><dd class="font-mono break-all">{{ $ips_web }}</dd>
-                    <dt class="text-stone-500">API IPs</dt><dd class="font-mono break-all">{{ $ips_api ?: 'blocked' }}</dd>
-                    <dt class="text-stone-500">MCP IPs</dt><dd class="font-mono break-all">{{ $ips_mcp ?: 'blocked' }}</dd>
+                    <dt class="text-stone-500">Allowed accounts</dt><dd class="font-mono break-all">{{ $allowed_emails === '*' ? 'Anyone (open sign-up)' : $allowed_emails }}</dd>
+                    <dt class="text-stone-500">Website IPs</dt><dd class="font-mono break-all">{{ $ips_web === '*' ? 'Any address' : $ips_web }}</dd>
+                    <dt class="text-stone-500">API IPs</dt><dd class="font-mono break-all">{{ $ips_api === '*' ? 'Any address' : ($ips_api ?: 'blocked') }}</dd>
+                    <dt class="text-stone-500">MCP IPs</dt><dd class="font-mono break-all">{{ $ips_mcp === '*' ? 'Any address' : ($ips_mcp ?: 'blocked') }}</dd>
                     <dt class="text-stone-500">Tested as</dt><dd>{{ $tested['email'] ?? 'not tested' }}</dd>
                 </dl>
 

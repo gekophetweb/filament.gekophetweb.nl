@@ -20,6 +20,9 @@ class SaveSetup
 
     private const LIST_FIELDS = ['allowed_emails', 'ips_web', 'ips_api', 'ips_mcp'];
 
+    /** List value that allows everyone: any verified email, or any IP address. */
+    public const EVERYONE = '*';
+
     public function __construct(private SetupState $setup) {}
 
     public function writer(): EnvWriter
@@ -69,8 +72,7 @@ class SaveSetup
             $value = (string) ($validated[$field] ?? '');
 
             $normalized[$field] = match (true) {
-                $field === 'allowed_emails' => implode(',', self::splitList(strtolower($value))),
-                in_array($field, self::LIST_FIELDS, true) => implode(',', self::splitList($value)),
+                in_array($field, self::LIST_FIELDS, true) => self::joinList($field === 'allowed_emails' ? strtolower($value) : $value),
                 in_array($field, ['app_url', 'issuer'], true) => rtrim($value, '/'),
                 default => $value,
             };
@@ -159,9 +161,11 @@ class SaveSetup
             'client_id' => ['required', 'string', 'max:255', 'regex:/^\S+$/'],
             'client_secret' => ['required', 'string', 'max:2000'],
             'allowed_emails' => ['required', 'string', $this->eachEntry(
-                fn (string $entry) => str_starts_with($entry, '@')
-                    ? preg_match('/^@([a-z0-9-]+\.)+[a-z]{2,}$/i', $entry) === 1
-                    : filter_var($entry, FILTER_VALIDATE_EMAIL) !== false,
+                fn (string $entry) => match (true) {
+                    $entry === self::EVERYONE => true,
+                    str_starts_with($entry, '@') => preg_match('/^@([a-z0-9-]+\.)+[a-z]{2,}$/i', $entry) === 1,
+                    default => filter_var($entry, FILTER_VALIDATE_EMAIL) !== false,
+                },
                 '":entry" is not an email address or @domain.',
             )],
             'ips_web' => ['required', 'string', $this->eachEntry($this->isIpOrCidr(...), '":entry" is not an IP address or CIDR range.')],
@@ -199,6 +203,10 @@ class SaveSetup
 
     private function isIpOrCidr(string $entry): bool
     {
+        if ($entry === self::EVERYONE) {
+            return true;
+        }
+
         [$address, $bits] = array_pad(explode('/', $entry, 2), 2, null);
 
         if (filter_var($address, FILTER_VALIDATE_IP) === false) {
@@ -212,6 +220,16 @@ class SaveSetup
         $max = str_contains($address, ':') ? 128 : 32;
 
         return ctype_digit($bits) && (int) $bits <= $max;
+    }
+
+    /**
+     * Comma-joined, de-duplicated entries; just "*" when the list allows everyone.
+     */
+    private static function joinList(string $value): string
+    {
+        $entries = self::splitList($value);
+
+        return in_array(self::EVERYONE, $entries, true) ? self::EVERYONE : implode(',', $entries);
     }
 
     /**

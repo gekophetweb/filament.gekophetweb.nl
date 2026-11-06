@@ -95,18 +95,27 @@ class SsoSetupCommand extends Command
 
         $input['client_id'] = $this->promptFor($save, 'client_id', text(...), ['label' => 'Client ID', 'hint' => $provider['client_id_hint']]);
         $input['client_secret'] = $this->promptFor($save, 'client_secret', password(...), ['label' => 'Client secret', 'hint' => $provider['client_secret_hint']]);
-        $input['allowed_emails'] = $this->promptFor($save, 'allowed_emails', textarea(...), [
-            'label' => 'Allowed accounts',
-            'placeholder' => 'me@example.com, @family.example',
-            'hint' => 'Emails and/or @domains, separated by commas or new lines.',
-        ]);
-        $input['ips_web'] = $this->promptFor($save, 'ips_web', text(...), [
-            'label' => 'IP ranges for the website',
-            'placeholder' => '203.0.113.7, 192.168.1.0/24',
-            'hint' => 'Visitors through the Cloudflare Tunnel are seen by their public IP.',
-        ]);
-        $input['ips_api'] = $this->promptFor($save, 'ips_api', text(...), ['label' => 'IP ranges for the Android app API', 'hint' => 'Empty = blocked']);
-        $input['ips_mcp'] = $this->promptFor($save, 'ips_mcp', text(...), ['label' => 'IP ranges for the MCP server', 'hint' => 'Empty = blocked']);
+        $audience = select('Who may use the app?', [
+            'everyone' => 'Anyone (open sign-up): every account at the provider, from any network',
+            'listed' => 'Only people I list: the accounts and networks I enter next',
+        ], default: 'everyone');
+
+        if ($audience === 'everyone') {
+            $input['allowed_emails'] = $input['ips_web'] = $input['ips_api'] = $input['ips_mcp'] = SaveSetup::EVERYONE;
+        } else {
+            $input['allowed_emails'] = $this->promptFor($save, 'allowed_emails', textarea(...), [
+                'label' => 'Allowed accounts',
+                'placeholder' => 'me@example.com, @family.example',
+                'hint' => 'Emails and/or @domains, separated by commas or new lines.',
+            ]);
+            $input['ips_web'] = $this->promptFor($save, 'ips_web', text(...), [
+                'label' => 'IP ranges for the website',
+                'placeholder' => '203.0.113.7, 192.168.1.0/24',
+                'hint' => 'Visitors through the Cloudflare Tunnel are seen by their public IP. * = any address.',
+            ]);
+            $input['ips_api'] = $this->promptFor($save, 'ips_api', text(...), ['label' => 'IP ranges for the Android app API', 'hint' => 'Empty = blocked, * = any address']);
+            $input['ips_mcp'] = $this->promptFor($save, 'ips_mcp', text(...), ['label' => 'IP ranges for the MCP server', 'hint' => 'Empty = blocked, * = any address']);
+        }
 
         $values = $save->validate($input);
         table(['Setting', 'Value'], collect($save->envValues($values))

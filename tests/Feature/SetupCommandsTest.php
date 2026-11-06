@@ -52,6 +52,7 @@ it('configures SSO from the terminal', function () {
         ->expectsChoice('Sign-in provider', 'google', array_map(fn (array $preset) => "{$preset['label']} — {$preset['summary']}", SsoPresets::all()))
         ->expectsQuestion('Client ID', 'google-client')
         ->expectsQuestion('Client secret', 'g-secret')
+        ->expectsChoice('Who may use the app?', 'listed', ['Anyone (open sign-up): every account at the provider, from any network', 'Only people I list: the accounts and networks I enter next', 'everyone', 'listed'])
         ->expectsQuestion('Allowed accounts', '@family.example')
         ->expectsQuestion('IP ranges for the website', '192.168.1.0/24')
         ->expectsQuestion('IP ranges for the Android app API', '')
@@ -64,6 +65,33 @@ it('configures SSO from the terminal', function () {
         ->toContain("SSO_CLIENT_ID='google-client'")
         ->toContain("SSO_ALLOWED_EMAILS='@family.example'");
     expect(app(SetupState::class)->isComplete())->toBeTrue();
+});
+
+it('opens sign-up to everyone from the terminal without asking for lists', function () {
+    Process::fake();
+    Http::preventStrayRequests();
+    Http::fake(['https://accounts.google.com/.well-known/openid-configuration' => Http::response([
+        'issuer' => 'https://accounts.google.com',
+        'authorization_endpoint' => 'https://accounts.google.com/o/oauth2/v2/auth',
+        'token_endpoint' => 'https://oauth2.googleapis.com/token',
+        'userinfo_endpoint' => 'https://openidconnect.googleapis.com/v1/userinfo',
+        'code_challenge_methods_supported' => ['S256'],
+    ])]);
+
+    $this->artisan('sso:setup')
+        ->expectsQuestion('Public address of the app', 'https://spools.example.com')
+        ->expectsChoice('Sign-in provider', 'google', array_map(fn (array $preset) => "{$preset['label']} — {$preset['summary']}", SsoPresets::all()))
+        ->expectsQuestion('Client ID', 'google-client')
+        ->expectsQuestion('Client secret', 'g-secret')
+        ->expectsChoice('Who may use the app?', 'everyone', ['Anyone (open sign-up): every account at the provider, from any network', 'Only people I list: the accounts and networks I enter next', 'everyone', 'listed'])
+        ->expectsConfirmation('Write these settings to storage/app/.env.local?', 'yes')
+        ->assertSuccessful();
+
+    expect(file_get_contents($this->dir.'/.env'))
+        ->toContain("SSO_ALLOWED_EMAILS='*'")
+        ->toContain("ALLOWED_IPS_WEB='*'")
+        ->toContain("ALLOWED_IPS_API='*'")
+        ->toContain("ALLOWED_IPS_MCP='*'");
 });
 
 it('refuses to run once setup is complete', function () {

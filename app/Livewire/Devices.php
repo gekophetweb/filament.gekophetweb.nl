@@ -34,6 +34,15 @@ class Devices extends Component
     {
         $this->validate();
 
+        $max = (int) config('access.max_tokens_per_user');
+        $active = Auth::user()->tokens()->where(fn ($query) => $query->whereNull('expires_at')->orWhere('expires_at', '>', now()))->count();
+
+        if ($active >= $max) {
+            $this->addError('name', "You can have at most {$max} active tokens. Revoke one you no longer use first.");
+
+            return;
+        }
+
         $this->plainToken = Auth::user()
             ->createToken($this->name, self::ABILITIES[$this->access], now()->addYear())
             ->plainTextToken;

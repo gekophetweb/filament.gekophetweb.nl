@@ -45,6 +45,9 @@ class Setup extends Component
     /** Only holds a newly typed secret until the next step; then it moves to the session. */
     public string $client_secret = '';
 
+    /** "everyone": open sign-up from any network; "listed": only the accounts and networks below. */
+    public string $audience = 'everyone';
+
     public string $allowed_emails = '';
 
     public string $ips_web = '';
@@ -144,6 +147,19 @@ class Setup extends Component
         $this->issuer = SsoPresets::issuerFor($this->preset, $this->tenant) ?? '';
     }
 
+    public function updatedAudience(): void
+    {
+        if ($this->audience !== 'everyone') {
+            $this->audience = 'listed';
+
+            foreach (['allowed_emails', 'ips_web', 'ips_api', 'ips_mcp'] as $field) {
+                if ($this->{$field} === SaveSetup::EVERYONE) {
+                    $this->{$field} = '';
+                }
+            }
+        }
+    }
+
     public function updatedTenant(): void
     {
         $this->issuer = SsoPresets::issuerFor($this->preset, $this->tenant) ?? $this->issuer;
@@ -217,6 +233,10 @@ class Setup extends Component
 
     private function completeAccess(SaveSetup $save): void
     {
+        if ($this->audience === 'everyone') {
+            $this->allowed_emails = $this->ips_web = $this->ips_api = $this->ips_mcp = SaveSetup::EVERYONE;
+        }
+
         $values = $save->validate($this->input(), ['allowed_emails', 'ips_web', 'ips_api', 'ips_mcp']);
 
         $this->allowed_emails = $values['allowed_emails'];
@@ -250,7 +270,7 @@ class Setup extends Component
     {
         session([
             'setup.step' => $this->step,
-            'setup.draft' => collect(['app_url', 'preset', 'tenant', 'issuer', 'client_id', 'allowed_emails', 'ips_web', 'ips_api', 'ips_mcp'])
+            'setup.draft' => collect(['app_url', 'preset', 'tenant', 'issuer', 'client_id', 'audience', 'allowed_emails', 'ips_web', 'ips_api', 'ips_mcp'])
                 ->mapWithKeys(fn (string $field) => [$field => $this->{$field}])
                 ->all(),
         ]);

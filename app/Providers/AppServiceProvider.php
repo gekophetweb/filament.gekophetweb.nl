@@ -7,7 +7,6 @@ use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
-use Laravel\Sanctum\PersonalAccessToken;
 use Laravel\Socialite\Contracts\Factory as Socialite;
 use Laravel\Socialite\SocialiteManager;
 
@@ -45,25 +44,27 @@ class AppServiceProvider extends ServiceProvider
 
     private function configureRateLimiting(): void
     {
-        $tokenKey = function (Request $request): string {
-            $token = $request->user()?->currentAccessToken();
-
-            return $token instanceof PersonalAccessToken ? 'token:'.$token->getKey() : 'ip:'.$request->ip();
-        };
+        // Per user, not per token: with open sign-up, extra tokens must not add up to extra quota.
+        $userKey = fn (Request $request): string => $request->user()
+            ? 'user:'.$request->user()->getAuthIdentifier()
+            : 'ip:'.$request->ip();
+        // Read on each request, so config/access.php is the single place for these numbers.
+        $limit = fn (string $name): int => (int) config("access.rate_limits.{$name}");
 
         RateLimiter::for('login', fn (Request $r) => Limit::perMinute(10)->by($r->ip()));
         RateLimiter::for('sso-callback', fn (Request $r) => Limit::perMinute(20)->by($r->ip()));
         RateLimiter::for('token-exchange', fn (Request $r) => Limit::perMinute(10)->by($r->ip()));
 
         // Cheap IP throttle that runs before token authentication.
-        RateLimiter::for('api-ip', fn (Request $r) => Limit::perMinute(300)->by($r->ip()));
+        RateLimiter::for('api-ip', fn (Request $r) => Limit::perMinute($limit('api_ip_per_minute'))->by($r->ip()));
 
-        RateLimiter::for('api-read', fn (Request $r) => Limit::perMinute(120)->by($tokenKey($r)));
-        RateLimiter::for('api-write', fn (Request $r) => Limit::perMinute(30)->by($tokenKey($r)));
-        RateLimiter::for('mcp', fn (Request $r) => Limit::perMinute(60)->by($tokenKey($r)));
+        RateLimiter::for('api-read', fn (Request $r) => Limit::perMinute($limit('api_read_per_minute'))->by($userKey($r)));
+        RateLimiter::for('api-write', fn (Request $r) => [
+            Limit::perMinute($limit('api_write_per_minute'))->by('minute:'.$userKey($r)),
+            Limit::perDay($limit('api_write_per_day'))->by('day:'.$userKey($r)),
+        ]);
+        RateLimiter::for('mcp', fn (Request $r) => Limit::perMinute($limit('mcp_per_minute'))->by($userKey($r)));
 
-        RateLimiter::for('web', fn (Request $r) => Limit::perMinute(120)->by(
-            $r->user() ? 'user:'.$r->user()->getAuthIdentifier() : 'ip:'.$r->ip()
-        ));
+        RateLimiter::for('web', fn (Request $r) => Limit::perMinute(120)->by($userKey($r)));
     }
 }

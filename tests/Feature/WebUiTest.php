@@ -80,3 +80,20 @@ it('creates read-only and write tokens and revokes them', function () {
     Livewire::actingAs($user)->test(Devices::class)->call('revoke', $token->id);
     expect($user->tokens()->count())->toBe(0);
 });
+
+it('limits how many active tokens a user can have', function () {
+    config(['access.max_tokens_per_user' => 2]);
+    $user = user();
+    $user->createToken('old', ['spools:read'], now()->subDay());
+    $user->createToken('one', ['spools:read']);
+
+    Livewire::actingAs($user)->test(Devices::class)
+        ->set('name', 'two')
+        ->call('create')
+        ->assertHasNoErrors()
+        ->set('name', 'three')
+        ->call('create')
+        ->assertHasErrors(['name' => 'You can have at most 2 active tokens. Revoke one you no longer use first.']);
+
+    expect($user->tokens()->count())->toBe(3);
+});

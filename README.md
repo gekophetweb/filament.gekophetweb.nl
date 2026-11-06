@@ -27,7 +27,7 @@ In code, `FilamentProduct` is a catalog item and `Spool` is a physical spool you
    The wizard only answers on `http://127.0.0.1:8000` on the Docker host (for a remote server:
    `ssh -L 8000:127.0.0.1:8000 user@server`), never through the tunnel. It walks through the public
    address, the identity provider (Keycloak, Authentik, Authelia, Zitadel, Pocket ID, Entra ID, Google,
-   Okta, Auth0, GitLab or any OIDC provider, each with setup instructions, and a discovery check), allowed accounts and IP ranges, and a real test sign-in. Only then does it save,
+   Okta, Auth0, GitLab or any OIDC provider, each with setup instructions, and a discovery check), who may use it (anyone, or only listed accounts and networks), and a real test sign-in. Only then does it save,
    reload the app and close itself for good (`storage/app/setup.lock`).
    Without a browser: `docker compose exec app php artisan sso:setup` (same steps, no test sign-in).
 4. In Cloudflare Zero Trust, point the tunnel's public hostname to `http://app:8000`,
@@ -86,11 +86,15 @@ Re-running it is safe.
 
 | Layer | Where |
 |---|---|
-| SSO + email/domain allow-list | `SSO_ALLOWED_EMAILS`; empty means nobody can sign in |
-| IP allow-list per surface | `ALLOWED_IPS_WEB/API/MCP`; empty blocks everything in production |
+| SSO + email/domain allow-list | `SSO_ALLOWED_EMAILS`; `*` = open sign-up (any verified email), empty = nobody can sign in |
+| IP allow-list per surface | `ALLOWED_IPS_WEB/API/MCP`; `*` = any address, empty blocks everything in production |
 | Trusted proxy | `TRUSTED_PROXIES` = the Docker `frontend` subnet only |
-| Rate limits | `AppServiceProvider` (login 10/min, API read 120, write 30, MCP 60; 20 failed token logins block the IP for 10 minutes) |
-| Tokens | Devices page: read-only (`spools:read`) or read-write (`spools:read`, `spools:write`), valid for one year |
+| Rate limits | Per user, shared by all their tokens: API read 120/min, write 30/min and 1000/day, MCP 60/min; plus 300/min per IP and login 10/min. 20 failed token logins block the IP for 10 minutes. Change them with the `RATE_LIMIT_*` variables (`config/access.php`) |
+| Tokens | Devices page: read-only (`spools:read`) or read-write (`spools:read`, `spools:write`), valid for one year, at most 10 active per user (`MAX_TOKENS_PER_USER`) |
+
+With open sign-up, the first sign-in through the identity provider creates the account, and each user
+only sees their own spools. With Google, publish the OAuth consent screen (Audience → Publish app);
+in "Testing" only its listed test users can sign in.
 
 Blocked IPs are logged to `storage/logs/blocked-ips.log`. MCP calls are written to the
 `mcp_audit_logs` table and `storage/logs/mcp-audit.log`.

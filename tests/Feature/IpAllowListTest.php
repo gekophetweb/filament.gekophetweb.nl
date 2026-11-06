@@ -65,3 +65,13 @@ it('checks the IP before authentication on the API and MCP', function () {
     $this->getJson('/api/v1/me')->assertForbidden();
     $this->postJson('/mcp', [])->assertForbidden();
 });
+
+it('reads * as any IPv4 or IPv6 address', function () {
+    $_SERVER['ALLOWED_IPS_WEB'] = '*';
+    config(['access.ips.web' => (require config_path('access.php'))['ips']['web']]);
+    unset($_SERVER['ALLOWED_IPS_WEB']);
+    app()->detectEnvironment(fn () => 'production');
+
+    expect(ipCheck('8.8.8.8'))->toBe(200)
+        ->and(ipCheck('2001:db9::1'))->toBe(200);
+});

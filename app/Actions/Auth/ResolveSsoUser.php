@@ -51,14 +51,14 @@ class ResolveSsoUser
     }
 
     /**
-     * @param  list<string>  $entries  Lower-case emails and/or "@domain" entries.
+     * @param  list<string>  $entries  Lower-case emails and/or "@domain" entries; "*" allows every verified email (open sign-up).
      */
     public static function matchesAllowList(string $email, array $entries): bool
     {
         $email = Str::lower($email);
 
         foreach ($entries as $entry) {
-            if ($entry === $email || (str_starts_with($entry, '@') && str_ends_with($email, $entry))) {
+            if ($entry === '*' || $entry === $email || (str_starts_with($entry, '@') && str_ends_with($email, $entry))) {
                 return true;
             }
         }
