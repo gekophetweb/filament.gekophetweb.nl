@@ -1,3 +1,6 @@
+# Project name: containers, networks and volumes are prefixed "filament-" / "filament_".
+name: filament
+
 services:
   app:
     build: { context: ., target: app }
@@ -15,6 +18,7 @@ services:
   queue:
     build: { context: ., target: app }
     command: php artisan queue:work --tries=3 --max-time=3600
+    healthcheck: { disable: true }   # image check probes the web port
     env_file: .env
     depends_on: [db, redis]
     volumes:
@@ -25,6 +29,7 @@ services:
   scheduler:
     build: { context: ., target: app }
     command: php artisan schedule:work
+    healthcheck: { disable: true }
     env_file: .env
     depends_on: [db, redis]
     networks: [backend]
