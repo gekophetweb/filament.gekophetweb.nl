@@ -152,7 +152,7 @@ Buy links open a search in the Bambu Lab store set by `BAMBULAB_STORE_URL` (defa
 
 `POST https://filament.gekophetweb.nl/mcp` with `Authorization: Bearer <token>`.
 Tools: `search_catalog`, `list_spools`, `get_spool`, `running_out_report` (read);
-`add_spool`, `put_spool_on_holder`, `mark_spool_used_up` (only shown to write tokens). Resource `spool://{uuid}`,
+`add_spool` (optional `amount`, 1–50), `put_spool_on_holder`, `mark_spool_used_up` (only shown to write tokens). Resource `spool://{uuid}`,
 prompt `suggest_reorder`.
 
 ## Development

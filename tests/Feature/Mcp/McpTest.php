@@ -1,5 +1,6 @@
 <?php
 
+use App\Actions\AddSpool;
 use App\Enums\SpoolStatus;
 use App\Mcp\Servers\SpoolServer;
 use App\Mcp\Tools\AddSpoolTool;
@@ -80,6 +81,20 @@ it('runs write tools with a write token and audits them', function () {
     expect($spool->fresh()->status)->toBe(SpoolStatus::UsedUp)
         ->and(McpAuditLog::where('user_id', $user->id)->pluck('status', 'tool')->all())
         ->toMatchArray(['add_spool' => 'ok', 'put_spool_on_holder' => 'ok', 'mark_spool_used_up' => 'ok']);
+});
+
+it('adds several spools at once with amount, within the limit', function () {
+    $user = mcpUser(['spools:read', 'spools:write']);
+    $product = FilamentProduct::factory()->create();
+
+    SpoolServer::actingAs($user)->tool(AddSpoolTool::class, ['product_id' => $product->id, 'amount' => 3])
+        ->assertOk()
+        ->assertSee(['added', ...$user->spools()->pluck('uuid')->all()]);
+
+    SpoolServer::actingAs($user)->tool(AddSpoolTool::class, ['product_id' => $product->id, 'amount' => AddSpool::MAX_AMOUNT + 1])
+        ->assertHasErrors();
+
+    expect($user->spools()->count())->toBe(3);
 });
 
 it('leaves filaments with a boxed backup out of the running-out report', function () {
