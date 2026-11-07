@@ -17,6 +17,7 @@
                 <a href="{{ route('spools') }}" @class(['text-sm', 'font-semibold text-emerald-700' => request()->routeIs('spools*')])>My spools</a>
                 <a href="{{ route('usage') }}" @class(['text-sm', 'font-semibold text-emerald-700' => request()->routeIs('usage')])>Usage</a>
                 <a href="{{ route('devices') }}" @class(['text-sm', 'font-semibold text-emerald-700' => request()->routeIs('devices')])>Devices</a>
+                <a href="{{ route('docs.api') }}" @class(['text-sm', 'font-semibold text-emerald-700' => request()->routeIs('docs.*')])>API docs</a>
                 <form method="POST" action="{{ route('logout') }}" class="ml-auto">
                     @csrf
                     <button class="text-sm text-stone-500 hover:text-stone-900">Sign out {{ auth()->user()->name }}</button>

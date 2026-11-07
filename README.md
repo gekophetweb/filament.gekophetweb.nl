@@ -125,6 +125,11 @@ service token or bypass for `/api/*` and `/mcp`.
 
 Spools are counted, not weighed: a spool is `boxed`, `on_spool` (on the spool holder) or `used_up`.
 
+**Full reference:** `/docs/api` (readable page) and `/docs/api/openapi.json` (OpenAPI 3.1), both built
+from `app/Support/ApiDocumentation.php`. They are public: no sign-in, no IP allow-list, only 60 requests a
+minute per IP. If a Cloudflare WAF rule limits access by IP, exclude `/docs/*` from it as well.
+`tests/Feature/ApiDocsTest.php` fails when an API route is added without documenting it.
+
 **Connect by QR code.** On the Devices page, *Show QR code* shows a QR holding JSON:
 `{"type":"filament-spools-pairing","api":"https://…/api/v1","code":"…","expires_at":"…"}`. The code works
 once, for 10 minutes. The app sends `POST /api/v1/pair` with `{"code": "…", "device_name": "optional"}` (no
