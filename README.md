@@ -82,6 +82,16 @@ Re-running it is safe.
 
 `color_family` is computed from the hex color on import.
 
+## Export and import your spools
+
+On **My spools**, *Export CSV* downloads all your spools (any status, deleted ones left out) with the
+columns `id, article_number, filament, material, status, refill, purchased_at, price, location, notes, added_at`.
+*Import spools from CSV* reads such a file back, also after editing it in a spreadsheet (comma or
+semicolon separated, UTF-8 or Excel's Windows encoding, at most 2 MB / 5000 rows). Only `article_number`
+is required. A row with the `id` of one of your spools updates it; every other row adds a spool. Nothing is
+deleted, and rows that fail are skipped and listed. `status` takes `boxed`, `on_spool`, `used_up`,
+`archived` or their labels. New spools are dated by `added_at`; the history of events itself is not exported.
+
 ## Access control
 
 | Layer | Where |

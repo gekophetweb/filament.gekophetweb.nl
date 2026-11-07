@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Auth\SetupSignInTestController;
 use App\Http\Controllers\Auth\SsoController;
+use App\Http\Controllers\SpoolExportController;
 use App\Livewire\Catalog;
 use App\Livewire\Devices;
 use App\Livewire\FilamentDetail;
@@ -28,6 +29,7 @@ Route::middleware(['auth', 'throttle:web'])->group(function () {
     Route::get('/filaments/{product}', FilamentDetail::class)->name('filaments.show');
     Route::get('/usage', Usage::class)->name('usage');
     Route::get('/spools', Spools::class)->name('spools');
+    Route::get('/spools/export', SpoolExportController::class)->name('spools.export');
     Route::get('/spools/{spool}', SpoolDetail::class)->name('spools.show');
     Route::get('/devices', Devices::class)->name('devices');
     Route::post('/logout', [SsoController::class, 'logout'])->name('logout');

@@ -8,7 +8,29 @@
             @endforeach
             <option value="all">All</option>
         </select>
+        <a href="{{ route('spools.export') }}" class="whitespace-nowrap rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm shadow-sm hover:bg-stone-50"
+           title="Download all your spools (any status) as a CSV file">Export CSV ↓</a>
     </div>
+
+    @if ($importResult)
+        <div class="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm" role="status">
+            @php
+                $summary = "{$importResult['created']} added, {$importResult['updated']} updated, {$importResult['unchanged']} unchanged"
+                    .($importResult['errors'] ? ', '.count($importResult['errors']).' skipped' : '');
+            @endphp
+            <p class="font-medium">Import done: {{ $summary }}.</p>
+            @if ($importResult['errors'])
+                <ul class="mt-2 list-disc space-y-0.5 pl-5 text-stone-700">
+                    @foreach (array_slice($importResult['errors'], 0, 20) as $i => $error)
+                        <li wire:key="import-error-{{ $i }}">{{ $error }}</li>
+                    @endforeach
+                    @if (count($importResult['errors']) > 20)
+                        <li>… and {{ count($importResult['errors']) - 20 }} more.</li>
+                    @endif
+                </ul>
+            @endif
+        </div>
+    @endif
 
     <div class="overflow-x-auto rounded-xl bg-white shadow-sm">
         <table class="w-full text-sm">
@@ -54,4 +76,20 @@
     </div>
 
     <div class="mt-6">{{ $spools->links() }}</div>
+
+    <section class="mt-8 rounded-xl bg-white p-4 shadow-sm">
+        <h2 class="font-semibold">Import spools from CSV</h2>
+        <p class="mt-1 text-sm text-stone-600">
+            Use a file from <strong>Export CSV</strong>, edited in a spreadsheet if you like. Only <code>article_number</code> is required.
+            Rows with the <code>id</code> of one of your spools update it; other rows are added as new spools. Nothing is deleted.
+        </p>
+        <form wire:submit="import" class="mt-3 flex flex-wrap items-center gap-3">
+            <input type="file" wire:model="importFile" accept=".csv,text/csv"
+                   class="text-sm file:mr-3 file:rounded-md file:border-0 file:bg-stone-200 file:px-3 file:py-1.5 file:text-sm hover:file:bg-stone-300">
+            <button type="submit" wire:loading.attr="disabled" wire:target="importFile,import"
+                    class="rounded-md bg-stone-900 px-3 py-1.5 text-sm text-white hover:bg-stone-700 disabled:opacity-50">Import</button>
+            <span wire:loading wire:target="importFile,import" class="text-sm text-stone-500">Working…</span>
+        </form>
+        @error('importFile') <p class="mt-2 text-sm text-red-700">{{ $message }}</p> @enderror
+    </section>
 </div>
