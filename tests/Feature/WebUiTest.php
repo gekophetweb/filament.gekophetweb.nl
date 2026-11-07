@@ -96,6 +96,23 @@ it('keeps only the export button on My spools and moves sharing and import to th
         ->assertSee('Import spools from CSV');
 });
 
+it('uses dark mode by default and light mode once the browser stores that choice', function () {
+    $user = user();
+
+    $this->actingAs($user)->get('/spools')->assertOk()
+        ->assertSee('<html lang="en" class="h-full dark">', false)
+        ->assertSee('Switch to light mode');
+
+    $this->actingAs($user)->withUnencryptedCookie('theme', 'light')->get('/spools')->assertOk()
+        ->assertSee('<html lang="en" class="h-full">', false)
+        ->assertSee('Switch to dark mode');
+
+    $this->withUnencryptedCookie('theme', 'light')->get('/docs/api')->assertOk()
+        ->assertSee('<html lang="en" class="h-full">', false);
+    $this->withUnencryptedCookie('theme', 'bogus')->get('/docs/api')->assertOk()
+        ->assertSee('<html lang="en" class="h-full dark">', false);
+});
+
 it('never lists used-up spools on My spools, whatever the status filter', function () {
     $user = user();
     $usedUp = Spool::factory()->for($user)->usedUp()->create();

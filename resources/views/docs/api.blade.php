@@ -55,7 +55,7 @@
 
                 <div>
                     <h2 class="mb-2 text-sm font-semibold">Try it</h2>
-                    <pre class="overflow-x-auto rounded-xl bg-stone-900 p-4 text-xs text-stone-100"><code>curl {{ $baseUrl }}/spools?status=on_spool \
+                    <pre class="overflow-x-auto rounded-xl bg-neutral-900 p-4 text-xs text-neutral-100"><code>curl {{ $baseUrl }}/spools?status=on_spool \
   -H "Authorization: Bearer $TOKEN" \
   -H "Accept: application/json"</code></pre>
                 </div>
@@ -133,7 +133,7 @@
                                 @if ($success)
                                     <details class="mt-3">
                                         <summary class="cursor-pointer text-sm text-emerald-700">Example {{ $success['status'] }} response</summary>
-                                        <pre class="mt-2 max-h-96 overflow-auto rounded-lg bg-stone-900 p-3 text-xs text-stone-100"><code>{{ $json($success['example']) }}</code></pre>
+                                        <pre class="mt-2 max-h-96 overflow-auto rounded-lg bg-neutral-900 p-3 text-xs text-neutral-100"><code>{{ $json($success['example']) }}</code></pre>
                                     </details>
                                 @endif
                             </div>

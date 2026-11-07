@@ -5,6 +5,7 @@ use App\Http\Middleware\EnsureSetupComplete;
 use App\Http\Middleware\ThrottleAuthFailures;
 use App\Http\Middleware\ThrottleBeforeAuth;
 use App\Support\LocalEnvironment;
+use App\Support\Theme;
 use Illuminate\Contracts\Auth\Middleware\AuthenticatesRequests;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -52,6 +53,9 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->prependToPriorityList(before: HandlePrecognitiveRequests::class, prepend: EnsureSetupComplete::class);
         $middleware->prependToPriorityList(before: AuthenticatesRequests::class, prepend: ThrottleAuthFailures::class);
         $middleware->prependToPriorityList(before: AuthenticatesRequests::class, prepend: ThrottleBeforeAuth::class);
+
+        // The light/dark choice is set by the browser's own script, so it cannot be encrypted.
+        $middleware->encryptCookies(except: [Theme::COOKIE]);
 
         // Every web route (including Livewire's update endpoint) is IP-restricted.
         $middleware->web(prepend: [EnsureIpAllowed::class.':web', EnsureSetupComplete::class]);

@@ -1,8 +1,9 @@
 @props(['months', 'label' => 'Spools added and used up per month'])
 @php
     // Grouped bars per month: added (blue) and used up (orange). Colors validated for
-    // color-blind separation and >= 3:1 contrast on white; identity also comes from the legend.
-    $series = ['added' => ['Added', '#2a78d6'], 'used_up' => ['Used up', '#eb6834']];
+    // color-blind separation and >= 3:1 contrast on the card, in light and in dark mode (the
+    // --chart-* variables in app.css); identity also comes from the legend.
+    $series = ['added' => ['Added', 'var(--chart-added)'], 'used_up' => ['Used up', 'var(--chart-used-up)']];
     $width = 800; $height = 200; $left = 28; $bottom = 22; $top = 8;
     $plotHeight = $height - $bottom - $top;
     $max = max(1, ...array_map(fn ($m) => max($m['added'], $m['used_up']), $months));
@@ -26,8 +27,8 @@
     @else
         <svg viewBox="0 0 {{ $width }} {{ $height }}" class="h-auto w-full" role="img" aria-label="{{ $label }}">
             @for ($tick = 0; $tick <= $yMax; $tick += $step)
-                <line x1="{{ $left }}" x2="{{ $width }}" y1="{{ $y($tick) }}" y2="{{ $y($tick) }}" stroke="{{ $tick === 0 ? '#a8a29e' : '#e7e5e4' }}" />
-                <text x="{{ $left - 6 }}" y="{{ $y($tick) + 3 }}" text-anchor="end" font-size="10" fill="#78716c">{{ $tick }}</text>
+                <line x1="{{ $left }}" x2="{{ $width }}" y1="{{ $y($tick) }}" y2="{{ $y($tick) }}" @class(['stroke-stone-400' => $tick === 0, 'stroke-stone-200' => $tick !== 0]) />
+                <text x="{{ $left - 6 }}" y="{{ $y($tick) + 3 }}" text-anchor="end" font-size="10" class="fill-stone-500">{{ $tick }}</text>
             @endfor
 
             @foreach ($months as $i => $month)
@@ -39,11 +40,11 @@
                     @foreach (array_keys($series) as $s => $key)
                         @if ($month[$key] > 0)
                             @php $barTop = $y($month[$key]); $barX = $x + $s * ($barWidth + 2); @endphp
-                            <path fill="{{ $series[$key][1] }}"
+                            <path style="fill: {{ $series[$key][1] }}"
                                   d="M{{ $barX }},{{ $y(0) }} V{{ $barTop + 3 }} Q{{ $barX }},{{ $barTop }} {{ $barX + 3 }},{{ $barTop }} H{{ $barX + $barWidth - 3 }} Q{{ $barX + $barWidth }},{{ $barTop }} {{ $barX + $barWidth }},{{ $barTop + 3 }} V{{ $y(0) }} Z" />
                         @endif
                     @endforeach
-                    <text x="{{ $left + ($i + 0.5) * $groupWidth }}" y="{{ $height - 6 }}" text-anchor="middle" font-size="10" fill="#78716c">{{ $month['label'] }}</text>
+                    <text x="{{ $left + ($i + 0.5) * $groupWidth }}" y="{{ $height - 6 }}" text-anchor="middle" font-size="10" class="fill-stone-500">{{ $month['label'] }}</text>
                 </g>
             @endforeach
         </svg>
