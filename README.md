@@ -82,6 +82,14 @@ Re-running it is safe.
 
 `color_family` is computed from the hex color on import.
 
+## Share link
+
+On **My spools**, *Create share link* makes a read-only link (`/share/<40 characters>`) that works without
+signing in. It shows the owner's name, and each filament they have boxed or on spool with its counts. Prices,
+notes, locations and history are left out. *New link* replaces it (the old link stops working) and
+*Stop sharing* turns it off. The link is still behind `ALLOWED_IPS_WEB`, so set that to `*` (or add the
+viewers' networks) for people elsewhere to open it.
+
 ## Export and import your spools
 
 On **My spools**, *Export CSV* downloads all your spools (any status, deleted ones left out) with the
@@ -116,6 +124,12 @@ service token or bypass for `/api/*` and `/mcp`.
 ## API
 
 Spools are counted, not weighed: a spool is `boxed`, `on_spool` (on the spool holder) or `used_up`.
+
+**Connect by QR code.** On the Devices page, *Show QR code* shows a QR holding JSON:
+`{"type":"filament-spools-pairing","api":"https://…/api/v1","code":"…","expires_at":"…"}`. The code works
+once, for 10 minutes. The app sends `POST /api/v1/pair` with `{"code": "…", "device_name": "optional"}` (no
+token needed) and gets `{"data": {"token", "token_type", "abilities", "expires_at", "api", "user"}}`; the
+token is valid for a year. A bad, used or expired code answers 401 and counts toward the IP block.
 
 Bearer token from the Devices page. `GET /me`, `GET /catalog` (`q, material, brand, line, color,
 owned=1|0|boxed|on_spool|running_out, updated_since, per_page<=100`; each product has `boxed_count`,

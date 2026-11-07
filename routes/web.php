@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Auth\SetupSignInTestController;
 use App\Http\Controllers\Auth\SsoController;
+use App\Http\Controllers\SharedSpoolsController;
 use App\Http\Controllers\SpoolExportController;
 use App\Livewire\Catalog;
 use App\Livewire\Devices;
@@ -23,6 +24,10 @@ Route::middleware('guest')->group(function () {
     Route::get('/auth/redirect', [SsoController::class, 'redirect'])->middleware('throttle:login')->name('sso.redirect');
     Route::get('/auth/callback', [SsoController::class, 'callback'])->middleware('throttle:sso-callback')->name('sso.callback');
 });
+
+// Read-only share links work without signing in (still behind the web IP allow-list).
+Route::get('/share/{token}', SharedSpoolsController::class)
+    ->where('token', '[A-Za-z0-9]{40}')->middleware('throttle:share')->name('share');
 
 Route::middleware(['auth', 'throttle:web'])->group(function () {
     Route::get('/', Catalog::class)->name('catalog');

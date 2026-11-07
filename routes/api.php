@@ -2,11 +2,15 @@
 
 use App\Http\Controllers\Api\CatalogController;
 use App\Http\Controllers\Api\MeController;
+use App\Http\Controllers\Api\PairController;
 use App\Http\Controllers\Api\SpoolController;
 use Illuminate\Support\Facades\Route;
 
 // Prefix: /api/v1 (see bootstrap/app.php).
 // Order matters: IP check and cheap IP throttles run before token authentication.
+Route::post('/pair', PairController::class)
+    ->middleware(['ip:api', 'auth-failures', 'throttle-ip:api-ip', 'throttle:token-exchange'])->name('api.pair');
+
 Route::middleware(['ip:api', 'auth-failures', 'throttle-ip:api-ip', 'auth:sanctum'])->group(function () {
     Route::get('/me', MeController::class)->middleware('throttle:api-read');
 

@@ -26,7 +26,24 @@
             </select>
         </label>
         <button class="rounded-md bg-stone-900 px-3 py-2 text-sm text-white">Create token</button>
+        <button type="button" wire:click="showQr" class="rounded-md border border-stone-300 px-3 py-2 text-sm hover:bg-stone-50"
+                title="Scan with the app: it gets the API address and its own token">Show QR code</button>
     </form>
+
+    @if ($qrSvg)
+        <div wire:key="qr-{{ $pairingExpiresAt }}" class="flex flex-wrap items-center gap-6 rounded-xl bg-white p-4 shadow-sm"
+             x-data="{ left: Math.max(0, Math.round((new Date(@js($pairingExpiresAt)) - Date.now()) / 1000)) }"
+             x-init="const timer = setInterval(() => { left = Math.max(0, left - 1); if (left === 0) { clearInterval(timer); $wire.cancelQr(); } }, 1000)">
+            <div class="rounded-lg bg-white p-2 ring-1 ring-stone-200" role="img" aria-label="QR code to connect the app">{!! $qrSvg !!}</div>
+            <div class="space-y-2 text-sm">
+                <p class="font-medium">Scan this with the app</p>
+                <p class="text-stone-600">It holds the API address <code class="font-mono">{{ url('/api/v1') }}</code> and a one-time code.
+                    The app trades the code for its own token, so the QR works only once.</p>
+                <p class="text-stone-600">Expires in <span class="font-semibold tabular-nums" x-text="`${Math.floor(left / 60)}:${String(left % 60).padStart(2, '0')}`"></span>.</p>
+                <button type="button" wire:click="cancelQr" class="text-sm text-red-700 hover:underline">Hide and cancel</button>
+            </div>
+        </div>
+    @endif
 
     <table class="w-full rounded-xl bg-white text-sm shadow-sm">
         <thead class="text-left text-xs text-stone-500">

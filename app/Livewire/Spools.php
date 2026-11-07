@@ -76,6 +76,17 @@ class Spools extends Component
         $this->resetPage();
     }
 
+    /** Turn the read-only share link on, or replace it (the old link stops working). */
+    public function newShareLink(): void
+    {
+        Auth::user()->rotateShareToken();
+    }
+
+    public function stopSharing(): void
+    {
+        Auth::user()->stopSharing();
+    }
+
     private function find(string $uuid): Spool
     {
         $spool = Spool::where('uuid', $uuid)->firstOrFail();
