@@ -33,6 +33,16 @@ it('filters the catalog and caps per_page', function () {
     $this->getJson('/api/v1/catalog?per_page=500')->assertStatus(422);
 });
 
+it('orders the catalog by article number', function () {
+    Sanctum::actingAs(user(), ['spools:read']);
+    foreach (['10300', '10100', '11101'] as $articleNumber) {
+        FilamentProduct::factory()->create(['article_number' => $articleNumber]);
+    }
+
+    expect($this->getJson('/api/v1/catalog')->assertOk()->json('data.*.article_number'))
+        ->toBe(['10100', '10300', '11101']);
+});
+
 it('creates, weighs, updates and soft-deletes a spool', function () {
     Sanctum::actingAs(user(), ['spools:read', 'spools:write']);
     $product = FilamentProduct::factory()->create();

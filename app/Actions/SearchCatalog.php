@@ -3,7 +3,6 @@
 namespace App\Actions;
 
 use App\Models\FilamentProduct;
-use App\Models\Spool;
 use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
@@ -15,7 +14,7 @@ class SearchCatalog
 
     /**
      * @param  array{q?: ?string, material?: ?string, line?: ?string, color?: ?string, brand?: ?string, owned?: ?string, updated_since?: ?string}  $filters
-     *                                                                                                                                                 owned: "1" (owned), "0" (not owned), "low" (owned and low stock)
+     *                                                                                                                                                       owned: "1" (owned), "0" (not owned), "low" (owned and low stock)
      * @return Builder<FilamentProduct>
      */
     public function query(User $user, array $filters = []): Builder
@@ -61,7 +60,7 @@ class SearchCatalog
             default => null,
         };
 
-        return $query->orderBy('material_id')->orderBy('line')->orderBy('article_name');
+        return $query->orderBy('article_number');
     }
 
     /** @param  array<string, mixed>  $filters */
