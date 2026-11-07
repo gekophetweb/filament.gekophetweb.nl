@@ -12,7 +12,6 @@
             @foreach ($statuses as $s)
                 <option wire:key="status-{{ $s->value }}" value="{{ $s->value }}">{{ $s->label() }}</option>
             @endforeach
-            <option value="all">All</option>
         </select>
         <a href="{{ route('spools.export') }}" class="whitespace-nowrap rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm shadow-sm hover:bg-stone-50"
            title="Download all your spools (any status) as a CSV file">Export CSV ↓</a>

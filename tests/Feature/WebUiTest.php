@@ -82,6 +82,18 @@ it('filters own spools by filament type, counts boxed and on spool, and orders b
         ->assertDontSee('Jade White');
 });
 
+it('never lists used-up spools on My spools, whatever the status filter', function () {
+    $user = user();
+    $usedUp = Spool::factory()->for($user)->usedUp()->create();
+    Spool::factory()->for($user)->create();
+
+    foreach (['active', 'used_up', 'archived', 'all'] as $status) {
+        Livewire::actingAs($user)->withQueryParams(['status' => $status])->test(Spools::class)
+            ->assertSee('Boxed')
+            ->assertDontSee($usedUp->uuid);
+    }
+});
+
 it('puts own spools on the holder and marks them used up from the list', function () {
     $user = user();
     $spool = Spool::factory()->for($user)->create();

@@ -95,11 +95,11 @@ class Spools extends Component
             ->orderBy(FilamentProduct::select('article_number')->whereColumn('filament_products.id', 'spools.filament_product_id'))
             ->orderBy('created_at')->orderBy('id');
 
-        match ($this->status) {
-            'active' => $query->active(),
-            'all' => null,
-            default => $query->where('status', SpoolStatus::tryFrom($this->status)?->value ?? 'none'),
-        };
+        // Only spools you still have: used-up and archived spools never show here.
+        $status = SpoolStatus::tryFrom($this->status);
+        in_array($status, SpoolStatus::owned(), true)
+            ? $query->where('status', $status->value)
+            : $query->active();
 
         // Boxed and on-spool counts for the chosen filament type, whatever the status filter.
         $counts = $ofMaterial($user->spools()->getQuery())->active()
@@ -107,7 +107,7 @@ class Spools extends Component
 
         return view('livewire.spools', [
             'spools' => $query->paginate(50),
-            'statuses' => SpoolStatus::cases(),
+            'statuses' => SpoolStatus::owned(),
             'materials' => Material::whereHas('products.spools', fn (Builder $q) => $q->whereBelongsTo($user))->orderBy('name')->pluck('name'),
             'boxedCount' => (int) ($counts[SpoolStatus::Boxed->value] ?? 0),
             'onSpoolCount' => (int) ($counts[SpoolStatus::OnSpool->value] ?? 0),
