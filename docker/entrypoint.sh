@@ -20,7 +20,8 @@ value_in() { [ -f "$2" ] || return 0; sed -n "s/^[[:space:]]*$1[[:space:]]*=[[:s
 # Effective value: .env.local first, then .env.
 env_value() { v=$(value_in "$1" "$LOCAL_FILE"); [ -n "$v" ] && echo "$v" || value_in "$1" "$ENV_FILE"; }
 
-case "$*" in *octane:start*) is_web=1 ;; *) is_web= ;; esac
+# Octane in production; `artisan serve` from docker-compose.override.yml in development.
+case "$*" in *octane:start*|*"artisan serve"*) is_web=1 ;; *) is_web= ;; esac
 
 if [ -n "$is_web" ]; then
   # A fresh install has no APP_KEY yet. Only the web container creates it; queue

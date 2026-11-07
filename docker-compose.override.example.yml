@@ -1,0 +1,40 @@
+# Local development only. Copy to docker-compose.override.yml (git-ignored), which
+# Docker Compose loads automatically next to docker-compose.yml:
+#
+#   cp docker-compose.override.example.yml docker-compose.override.yml
+#   docker compose up -d
+#
+# The folders you edit are mounted over the code baked into the image, and the app runs
+# on `php artisan serve` instead of Octane, so PHP, Blade, route, config and migration
+# files show on the next page load without a rebuild. vendor/ and bootstrap/cache stay
+# the image's own (reading vendor/ through a Windows mount makes every request seconds
+# slower), and storage/ stays in the app_storage volume.
+#
+# Still your job: `docker compose up -d --build` after composer.json changes,
+# `docker compose exec app php artisan migrate` for new migrations, and `npm run dev`
+# (or `npm run build`) on the host for CSS/JS. Never put this file on the server.
+x-dev-code: &dev-code
+  - ./app:/app/app
+  - ./bootstrap/app.php:/app/bootstrap/app.php
+  - ./bootstrap/providers.php:/app/bootstrap/providers.php
+  - ./config:/app/config
+  - ./database:/app/database
+  - ./public:/app/public
+  - ./resources:/app/resources
+  - ./routes:/app/routes
+  - ./docker:/app/docker
+
+services:
+  app:
+    entrypoint: ["sh", "/app/docker/entrypoint.sh"]   # your copy, not the image's
+    command: php artisan serve --host=0.0.0.0 --port=8000
+    environment:
+      PHP_CLI_SERVER_WORKERS: 4   # parallel requests for Livewire
+    volumes: *dev-code
+
+  queue:
+    command: php artisan queue:listen --tries=3   # reloads code for every job
+    volumes: *dev-code
+
+  scheduler:   # schedule:work already starts a fresh process for each task
+    volumes: *dev-code

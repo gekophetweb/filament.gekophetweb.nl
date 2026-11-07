@@ -128,6 +128,21 @@ Run the app locally without the tunnel: `docker compose up -d` and open **http:/
 | `http://127.0.0.1:8000/setup/callback` | Redirect URI for the wizard's test sign-in; register it at the identity provider |
 | `http://127.0.0.1:8000/up` | Health check |
 
+By default the containers run the code baked into the image, so changes need
+`docker compose up -d --build`. For live code while developing, use the dev override
+(local only, git-ignored):
+
+```bash
+cp docker-compose.override.example.yml docker-compose.override.yml
+docker compose up -d
+```
+
+It mounts `app/`, `config/`, `database/`, `public/`, `resources/`, `routes/` and `docker/`
+into the containers and runs `php artisan serve` instead of Octane, so edits show on the next
+page load. Still run `docker compose exec app php artisan migrate` for new migrations,
+`npm run dev` (or `npm run build`) for CSS/JS, and `docker compose up -d --build` after
+`composer.json` changes. Delete the override file to go back to the production setup.
+
 Tests run in a throwaway PHP container, so no local PHP or Composer is needed:
 
 ```bash
