@@ -85,15 +85,15 @@ Re-running it is safe.
 ## Share link
 
 On **Share & export** (`/share-export`), *Create share link* makes a read-only link (`/share/<40 characters>`) that works without
-signing in. It shows the owner's name, and each filament they have boxed or on spool with its counts. Prices,
-notes, locations and history are left out. *New link* replaces it (the old link stops working) and
+signing in. It shows the owner's name, and each filament they have boxed or on spool with its counts. Purchase
+dates and history are left out. *New link* replaces it (the old link stops working) and
 *Stop sharing* turns it off. The link is still behind `ALLOWED_IPS_WEB`, so set that to `*` (or add the
 viewers' networks) for people elsewhere to open it.
 
 ## Export and import your spools
 
 On **Share & export** (and with the button on **My spools**), *Export CSV* downloads all your spools (any status, deleted ones left out) with the
-columns `id, article_number, filament, material, status, refill, purchased_at, price, location, notes, added_at`.
+columns `id, article_number, filament, material, status, refill, purchased_at, added_at` (older files with `price`, `location` or `notes` columns still import; those columns are ignored).
 *Import spools from CSV* reads such a file back, also after editing it in a spreadsheet (comma or
 semicolon separated, UTF-8 or Excel's Windows encoding, at most 2 MB / 5000 rows). Only `article_number`
 is required. A row with the `id` of one of your spools updates it; every other row adds a spool. Nothing is
@@ -141,7 +141,9 @@ owned=1|0|boxed|on_spool|running_out, updated_since, per_page<=100`; each produc
 `on_spool_count` and `buy_url`), `GET /catalog/{id}`, `GET|POST /spools`, `GET|PATCH /spools/{uuid}`,
 `POST /spools/{uuid}/open` (boxed → on spool), `POST /spools/{uuid}/used-up`,
 `DELETE /spools/{uuid}` (removed without counting as used; soft delete), `GET /spools/{uuid}/events`.
-The status changes and `DELETE` take an optional `note`.
+The status changes and `DELETE` take an optional `note`. `POST /spools` with `amount` (1–50) adds that many
+identical spools in one call and returns them as a list in `data`; without it, one spool comes back as before.
+Spools have no price, location or notes.
 `GET /spools?updated_since=` also returns deleted spools (with `deleted_at`) for sync.
 
 Buy links open a search in the Bambu Lab store set by `BAMBULAB_STORE_URL` (default the EU store).

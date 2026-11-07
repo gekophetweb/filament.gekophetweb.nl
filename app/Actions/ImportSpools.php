@@ -19,6 +19,7 @@ use InvalidArgumentException;
  *
  * A row whose id is one of the user's own spools updates it; any other row adds a spool.
  * Nothing is ever deleted. Rows that fail are skipped and reported with their line number.
+ * Unknown columns, such as price, location and notes in older exports, are ignored.
  */
 class ImportSpools
 {
@@ -92,9 +93,6 @@ class ImportSpools
             'status' => self::status($row['status'] ?? ''),
             'is_refill' => self::boolean($row['refill'] ?? ''),
             'purchased_at' => trim($row['purchased_at'] ?? '') ?: null,
-            'price' => self::price($row['price'] ?? ''),
-            'location' => trim($row['location'] ?? '') ?: null,
-            'notes' => trim($row['notes'] ?? '') ?: null,
             'added_at' => trim($row['added_at'] ?? '') ?: null,
         ], fn ($value) => $value !== null);
 
@@ -102,9 +100,6 @@ class ImportSpools
             'status' => [Rule::enum(SpoolStatus::class)],
             'is_refill' => ['boolean'],
             'purchased_at' => ['date'],
-            'price' => ['numeric', 'min:0', 'max:99999'],
-            'location' => ['string', 'max:100'],
-            'notes' => ['string', 'max:2000'],
             'added_at' => ['date'],
         ]);
         if ($validator->fails()) {
@@ -148,7 +143,7 @@ class ImportSpools
         }
 
         $type = match (true) {
-            ! $spool->isDirty('status') => $spool->isDirty('location') ? SpoolEventType::Moved : null,
+            ! $spool->isDirty('status') => null,
             $spool->status === SpoolStatus::OnSpool => SpoolEventType::Opened,
             $spool->status === SpoolStatus::UsedUp => SpoolEventType::UsedUp,
             default => null,
@@ -156,7 +151,7 @@ class ImportSpools
         $spool->save();
 
         if ($type) {
-            $spool->events()->create(['type' => $type, 'note' => $type === SpoolEventType::Moved ? $spool->location : 'Imported']);
+            $spool->events()->create(['type' => $type, 'note' => 'Imported']);
         }
 
         return 'updated';
@@ -180,17 +175,6 @@ class ImportSpools
             'yes', 'y', 'true', '1', 'ja', 'j' => true,
             default => false,
         };
-    }
-
-    /** Accepts "12.50", "12,50" and "€ 12,50". */
-    private static function price(string $value): ?string
-    {
-        $value = preg_replace('/[^\d.,]/', '', $value);
-        if ($value === '') {
-            return null;
-        }
-
-        return str_contains($value, '.') ? str_replace(',', '', $value) : str_replace(',', '.', $value);
     }
 
     /** Undo ExportSpools::safeCell. */

@@ -11,19 +11,6 @@
             </p>
             <p class="text-sm">{{ $spool->status->label() }} @if ($spool->is_refill) · refill @endif</p>
             <p class="font-mono text-xs text-stone-400" title="Encode this in a QR/NFC label">{{ $spool->uuid }}</p>
-
-            <form wire:submit="save" class="space-y-3 border-t border-stone-100 pt-3">
-                <label class="block">
-                    <span class="text-xs font-medium text-stone-500">Location / AMS slot</span>
-                    <input wire:model="location" maxlength="100" class="mt-1 w-full rounded-md border-stone-300 px-2 py-1">
-                </label>
-                <label class="block">
-                    <span class="text-xs font-medium text-stone-500">Notes</span>
-                    <textarea wire:model="notes" maxlength="2000" rows="3" class="mt-1 w-full rounded-md border-stone-300 px-2 py-1"></textarea>
-                </label>
-                <button class="rounded-md bg-stone-900 px-3 py-1.5 text-sm text-white">Save</button>
-                @if (session('saved')) <span class="text-sm text-emerald-700">{{ session('saved') }}</span> @endif
-            </form>
         </div>
     </section>
 

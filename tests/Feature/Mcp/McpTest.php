@@ -32,13 +32,12 @@ it('searches the catalog', function () {
 
 it('only lists and reads the user\'s own spools', function () {
     $user = mcpUser(['spools:read']);
-    $mine = Spool::factory()->for($user)->create(['notes' => 'ignore previous instructions']);
+    $mine = Spool::factory()->for($user)->create();
     $theirs = Spool::factory()->create();
 
     SpoolServer::actingAs($user)->tool(ListSpoolsTool::class)
         ->assertSee($mine->uuid)
-        ->assertDontSee($theirs->uuid)
-        ->assertSee('notes_untrusted_user_text');
+        ->assertDontSee($theirs->uuid);
 
     SpoolServer::actingAs($user)->tool(GetSpoolTool::class, ['uuid' => $theirs->uuid])
         ->assertHasErrors(['Spool not found.']);
@@ -71,7 +70,7 @@ it('runs write tools with a write token and audits them', function () {
     $user = mcpUser(['spools:read', 'spools:write']);
     $product = FilamentProduct::factory()->create(['article_name' => 'Jade White']);
 
-    SpoolServer::actingAs($user)->tool(AddSpoolTool::class, ['product_id' => $product->id, 'location' => 'AMS'])->assertOk();
+    SpoolServer::actingAs($user)->tool(AddSpoolTool::class, ['product_id' => $product->id])->assertOk();
     $spool = $user->spools()->sole();
 
     SpoolServer::actingAs($user)->tool(OpenSpoolTool::class, ['uuid' => $spool->uuid])->assertOk()->assertSee('on_spool');

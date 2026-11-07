@@ -58,7 +58,7 @@ abstract class SpoolTool extends Tool
         return $uuid ? $user->spools()->where('uuid', $uuid)->with('product.material', 'product.brand')->first() : null;
     }
 
-    /** Spool as plain data. Free text (notes) is marked as user content, not instructions. */
+    /** Spool as plain data. */
     protected function spoolData(Spool $spool): array
     {
         return [
@@ -69,8 +69,6 @@ abstract class SpoolTool extends Tool
             'line' => $spool->product->line,
             'color_hex' => $spool->product->color_hex,
             'status' => $spool->status->value, // boxed, on_spool, used_up or archived
-            'location' => $spool->location,
-            'notes_untrusted_user_text' => $spool->notes,
         ];
     }
 

@@ -17,7 +17,7 @@ use Illuminate\Support\Str;
  * The legacy initial_weight/remaining_weight columns are no longer used.
  */
 #[Fillable([
-    'filament_product_id', 'status', 'is_refill', 'purchased_at', 'price', 'location', 'notes',
+    'filament_product_id', 'status', 'is_refill', 'purchased_at',
 ])]
 class Spool extends Model
 {
@@ -41,7 +41,6 @@ class Spool extends Model
             'status' => SpoolStatus::class,
             'is_refill' => 'boolean',
             'purchased_at' => 'date',
-            'price' => 'decimal:2',
         ];
     }
 

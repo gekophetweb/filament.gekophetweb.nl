@@ -68,7 +68,7 @@ it('shares a read-only list of boxed and on-spool filament without signing in', 
     $white = FilamentProduct::factory()->create(['article_number' => '10100', 'article_name' => 'Jade White']);
     $red = FilamentProduct::factory()->create(['article_number' => '10200', 'article_name' => 'Scarlet Red']);
     $gone = FilamentProduct::factory()->create(['article_name' => 'Used Up Blue']);
-    Spool::factory()->for($user)->count(2)->create(['filament_product_id' => $white->id, 'price' => 23.45, 'notes' => 'secret note']);
+    Spool::factory()->for($user)->count(2)->create(['filament_product_id' => $white->id, 'purchased_at' => '2026-02-14']);
     Spool::factory()->for($user)->onSpool()->create(['filament_product_id' => $red->id]);
     Spool::factory()->for($user)->usedUp()->create(['filament_product_id' => $gone->id]);
     Spool::factory()->create(['filament_product_id' => $red->id]);
@@ -81,8 +81,7 @@ it('shares a read-only list of boxed and on-spool filament without signing in', 
         ->assertHeader('X-Robots-Tag', 'noindex, nofollow')
         ->assertSeeInOrder(['Jade White', '2', '0', 'Scarlet Red', '0', '1'])
         ->assertDontSee('Used Up Blue')
-        ->assertDontSee('secret note')
-        ->assertDontSee('23.45');
+        ->assertDontSee('2026-02-14');
 });
 
 it('stops an old share link when a new one is made or sharing is turned off', function () {

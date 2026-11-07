@@ -129,13 +129,13 @@
                                         </li>
                                     @endforeach
                                 </ul>
-                                @php($success = collect($operation['responses'])->first(fn ($r) => $r['status'] < 300 && $r['example'] !== null))
-                                @if ($success)
+                                @php($success = collect($operation['responses'])->first(fn ($r) => $r['status'] < 300 && $r['examples']))
+                                @foreach ($success['examples'] ?? [] as $example)
                                     <details class="mt-3">
-                                        <summary class="cursor-pointer text-sm text-emerald-700">Example {{ $success['status'] }} response</summary>
-                                        <pre class="mt-2 max-h-96 overflow-auto rounded-lg bg-neutral-900 p-3 text-xs text-neutral-100"><code>{{ $json($success['example']) }}</code></pre>
+                                        <summary class="cursor-pointer text-sm text-emerald-700">{{ $example['label'] }}</summary>
+                                        <pre class="mt-2 max-h-96 overflow-auto rounded-lg bg-neutral-900 p-3 text-xs text-neutral-100"><code>{{ $json($example['value']) }}</code></pre>
                                     </details>
-                                @endif
+                                @endforeach
                             </div>
                         </article>
                     @endforeach

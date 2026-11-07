@@ -13,7 +13,7 @@ class ExportSpools
     /** @var list<string> */
     public const COLUMNS = [
         'id', 'article_number', 'filament', 'material', 'status', 'refill',
-        'purchased_at', 'price', 'location', 'notes', 'added_at',
+        'purchased_at', 'added_at',
     ];
 
     /**
@@ -45,9 +45,6 @@ class ExportSpools
             $spool->status->value,
             $spool->is_refill ? 'yes' : 'no',
             $spool->purchased_at?->toDateString() ?? '',
-            $spool->price ?? '',
-            $spool->location ?? '',
-            $spool->notes ?? '',
             $spool->created_at->toDateString(),
         ];
     }

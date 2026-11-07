@@ -6,12 +6,17 @@ use App\Enums\SpoolEventType;
 use App\Enums\SpoolStatus;
 use App\Models\Spool;
 use App\Models\User;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
+use InvalidArgumentException;
 
 class AddSpool
 {
+    /** Most spools one call may add. */
+    public const MAX_AMOUNT = 50;
+
     /** @return array<string, mixed> */
     public static function rules(): array
     {
@@ -20,10 +25,22 @@ class AddSpool
             'status' => ['sometimes', Rule::enum(SpoolStatus::class)->only(SpoolStatus::owned())],
             'is_refill' => ['sometimes', 'boolean'],
             'purchased_at' => ['sometimes', 'nullable', 'date'],
-            'price' => ['sometimes', 'nullable', 'numeric', 'min:0', 'max:99999'],
-            'location' => ['sometimes', 'nullable', 'string', 'max:100'],
-            'notes' => ['sometimes', 'nullable', 'string', 'max:2000'],
         ];
+    }
+
+    /**
+     * Add several identical spools at once, all or none.
+     *
+     * @param  array<string, mixed>  $input
+     * @return Collection<int, Spool>
+     */
+    public function handleMany(User $user, array $input, int $amount): Collection
+    {
+        if ($amount < 1 || $amount > self::MAX_AMOUNT) {
+            throw new InvalidArgumentException('The amount must be between 1 and '.self::MAX_AMOUNT.'.');
+        }
+
+        return DB::transaction(fn () => Collection::times($amount, fn () => $this->handle($user, $input)));
     }
 
     /**

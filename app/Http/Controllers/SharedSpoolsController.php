@@ -9,7 +9,7 @@ use Illuminate\Http\Response;
 
 /**
  * Public, read-only view of someone's boxed and on-spool filament, reached through their share link.
- * Shows only filaments and counts: no prices, notes, locations or history.
+ * Shows only filaments and counts: no purchase dates or history.
  */
 class SharedSpoolsController extends Controller
 {

@@ -21,7 +21,6 @@ class SpoolFactory extends Factory
             'status' => SpoolStatus::Boxed,
             'is_refill' => false,
             'purchased_at' => now()->subDays(10),
-            'location' => 'Shelf',
         ];
     }
 

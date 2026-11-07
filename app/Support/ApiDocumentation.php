@@ -2,6 +2,7 @@
 
 namespace App\Support;
 
+use App\Actions\AddSpool;
 use App\Actions\DevicePairing;
 use App\Actions\SearchCatalog;
 use App\Enums\SpoolEventType;
@@ -53,7 +54,7 @@ class ApiDocumentation
     /**
      * Operations in page order, with references resolved, for the docs page.
      *
-     * @return array<string, list<array{id: string, method: string, path: string, summary: string, description: ?string, ability: ?string, public: bool, parameters: list<array<string, mixed>>, body: list<array{name: string, type: string, required: bool, description: string}>, responses: list<array{status: string, description: string, example: mixed}>}>>
+     * @return array<string, list<array{id: string, method: string, path: string, summary: string, description: ?string, ability: ?string, public: bool, parameters: list<array<string, mixed>>, body: list<array{name: string, type: string, required: bool, description: string}>, responses: list<array{status: string, description: string, examples: list<array{label: string, value: mixed}>}>}>>
      */
     public function operationsByTag(): array
     {
@@ -82,10 +83,15 @@ class ApiDocumentation
                     'responses' => collect($operation['responses'])->map(function (array $response, int|string $status) use ($spec) {
                         $response = $this->resolve($spec, $response);
 
+                        $content = $response['content']['application/json'] ?? [];
+                        $label = "Example {$status} response";
+
                         return [
                             'status' => (string) $status,
                             'description' => $response['description'],
-                            'example' => $response['content']['application/json']['example'] ?? null,
+                            'examples' => array_key_exists('example', $content)
+                                ? [['label' => $label, 'value' => $content['example']]]
+                                : collect($content['examples'] ?? [])->map(fn (array $example) => ['label' => "{$label}: {$example['summary']}", 'value' => $example['value']])->values()->all(),
                         ];
                     })->values()->all(),
                 ];
@@ -117,9 +123,6 @@ class ApiDocumentation
         $spoolFields = [
             'is_refill' => ['type' => 'boolean', 'description' => 'A refill (no plastic spool) instead of a spool.'],
             'purchased_at' => ['type' => ['string', 'null'], 'format' => 'date', 'description' => 'Purchase date, `YYYY-MM-DD`.'],
-            'price' => ['type' => ['number', 'null'], 'minimum' => 0, 'maximum' => 99999, 'description' => 'Price paid, in your own currency.'],
-            'location' => ['type' => ['string', 'null'], 'maxLength' => 100, 'description' => 'Where it is kept. A change is saved as a `moved` event.'],
-            'notes' => ['type' => ['string', 'null'], 'maxLength' => 2000, 'description' => 'Free text.'],
         ];
         $spool = $this->ok('The spool.', 'Spool', $this->exampleSpool());
 
@@ -240,16 +243,27 @@ class ApiDocumentation
                 'post' => [
                     'tags' => ['Spools'],
                     'operationId' => 'addSpool',
-                    'summary' => 'Add a spool',
-                    'description' => 'Boxed unless `status` says otherwise. Saved with an `added` event.',
+                    'summary' => 'Add one or more spools',
+                    'description' => 'Boxed unless `status` says otherwise. Each spool is saved with an `added` event. '
+                        .'Send `amount` to add several identical spools in one call (all or none); `data` is then a list of the new spools, also when `amount` is 1.',
                     'x-ability' => 'spools:write',
                     'requestBody' => $this->jsonBody([
                         'filament_product_id' => ['type' => 'integer', 'description' => 'The catalog product `id`.'],
+                        'amount' => ['type' => 'integer', 'minimum' => 1, 'maximum' => AddSpool::MAX_AMOUNT, 'description' => 'How many identical spools to add, at most '.AddSpool::MAX_AMOUNT.'. Leave it out to add one and get a single spool back.'],
                         'status' => ['type' => 'string', 'enum' => $this->values(SpoolStatus::owned()), 'default' => SpoolStatus::Boxed->value, 'description' => 'Boxed, or already on the spool holder.'],
                         ...$spoolFields,
                     ], required: ['filament_product_id']),
                     'responses' => [
-                        201 => $this->ok('The new spool.', 'Spool', $this->exampleSpool()),
+                        201 => [
+                            'description' => 'The new spool, or with `amount` the list of new spools.',
+                            'content' => ['application/json' => [
+                                'schema' => ['oneOf' => [['$ref' => '#/components/schemas/Spool'], ['$ref' => '#/components/schemas/SpoolList']]],
+                                'examples' => [
+                                    'one' => ['summary' => 'Without amount', 'value' => $this->exampleSpool()],
+                                    'several' => ['summary' => 'With "amount": 2', 'value' => ['data' => [$this->exampleSpool()['data'], [...$this->exampleSpool()['data'], 'uuid' => '4f0b2a7d-8e1c-4d6a-b3f5-7c9e1a2d3b4f']]]],
+                                ],
+                            ]],
+                        ],
                         401 => ['$ref' => '#/components/responses/Unauthenticated'],
                         403 => ['$ref' => '#/components/responses/MissingAbility'],
                         422 => ['$ref' => '#/components/responses/ValidationFailed'],
@@ -377,9 +391,6 @@ class ApiDocumentation
                     'status' => ['type' => 'string', 'enum' => $this->values(SpoolStatus::cases())],
                     'is_refill' => ['type' => 'boolean'],
                     'purchased_at' => $nullable('string', 'Purchase date.', ['format' => 'date']),
-                    'price' => $nullable('string', 'Decimal with two places, such as "24.99".'),
-                    'location' => $nullable('string', 'Where it is kept.'),
-                    'notes' => $nullable('string', 'Free text.'),
                     'created_at' => ['type' => 'string', 'format' => 'date-time'],
                     'updated_at' => ['type' => 'string', 'format' => 'date-time'],
                     'deleted_at' => $nullable('string', 'Set when removed.', ['format' => 'date-time']),
@@ -389,12 +400,13 @@ class ApiDocumentation
                 'type' => 'object',
                 'properties' => [
                     'type' => ['type' => 'string', 'enum' => $this->values(SpoolEventType::cases())],
-                    'note' => $nullable('string', 'Note given with the change, or the new location for `moved`.'),
+                    'note' => $nullable('string', 'Note given with the change. Older `moved` events hold the location the spool moved to.'),
                     'created_at' => ['type' => 'string', 'format' => 'date-time'],
                 ],
             ],
             'Product' => $wrap('ProductData'),
             'Spool' => $wrap('SpoolData'),
+            'SpoolList' => ['type' => 'object', 'properties' => ['data' => ['type' => 'array', 'items' => ['$ref' => '#/components/schemas/SpoolData']]]],
             'ProductPage' => $pageOf('ProductData'),
             'SpoolPage' => $pageOf('SpoolData'),
             'SpoolEventPage' => $pageOf('SpoolEventData'),
@@ -547,9 +559,6 @@ class ApiDocumentation
             'status' => SpoolStatus::OnSpool->value,
             'is_refill' => false,
             'purchased_at' => '2026-10-02',
-            'price' => '24.99',
-            'location' => 'Shelf A',
-            'notes' => null,
             'created_at' => '2026-10-02T18:12:40+00:00',
             'updated_at' => '2026-11-01T09:30:00+00:00',
             'deleted_at' => null,

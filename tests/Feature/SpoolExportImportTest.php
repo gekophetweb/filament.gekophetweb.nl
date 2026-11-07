@@ -20,9 +20,9 @@ function csvFile(string $contents): string
 
 it('exports only the user\'s own, not deleted spools as CSV', function () {
     $user = user();
-    $product = FilamentProduct::factory()->create(['article_number' => '10100', 'article_name' => 'Jade White']);
+    $product = FilamentProduct::factory()->create(['article_number' => '10100', 'article_name' => '=HYPERLINK("x")']);
     $mine = Spool::factory()->for($user)->onSpool()->create([
-        'filament_product_id' => $product->id, 'price' => 19.99, 'location' => 'Shelf A', 'notes' => '=HYPERLINK("x")',
+        'filament_product_id' => $product->id, 'is_refill' => true, 'purchased_at' => '2026-03-01',
     ]);
     Spool::factory()->for($user)->create(['filament_product_id' => $product->id])->delete();
     $theirs = Spool::factory()->create(['filament_product_id' => $product->id]);
@@ -33,12 +33,13 @@ it('exports only the user\'s own, not deleted spools as CSV', function () {
 
     expect(substr($csv, 0, 3))->toBe("\xEF\xBB\xBF")
         ->and($rows)->toHaveCount(2)
-        ->and($rows[0])->toBe(['id', 'article_number', 'filament', 'material', 'status', 'refill', 'purchased_at', 'price', 'location', 'notes', 'added_at'])
+        ->and($rows[0])->toBe(['id', 'article_number', 'filament', 'material', 'status', 'refill', 'purchased_at', 'added_at'])
         ->and($rows[1][0])->toBe($mine->uuid)
         ->and($rows[1][1])->toBe('10100')
+        ->and($rows[1][2])->toBe("'=HYPERLINK(\"x\")")
         ->and($rows[1][4])->toBe('on_spool')
-        ->and($rows[1][7])->toBe('19.99')
-        ->and($rows[1][9])->toBe("'=HYPERLINK(\"x\")")
+        ->and($rows[1][5])->toBe('yes')
+        ->and($rows[1][6])->toBe('2026-03-01')
         ->and($csv)->not->toContain($theirs->uuid);
 });
 
@@ -50,7 +51,7 @@ it('round-trips an export: unchanged for the owner, new spools for someone else'
     $owner = user();
     $product = FilamentProduct::factory()->create();
     $spool = Spool::factory()->for($owner)->create([
-        'filament_product_id' => $product->id, 'notes' => '+ keep this', 'price' => 20, 'purchased_at' => '2026-03-01',
+        'filament_product_id' => $product->id, 'is_refill' => true, 'purchased_at' => '2026-03-01',
     ]);
     $csv = $this->actingAs($owner)->get('/spools/export')->streamedContent();
 
@@ -62,16 +63,16 @@ it('round-trips an export: unchanged for the owner, new spools for someone else'
 
     $copy = $other->spools()->sole();
     expect($copy->uuid)->not->toBe($spool->uuid)
-        ->and($copy->notes)->toBe('+ keep this')
+        ->and($copy->is_refill)->toBeTrue()
         ->and($copy->purchased_at->toDateString())->toBe('2026-03-01')
         ->and($spool->fresh()->user_id)->toBe($owner->id);
 });
 
-it('updates own spools by id, adds the rest and reports skipped rows', function () {
+it('updates own spools by id, adds the rest, ignores old price/location/notes columns and reports skipped rows', function () {
     $user = user();
     FilamentProduct::factory()->create(['article_number' => '10100']);
     $other = FilamentProduct::factory()->create(['article_number' => '10200']);
-    $spool = Spool::factory()->for($user)->create(['filament_product_id' => $other->id, 'location' => 'Shelf A']);
+    $spool = Spool::factory()->for($user)->create(['filament_product_id' => $other->id]);
     $newId = (string) Str::uuid();
 
     $result = app(ImportSpools::class)->handle($user, csvFile(implode("\n", [
@@ -89,15 +90,12 @@ it('updates own spools by id, adds the rest and reports skipped rows', function 
 
     $spool->refresh();
     expect($spool->status)->toBe(SpoolStatus::OnSpool)
-        ->and($spool->price)->toBe('12.50')
-        ->and($spool->location)->toBe('Printer')
         ->and($spool->events()->first()->type)->toBe(SpoolEventType::Opened);
 
     $added = Spool::where('uuid', $newId)->sole();
     expect($added->user_id)->toBe($user->id)
         ->and($added->status)->toBe(SpoolStatus::UsedUp)
         ->and($added->is_refill)->toBeTrue()
-        ->and($added->notes)->toBe("two\nlines")
         ->and($added->events()->sole()->created_at->toDateString())->toBe('2025-01-15');
 });
 
@@ -105,9 +103,10 @@ it('reads a CSV that Excel saved in the Windows code page', function () {
     $user = user();
     FilamentProduct::factory()->create(['article_number' => '10100']);
 
-    app(ImportSpools::class)->handle($user, csvFile(mb_convert_encoding("article_number,location\n10100,Kast café\n", 'Windows-1252', 'UTF-8')));
+    $result = app(ImportSpools::class)->handle($user, csvFile(mb_convert_encoding("article_number,filament\n10100,Jade\ncafé,Kast\n", 'Windows-1252', 'UTF-8')));
 
-    expect($user->spools()->sole()->location)->toBe('Kast café');
+    expect($result['created'])->toBe(1)
+        ->and($result['errors'])->toBe(['Row 3: unknown article number "café".']);
 });
 
 it('rejects a file without an article_number column', function () {

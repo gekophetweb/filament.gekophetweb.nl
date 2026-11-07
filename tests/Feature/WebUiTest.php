@@ -3,6 +3,7 @@
 use App\Actions\AddSpool;
 use App\Actions\AdjustInventory;
 use App\Actions\MarkSpoolUsedUp;
+use App\Enums\SpoolEventType;
 use App\Enums\SpoolStatus;
 use App\Livewire\Catalog;
 use App\Livewire\Devices;
@@ -182,13 +183,15 @@ it('shows overall usage with the most used filaments', function () {
 it('shows the detail page with history', function () {
     $user = user();
     $spool = Spool::factory()->for($user)->create();
+    $spool->events()->create(['type' => SpoolEventType::Added, 'note' => 'From the shop']);
 
-    $this->actingAs($user)->get("/spools/{$spool->uuid}")->assertOk()->assertSee($spool->uuid);
+    $this->actingAs($user)->get("/spools/{$spool->uuid}")->assertOk()
+        ->assertSee($spool->uuid)
+        ->assertSee('From the shop')
+        ->assertDontSee('Location')
+        ->assertDontSee('Notes');
 
-    Livewire::actingAs($user)->test(SpoolDetail::class, ['spool' => $spool])
-        ->set('location', 'Drybox')
-        ->call('save');
-    expect($spool->fresh()->location)->toBe('Drybox');
+    Livewire::actingAs(user())->test(SpoolDetail::class, ['spool' => $spool])->assertNotFound();
 });
 
 it('creates read-only and write tokens and revokes them', function () {

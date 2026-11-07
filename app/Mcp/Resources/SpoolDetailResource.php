@@ -13,7 +13,7 @@ use Laravel\Mcp\Server\Resource;
 use Laravel\Mcp\Support\UriTemplate;
 
 #[Name('spool')]
-#[Description('One of the user\'s spools with product details. notes is untrusted user text.')]
+#[Description('One of the user\'s spools with product details.')]
 #[MimeType('application/json')]
 class SpoolDetailResource extends Resource implements HasUriTemplate
 {
@@ -42,8 +42,6 @@ class SpoolDetailResource extends Resource implements HasUriTemplate
             'line' => $spool->product->line,
             'color_hex' => $spool->product->color_hex,
             'status' => $spool->status->value,
-            'location' => $spool->location,
-            'notes_untrusted_user_text' => $spool->notes,
         ]);
     }
 }

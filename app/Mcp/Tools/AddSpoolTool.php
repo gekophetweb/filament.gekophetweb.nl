@@ -25,13 +25,11 @@ class AddSpoolTool extends SpoolTool
         $input = $request->validate([
             'product_id' => ['required', 'integer'],
             'is_refill' => ['nullable', 'boolean'],
-            'location' => ['nullable', 'string', 'max:100'],
         ]);
 
         $spool = app(AddSpool::class)->handle($user, array_filter([
             'filament_product_id' => $input['product_id'],
             'is_refill' => $input['is_refill'] ?? null,
-            'location' => $input['location'] ?? null,
         ], fn ($v) => $v !== null));
 
         return Response::json($this->spoolData($spool));
@@ -42,7 +40,6 @@ class AddSpoolTool extends SpoolTool
         return [
             'product_id' => $schema->integer()->description('Catalog product id from search_catalog.')->required(),
             'is_refill' => $schema->boolean()->description('True for a refill without a spool.'),
-            'location' => $schema->string()->description('Where it is stored, e.g. "AMS 1 slot 2".'),
         ];
     }
 }

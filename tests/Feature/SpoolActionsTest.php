@@ -18,7 +18,7 @@ it('adds a boxed spool with an added event', function () {
     $user = user();
     $product = FilamentProduct::factory()->create();
 
-    $spool = app(AddSpool::class)->handle($user, ['filament_product_id' => $product->id, 'notes' => 'gift']);
+    $spool = app(AddSpool::class)->handle($user, ['filament_product_id' => $product->id]);
 
     expect($spool->user_id)->toBe($user->id)
         ->and($spool->uuid)->toBeString()
@@ -88,12 +88,26 @@ it('does nothing when there is no spool to open, use up or remove', function () 
         ->and(Spool::where('status', SpoolStatus::Boxed)->count())->toBe(1);
 });
 
-it('records a moved event when the location changes', function () {
-    $spool = Spool::factory()->create(['location' => 'Shelf']);
+it('updates refill and purchase date without adding to the history', function () {
+    $spool = Spool::factory()->create();
 
-    app(UpdateSpool::class)->handle($spool, ['location' => 'AMS 1 slot 2']);
+    app(UpdateSpool::class)->handle($spool, ['is_refill' => true, 'purchased_at' => '2026-10-01', 'location' => 'ignored']);
 
-    expect($spool->events()->first())->type->toBe(SpoolEventType::Moved)->note->toBe('AMS 1 slot 2');
+    expect($spool->fresh())->is_refill->toBeTrue()->purchased_at->toDateString()->toBe('2026-10-01')
+        ->and($spool->events()->count())->toBe(0);
+});
+
+it('adds several spools at once, each with its own added event, within the amount limit', function () {
+    $user = user();
+    $product = FilamentProduct::factory()->create();
+
+    $spools = app(AddSpool::class)->handleMany($user, ['filament_product_id' => $product->id], 3);
+
+    expect($spools)->toHaveCount(3)
+        ->and($spools->pluck('uuid')->unique())->toHaveCount(3)
+        ->and($user->spools()->withCount('events')->get()->pluck('events_count')->all())->toBe([1, 1, 1])
+        ->and(fn () => app(AddSpool::class)->handleMany($user, ['filament_product_id' => $product->id], AddSpool::MAX_AMOUNT + 1))
+        ->toThrow(InvalidArgumentException::class);
 });
 
 it('filters the catalog by text, color family and ownership', function () {

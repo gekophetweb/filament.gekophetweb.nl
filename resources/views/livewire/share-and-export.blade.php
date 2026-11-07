@@ -5,7 +5,7 @@
         <h2 class="font-semibold">Share a read-only link</h2>
         <p class="mt-1 text-sm text-stone-600">
             Anyone with the link sees which filaments you have and how many are boxed or on spool, without signing in.
-            No prices, notes, locations or history.
+            No purchase dates or history.
         </p>
         @if ($shareUrl)
             <div class="mt-3 flex flex-wrap items-center gap-2" x-data="{ copied: false }">
@@ -28,7 +28,7 @@
     <section class="rounded-xl bg-white p-4 shadow-sm">
         <h2 class="font-semibold">Export spools to CSV</h2>
         <p class="mt-1 text-sm text-stone-600">
-            All your spools, whatever their status, with purchase date, price, location and notes. Opens in Excel, Numbers or Google Sheets.
+            All your spools, whatever their status, with refill and purchase date. Opens in Excel, Numbers or Google Sheets.
         </p>
         <a href="{{ route('spools.export') }}" class="mt-3 inline-block rounded-md bg-stone-900 px-3 py-1.5 text-sm text-white hover:bg-stone-700">Export CSV ↓</a>
     </section>

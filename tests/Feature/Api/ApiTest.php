@@ -1,8 +1,11 @@
 <?php
 
+use App\Actions\AddSpool;
+use App\Enums\SpoolEventType;
 use App\Enums\SpoolStatus;
 use App\Models\FilamentProduct;
 use App\Models\Spool;
+use App\Models\SpoolEvent;
 use Laravel\Sanctum\Sanctum;
 
 it('rejects requests without a token', function () {
@@ -64,21 +67,24 @@ it('adds, opens, uses up, updates and removes a spool', function () {
     Sanctum::actingAs(user(), ['spools:read', 'spools:write']);
     $product = FilamentProduct::factory()->create();
 
-    $uuid = $this->postJson('/api/v1/spools', ['filament_product_id' => $product->id, 'location' => 'AMS 1'])
+    $uuid = $this->postJson('/api/v1/spools', ['filament_product_id' => $product->id])
         ->assertCreated()
         ->assertJsonPath('data.status', 'boxed')
         ->assertJsonMissingPath('data.remaining_weight')
+        ->assertJsonMissingPath('data.price')
+        ->assertJsonMissingPath('data.location')
+        ->assertJsonMissingPath('data.notes')
         ->json('data.uuid');
 
     $this->postJson("/api/v1/spools/{$uuid}/open")->assertOk()->assertJsonPath('data.status', 'on_spool');
     $this->postJson("/api/v1/spools/{$uuid}/open")->assertStatus(422);
 
-    $this->patchJson("/api/v1/spools/{$uuid}", ['location' => 'Drybox'])->assertJsonPath('data.location', 'Drybox');
+    $this->patchJson("/api/v1/spools/{$uuid}", ['is_refill' => true])->assertJsonPath('data.is_refill', true);
 
     $this->postJson("/api/v1/spools/{$uuid}/used-up", ['note' => 'last print'])->assertOk()->assertJsonPath('data.status', 'used_up');
 
     $this->getJson("/api/v1/spools/{$uuid}/events")
-        ->assertJsonCount(4, 'data')
+        ->assertJsonCount(3, 'data')
         ->assertJsonPath('data.0.type', 'used_up')
         ->assertJsonPath('data.0.note', 'last print');
 
@@ -91,12 +97,47 @@ it('adds, opens, uses up, updates and removes a spool', function () {
         ->assertJsonPath('data.0.deleted_at', fn ($v) => $v !== null);
 });
 
+it('adds several identical spools at once with amount', function () {
+    $user = user();
+    Sanctum::actingAs($user, ['spools:read', 'spools:write']);
+    $product = FilamentProduct::factory()->create();
+
+    $this->postJson('/api/v1/spools', ['filament_product_id' => $product->id, 'amount' => 3, 'status' => 'on_spool'])
+        ->assertCreated()
+        ->assertJsonCount(3, 'data')
+        ->assertJsonPath('data.0.status', 'on_spool')
+        ->assertJsonPath('data.2.product.id', $product->id);
+
+    $this->postJson('/api/v1/spools', ['filament_product_id' => $product->id, 'amount' => 1])
+        ->assertCreated()
+        ->assertJsonCount(1, 'data')
+        ->assertJsonPath('data.0.status', 'boxed');
+
+    expect($user->spools()->count())->toBe(4)
+        ->and(SpoolEvent::where('type', SpoolEventType::Added)->count())->toBe(4);
+});
+
+it('adds nothing when amount or the spool fields are invalid', function (array $input) {
+    $user = user();
+    Sanctum::actingAs($user, ['spools:read', 'spools:write']);
+    $product = FilamentProduct::factory()->create();
+
+    $this->postJson('/api/v1/spools', ['filament_product_id' => $product->id, ...$input])->assertUnprocessable();
+
+    expect($user->spools()->count())->toBe(0);
+})->with([
+    'too many' => [['amount' => AddSpool::MAX_AMOUNT + 1]],
+    'zero' => [['amount' => 0]],
+    'not a number' => [['amount' => 'lots']],
+    'used up status' => [['amount' => 2, 'status' => 'used_up']],
+]);
+
 it('never shows another user\'s spool', function (string $method, string $suffix) {
     $other = Spool::factory()->create();
     Sanctum::actingAs(user(), ['spools:read', 'spools:write']);
 
-    $this->json($method, "/api/v1/spools/{$other->uuid}{$suffix}", ['location' => 'x'])->assertNotFound();
-    expect($other->fresh())->status->toBe(SpoolStatus::Boxed)->location->toBe('Shelf')->trashed()->toBeFalse();
+    $this->json($method, "/api/v1/spools/{$other->uuid}{$suffix}", ['is_refill' => true])->assertNotFound();
+    expect($other->fresh())->status->toBe(SpoolStatus::Boxed)->is_refill->toBeFalse()->trashed()->toBeFalse();
 })->with([
     ['GET', ''], ['PATCH', ''], ['DELETE', ''], ['POST', '/open'], ['POST', '/used-up'], ['GET', '/events'],
 ]);

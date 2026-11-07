@@ -49,9 +49,22 @@ class SpoolController extends Controller
         return new SpoolResource($spool->load('product.brand', 'product.material'));
     }
 
+    /**
+     * Add one spool, or with "amount" several identical ones; then "data" is a list.
+     */
     public function store(Request $request, AddSpool $add): JsonResponse
     {
-        return (new SpoolResource($add->handle($request->user(), $request->all())))
+        if (! $request->has('amount')) {
+            return (new SpoolResource($add->handle($request->user(), $request->all())))
+                ->response()
+                ->setStatusCode(201);
+        }
+
+        $amount = (int) $request->validate([
+            'amount' => ['required', 'integer', 'min:1', 'max:'.AddSpool::MAX_AMOUNT],
+        ])['amount'];
+
+        return SpoolResource::collection($add->handleMany($request->user(), $request->except('amount'), $amount))
             ->response()
             ->setStatusCode(201);
     }
