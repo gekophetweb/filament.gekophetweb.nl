@@ -6,8 +6,11 @@ use App\Actions\ImportSpools;
 use App\Actions\MarkSpoolUsedUp;
 use App\Actions\OpenSpool;
 use App\Enums\SpoolStatus;
+use App\Models\FilamentProduct;
+use App\Models\Material;
 use App\Models\Spool;
 use Illuminate\Contracts\View\View;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
 use InvalidArgumentException;
 use Livewire\Attributes\Layout;
@@ -28,6 +31,10 @@ class Spools extends Component
     #[Url(except: 'active')]
     public string $status = 'active';
 
+    /** Filament type (material name, e.g. PLA); empty for all. */
+    #[Url(except: '')]
+    public string $material = '';
+
     /** The CSV to import; at most 2 MB. */
     #[Validate(['required', 'file', 'mimes:csv,txt', 'max:2048'])]
     public ?TemporaryUploadedFile $importFile = null;
@@ -36,6 +43,11 @@ class Spools extends Component
     public ?array $importResult = null;
 
     public function updatedStatus(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedMaterial(): void
     {
         $this->resetPage();
     }
@@ -74,7 +86,14 @@ class Spools extends Component
 
     public function render(): View
     {
-        $query = Auth::user()->spools()->with('product.material', 'product.brand')->orderByDesc('updated_at');
+        $user = Auth::user();
+        $ofMaterial = fn (Builder $query) => $this->material === ''
+            ? $query
+            : $query->whereHas('product.material', fn (Builder $q) => $q->where('name', $this->material));
+
+        $query = $ofMaterial($user->spools()->getQuery())->with('product.material', 'product.brand')
+            ->orderBy(FilamentProduct::select('article_number')->whereColumn('filament_products.id', 'spools.filament_product_id'))
+            ->orderBy('created_at')->orderBy('id');
 
         match ($this->status) {
             'active' => $query->active(),
@@ -82,9 +101,16 @@ class Spools extends Component
             default => $query->where('status', SpoolStatus::tryFrom($this->status)?->value ?? 'none'),
         };
 
+        // Boxed and on-spool counts for the chosen filament type, whatever the status filter.
+        $counts = $ofMaterial($user->spools()->getQuery())->active()
+            ->selectRaw('status, count(*) as total')->groupBy('status')->pluck('total', 'status');
+
         return view('livewire.spools', [
             'spools' => $query->paginate(50),
             'statuses' => SpoolStatus::cases(),
+            'materials' => Material::whereHas('products.spools', fn (Builder $q) => $q->whereBelongsTo($user))->orderBy('name')->pluck('name'),
+            'boxedCount' => (int) ($counts[SpoolStatus::Boxed->value] ?? 0),
+            'onSpoolCount' => (int) ($counts[SpoolStatus::OnSpool->value] ?? 0),
         ]);
     }
 }

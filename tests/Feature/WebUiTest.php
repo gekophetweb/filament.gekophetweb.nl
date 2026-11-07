@@ -9,6 +9,7 @@ use App\Livewire\Devices;
 use App\Livewire\SpoolDetail;
 use App\Livewire\Spools;
 use App\Models\FilamentProduct;
+use App\Models\Material;
 use App\Models\Spool;
 use Livewire\Livewire;
 
@@ -54,6 +55,31 @@ it('changes boxed and on-spool counts from the catalog', function () {
 
     expect($user->spools()->where('status', SpoolStatus::Boxed)->count())->toBe(1)
         ->and($user->spools()->where('status', SpoolStatus::OnSpool)->count())->toBe(1);
+});
+
+it('filters own spools by filament type, counts boxed and on spool, and orders by article number', function () {
+    $user = user();
+    $asa = Material::firstOrCreate(['name' => 'ASA']);
+    $white = FilamentProduct::factory()->create(['article_number' => '10100', 'article_name' => 'Jade White']);
+    $black = FilamentProduct::factory()->create(['article_number' => '10101', 'article_name' => 'Black']);
+    $grey = FilamentProduct::factory()->create(['article_number' => '45100', 'article_name' => 'ASA Grey', 'material_id' => $asa->id]);
+    Spool::factory()->for($user)->create(['filament_product_id' => $black->id]);
+    Spool::factory()->for($user)->onSpool()->create(['filament_product_id' => $white->id]);
+    Spool::factory()->for($user)->create(['filament_product_id' => $white->id]);
+    Spool::factory()->for($user)->onSpool()->create(['filament_product_id' => $grey->id]);
+    Spool::factory()->for($user)->usedUp()->create(['filament_product_id' => $white->id]);
+    Spool::factory()->onSpool()->create(['filament_product_id' => $grey->id]);
+
+    Livewire::actingAs($user)->test(Spools::class)
+        ->assertViewHas('boxedCount', 2)
+        ->assertViewHas('onSpoolCount', 2)
+        ->assertSeeInOrder(['Jade White', 'Jade White', 'Black', 'ASA Grey'])
+        ->assertDontSee('Location')
+        ->set('material', 'ASA')
+        ->assertViewHas('boxedCount', 0)
+        ->assertViewHas('onSpoolCount', 1)
+        ->assertSee('ASA Grey')
+        ->assertDontSee('Jade White');
 });
 
 it('puts own spools on the holder and marks them used up from the list', function () {
