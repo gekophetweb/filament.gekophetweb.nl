@@ -137,7 +137,7 @@ Use `laravel/mcp` (check current docs for the exact API), registered in `routes/
 |---|---|---|---|
 | `app` | custom (FrankenPHP + Laravel Octane) | Website, REST API, MCP endpoint | Internal only (via tunnel) |
 | `db` | `postgres:17-alpine` | Database only | Nothing |
-| `redis` | `redis:7-alpine` | Rate limits, cache, queue, sessions | Nothing |
+| `redis` | `redis:8-alpine` | Rate limits, cache, queue, sessions | Nothing |
 | `queue` | same image as `app` | `php artisan queue:work` | Nothing |
 | `scheduler` | same image as `app` | `php artisan schedule:work` | Nothing |
 | `cloudflared` | `cloudflare/cloudflared` (pinned) | Cloudflare Tunnel | Outbound only |

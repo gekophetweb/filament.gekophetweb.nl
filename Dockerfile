@@ -8,7 +8,7 @@ RUN mkdir -p storage/framework/cache storage/framework/sessions storage/framewor
  && composer dump-autoload --optimize --ignore-platform-reqs
 
 # --- Frontend assets (Tailwind/Vite) ---
-FROM node:22-alpine AS assets
+FROM node:24-alpine AS assets
 WORKDIR /app
 COPY package*.json ./
 RUN npm ci --ignore-scripts || npm install --ignore-scripts
@@ -17,7 +17,7 @@ COPY --from=vendor /app/vendor ./vendor
 RUN npm run build
 
 # --- Runtime ---
-FROM dunglas/frankenphp:1-php8.4 AS app
+FROM dunglas/frankenphp:1-php8.5 AS app
 RUN install-php-extensions pdo_pgsql redis pcntl opcache intl zip bcmath
 ENV OCTANE_SERVER=frankenphp
 WORKDIR /app
