@@ -10,6 +10,7 @@ use App\Support\Color;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Session;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
 use Livewire\Component;
@@ -20,6 +21,13 @@ use Livewire\WithPagination;
 class Catalog extends Component
 {
     use ManagesInventory, WithPagination;
+
+    /** @var list<string> */
+    public const DISPLAYS = ['list', 'blocks'];
+
+    /** List or blocks; remembered in the session so it sticks while browsing. */
+    #[Session]
+    public string $display = 'list';
 
     #[Url(except: '')]
     public string $q = '';
@@ -60,6 +68,7 @@ class Catalog extends Component
         ];
 
         return view('livewire.catalog', [
+            'display' => in_array($this->display, self::DISPLAYS, true) ? $this->display : 'list',
             'products' => $search->paginate(Auth::user(), $filters, 50),
             'materials' => Material::orderBy('name')->pluck('name'),
             'lines' => FilamentProduct::whereNotNull('line')->distinct()->orderBy('line')->pluck('line'),

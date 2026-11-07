@@ -25,6 +25,22 @@ it('renders the catalog as a list with swatches and filters by color', function 
         ->assertDontSee('Scarlet Red');
 });
 
+it('switches the catalog between list and blocks and remembers the choice', function () {
+    $user = user();
+    FilamentProduct::factory()->create(['article_name' => 'Cobalt Blue']);
+
+    Livewire::actingAs($user)->test(Catalog::class)
+        ->assertSee('<table', false)
+        ->set('display', 'blocks')
+        ->assertDontSee('<table', false)
+        ->assertSee('<article', false)
+        ->assertSee('Cobalt Blue');
+
+    Livewire::actingAs($user)->test(Catalog::class)->assertSet('display', 'blocks')->assertSee('<article', false);
+
+    Livewire::actingAs($user)->test(Catalog::class)->set('display', 'bogus')->assertSee('<table', false);
+});
+
 it('changes boxed and on-spool counts from the catalog', function () {
     $user = user();
     $product = FilamentProduct::factory()->create(['article_number' => '10100']);
