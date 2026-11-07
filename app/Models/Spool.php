@@ -12,16 +12,16 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
 
+/**
+ * One physical spool (or refill) of a catalog product: boxed, on the spool holder, or used up.
+ * The legacy initial_weight/remaining_weight columns are no longer used.
+ */
 #[Fillable([
-    'filament_product_id', 'status', 'is_refill', 'initial_weight', 'remaining_weight',
-    'purchased_at', 'price', 'location', 'notes',
+    'filament_product_id', 'status', 'is_refill', 'purchased_at', 'price', 'location', 'notes',
 ])]
 class Spool extends Model
 {
     use HasFactory, SoftDeletes;
-
-    /** Remaining-weight threshold (grams) for "low stock". */
-    public const LOW_STOCK_GRAMS = 200;
 
     protected static function booted(): void
     {
@@ -40,8 +40,6 @@ class Spool extends Model
         return [
             'status' => SpoolStatus::class,
             'is_refill' => 'boolean',
-            'initial_weight' => 'integer',
-            'remaining_weight' => 'integer',
             'purchased_at' => 'date',
             'price' => 'decimal:2',
         ];
@@ -65,30 +63,13 @@ class Spool extends Model
         return $this->hasMany(SpoolEvent::class)->latest('created_at')->latest('id');
     }
 
-    public function remainingPercent(): int
-    {
-        if ($this->initial_weight <= 0) {
-            return 0;
-        }
-
-        return (int) max(0, min(100, round($this->remaining_weight / $this->initial_weight * 100)));
-    }
-
-    public function isLow(): bool
-    {
-        return ! in_array($this->status, [SpoolStatus::Empty, SpoolStatus::Archived], true)
-            && $this->remaining_weight <= self::LOW_STOCK_GRAMS;
-    }
-
-    /** @param  Builder<Spool>  $query */
+    /**
+     * Spools that still hold filament: boxed or on the spool holder.
+     *
+     * @param  Builder<Spool>  $query
+     */
     public function scopeActive(Builder $query): void
     {
-        $query->whereNotIn('status', [SpoolStatus::Empty->value, SpoolStatus::Archived->value]);
-    }
-
-    /** @param  Builder<Spool>  $query */
-    public function scopeLowStock(Builder $query): void
-    {
-        $query->active()->where('remaining_weight', '<=', self::LOW_STOCK_GRAMS);
+        $query->whereIn('status', array_column(SpoolStatus::owned(), 'value'));
     }
 }

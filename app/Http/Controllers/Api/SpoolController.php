@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\Api;
 
 use App\Actions\AddSpool;
-use App\Actions\RecordWeight;
+use App\Actions\MarkSpoolUsedUp;
+use App\Actions\OpenSpool;
+use App\Actions\RemoveSpool;
 use App\Actions\UpdateSpool;
 use App\Enums\SpoolStatus;
 use App\Http\Controllers\Controller;
@@ -11,10 +13,10 @@ use App\Http\Resources\SpoolEventResource;
 use App\Http\Resources\SpoolResource;
 use App\Models\Spool;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Response;
+use Illuminate\Support\Carbon;
 use Illuminate\Validation\Rule;
 
 class SpoolController extends Controller
@@ -23,7 +25,6 @@ class SpoolController extends Controller
     {
         $filters = $request->validate([
             'status' => ['nullable', Rule::enum(SpoolStatus::class)],
-            'low' => ['nullable', 'boolean'],
             'updated_since' => ['nullable', 'date'],
             'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
         ]);
@@ -36,9 +37,6 @@ class SpoolController extends Controller
         }
         if (isset($filters['status'])) {
             $query->where('status', $filters['status']);
-        }
-        if ($request->boolean('low')) {
-            $query->lowStock();
         }
 
         return SpoolResource::collection($query->paginate((int) ($filters['per_page'] ?? 50))->withQueryString());
@@ -65,23 +63,28 @@ class SpoolController extends Controller
         return new SpoolResource($update->handle($spool, $request->all())->load('product.brand', 'product.material'));
     }
 
-    public function destroy(Spool $spool): Response
-    {
-        $this->authorize('delete', $spool);
-        $spool->delete(); // soft delete; never a hard delete through the API
-
-        return response()->noContent();
-    }
-
-    public function weigh(Request $request, Spool $spool, RecordWeight $record): SpoolResource
+    /** Boxed -> on the spool holder. */
+    public function open(Request $request, Spool $spool, OpenSpool $open): SpoolResource
     {
         $this->authorize('update', $spool);
-        $data = $request->validate([
-            'weight' => ['required', 'integer', 'min:0', 'max:20000'],
-            'note' => ['nullable', 'string', 'max:255'],
-        ]);
 
-        return new SpoolResource($record->handle($spool, $data['weight'], $data['note'] ?? null)->load('product.brand', 'product.material'));
+        return new SpoolResource($open->handle($spool, $this->note($request))->load('product.brand', 'product.material'));
+    }
+
+    public function usedUp(Request $request, Spool $spool, MarkSpoolUsedUp $usedUp): SpoolResource
+    {
+        $this->authorize('update', $spool);
+
+        return new SpoolResource($usedUp->handle($spool, $this->note($request))->load('product.brand', 'product.material'));
+    }
+
+    /** Removed without counting as used (mistake, sold, given away). Soft delete only. */
+    public function destroy(Request $request, Spool $spool, RemoveSpool $remove): Response
+    {
+        $this->authorize('delete', $spool);
+        $remove->handle($spool, $this->note($request));
+
+        return response()->noContent();
     }
 
     public function events(Spool $spool): AnonymousResourceCollection
@@ -89,5 +92,10 @@ class SpoolController extends Controller
         $this->authorize('view', $spool);
 
         return SpoolEventResource::collection($spool->events()->paginate(100));
+    }
+
+    private function note(Request $request): ?string
+    {
+        return $request->validate(['note' => ['nullable', 'string', 'max:255']])['note'] ?? null;
     }
 }

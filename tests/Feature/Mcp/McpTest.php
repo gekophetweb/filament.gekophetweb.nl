@@ -1,12 +1,13 @@
 <?php
 
+use App\Enums\SpoolStatus;
 use App\Mcp\Servers\SpoolServer;
 use App\Mcp\Tools\AddSpoolTool;
 use App\Mcp\Tools\GetSpoolTool;
 use App\Mcp\Tools\ListSpoolsTool;
-use App\Mcp\Tools\LowStockReportTool;
-use App\Mcp\Tools\MarkSpoolEmptyTool;
-use App\Mcp\Tools\RecordWeightTool;
+use App\Mcp\Tools\MarkSpoolUsedUpTool;
+use App\Mcp\Tools\OpenSpoolTool;
+use App\Mcp\Tools\RunningOutReportTool;
 use App\Mcp\Tools\SearchCatalogTool;
 use App\Models\FilamentProduct;
 use App\Models\McpAuditLog;
@@ -25,7 +26,8 @@ it('searches the catalog', function () {
 
     SpoolServer::actingAs($user)->tool(SearchCatalogTool::class, ['q' => 'jade'])
         ->assertOk()
-        ->assertSee('Jade White');
+        ->assertSee('Jade White')
+        ->assertSee('boxed_count');
 });
 
 it('only lists and reads the user\'s own spools', function () {
@@ -46,46 +48,54 @@ it('cannot write another user\'s spool', function () {
     $user = mcpUser(['spools:read', 'spools:write']);
     $theirs = Spool::factory()->create();
 
-    SpoolServer::actingAs($user)->tool(RecordWeightTool::class, ['uuid' => $theirs->uuid, 'remaining_grams' => 1])
+    SpoolServer::actingAs($user)->tool(OpenSpoolTool::class, ['uuid' => $theirs->uuid])
         ->assertHasErrors(['Spool not found.']);
-    SpoolServer::actingAs($user)->tool(MarkSpoolEmptyTool::class, ['uuid' => $theirs->uuid])
-        ->assertHasErrors();
+    SpoolServer::actingAs($user)->tool(MarkSpoolUsedUpTool::class, ['uuid' => $theirs->uuid])
+        ->assertHasErrors(['Spool not found.']);
 
-    expect($theirs->fresh()->remaining_weight)->toBe(1000);
+    expect($theirs->fresh()->status)->toBe(SpoolStatus::Boxed);
 });
 
 it('hides and refuses write tools for read-only tokens', function () {
     $user = mcpUser(['spools:read']);
     $spool = Spool::factory()->for($user)->create();
 
-    SpoolServer::actingAs($user)->tool(RecordWeightTool::class, ['uuid' => $spool->uuid, 'remaining_grams' => 1])
+    SpoolServer::actingAs($user)->tool(OpenSpoolTool::class, ['uuid' => $spool->uuid])
         ->assertHasErrors();
 
-    expect($spool->fresh()->remaining_weight)->toBe(1000)
-        ->and(McpAuditLog::where('tool', 'record_weight')->value('status'))->toBeIn(['forbidden', 'error', null]);
+    expect($spool->fresh()->status)->toBe(SpoolStatus::Boxed)
+        ->and(McpAuditLog::where('tool', 'put_spool_on_holder')->value('status'))->toBeIn(['forbidden', 'error', null]);
 });
 
 it('runs write tools with a write token and audits them', function () {
     $user = mcpUser(['spools:read', 'spools:write']);
-    $product = FilamentProduct::factory()->create();
+    $product = FilamentProduct::factory()->create(['article_name' => 'Jade White']);
 
     SpoolServer::actingAs($user)->tool(AddSpoolTool::class, ['product_id' => $product->id, 'location' => 'AMS'])->assertOk();
     $spool = $user->spools()->sole();
 
-    SpoolServer::actingAs($user)->tool(RecordWeightTool::class, ['uuid' => $spool->uuid, 'remaining_grams' => 150])->assertOk();
-    SpoolServer::actingAs($user)->tool(LowStockReportTool::class)->assertSee($spool->uuid);
-    SpoolServer::actingAs($user)->tool(MarkSpoolEmptyTool::class, ['uuid' => $spool->uuid])->assertOk();
+    SpoolServer::actingAs($user)->tool(OpenSpoolTool::class, ['uuid' => $spool->uuid])->assertOk()->assertSee('on_spool');
+    SpoolServer::actingAs($user)->tool(RunningOutReportTool::class)->assertSee('Jade White');
+    SpoolServer::actingAs($user)->tool(MarkSpoolUsedUpTool::class, ['uuid' => $spool->uuid])->assertOk();
 
-    expect($spool->fresh()->remaining_weight)->toBe(0)
+    expect($spool->fresh()->status)->toBe(SpoolStatus::UsedUp)
         ->and(McpAuditLog::where('user_id', $user->id)->pluck('status', 'tool')->all())
-        ->toMatchArray(['add_spool' => 'ok', 'record_weight' => 'ok', 'mark_spool_empty' => 'ok']);
+        ->toMatchArray(['add_spool' => 'ok', 'put_spool_on_holder' => 'ok', 'mark_spool_used_up' => 'ok']);
+});
+
+it('leaves filaments with a boxed backup out of the running-out report', function () {
+    $user = mcpUser(['spools:read']);
+    $covered = FilamentProduct::factory()->create(['article_name' => 'Covered Grey']);
+    Spool::factory()->for($user)->for($covered, 'product')->onSpool()->create();
+    Spool::factory()->for($user)->for($covered, 'product')->create();
+
+    SpoolServer::actingAs($user)->tool(RunningOutReportTool::class)->assertOk()->assertDontSee('Covered Grey');
 });
 
 it('validates tool input', function () {
     $user = mcpUser(['spools:read', 'spools:write']);
-    $spool = Spool::factory()->for($user)->create();
 
-    SpoolServer::actingAs($user)->tool(RecordWeightTool::class, ['uuid' => $spool->uuid, 'remaining_grams' => -1])
+    SpoolServer::actingAs($user)->tool(OpenSpoolTool::class, ['uuid' => 'not-a-uuid'])
         ->assertHasErrors();
 });
 
@@ -101,5 +111,6 @@ it('serves tools/list over HTTP with a token and hides write tools for read toke
         'Accept' => 'application/json, text/event-stream',
     ])->assertOk();
 
-    expect($response->getContent())->toContain('search_catalog')->not->toContain('record_weight');
+    expect($response->getContent())->toContain('search_catalog')->toContain('running_out_report')
+        ->not->toContain('put_spool_on_holder')->not->toContain('mark_spool_used_up');
 });

@@ -13,8 +13,9 @@
         <header class="border-b border-stone-200 bg-white">
             <nav class="mx-auto flex max-w-7xl items-center gap-6 px-4 py-3">
                 <a href="{{ route('catalog') }}" class="font-semibold tracking-tight">Spool Tracker</a>
-                <a href="{{ route('catalog') }}" @class(['text-sm', 'font-semibold text-emerald-700' => request()->routeIs('catalog')])>Catalog</a>
+                <a href="{{ route('catalog') }}" @class(['text-sm', 'font-semibold text-emerald-700' => request()->routeIs('catalog', 'filaments.*')])>Catalog</a>
                 <a href="{{ route('spools') }}" @class(['text-sm', 'font-semibold text-emerald-700' => request()->routeIs('spools*')])>My spools</a>
+                <a href="{{ route('usage') }}" @class(['text-sm', 'font-semibold text-emerald-700' => request()->routeIs('usage')])>Usage</a>
                 <a href="{{ route('devices') }}" @class(['text-sm', 'font-semibold text-emerald-700' => request()->routeIs('devices')])>Devices</a>
                 <form method="POST" action="{{ route('logout') }}" class="ml-auto">
                     @csrf

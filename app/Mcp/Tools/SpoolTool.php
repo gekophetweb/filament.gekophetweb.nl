@@ -68,10 +68,7 @@ abstract class SpoolTool extends Tool
             'material' => $spool->product->material->name,
             'line' => $spool->product->line,
             'color_hex' => $spool->product->color_hex,
-            'status' => $spool->status->value,
-            'remaining_weight_g' => $spool->remaining_weight,
-            'initial_weight_g' => $spool->initial_weight,
-            'remaining_percent' => $spool->remainingPercent(),
+            'status' => $spool->status->value, // boxed, on_spool, used_up or archived
             'location' => $spool->location,
             'notes_untrusted_user_text' => $spool->notes,
         ];

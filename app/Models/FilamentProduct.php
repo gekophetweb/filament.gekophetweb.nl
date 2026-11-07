@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\SpoolStatus;
 use App\Support\Color;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
@@ -61,12 +62,40 @@ class FilamentProduct extends Model
     }
 
     /**
-     * Adds owned_count: the user's spools of this product that still hold filament.
+     * Link to buy this filament: its product page when known, otherwise a store search.
+     * Searching Bambu Lab's store by article number lands on exactly that product.
+     */
+    public function buyUrl(): ?string
+    {
+        if ($this->product_url) {
+            return $this->product_url;
+        }
+
+        if ($this->brand?->name !== 'Bambu Lab') {
+            return null;
+        }
+
+        $query = ctype_digit($this->article_number)
+            ? $this->article_number
+            : trim("{$this->material?->name} {$this->line} {$this->article_name}");
+
+        return rtrim((string) config('services.bambulab.store_url'), '/').'/search?'.http_build_query(['q' => $query]);
+    }
+
+    /**
+     * Adds the user's counts for this product: boxed_count, on_spool_count and
+     * owned_count (both together).
      *
      * @param  Builder<FilamentProduct>  $query
      */
     public function scopeWithOwnedCount(Builder $query, User $user): void
     {
-        $query->withCount(['spools as owned_count' => fn (Builder $q) => $q->where('user_id', $user->id)->active()]);
+        $mine = fn (Builder $spools) => $spools->where('user_id', $user->id);
+
+        $query->withCount([
+            'spools as boxed_count' => fn (Builder $spools) => $mine($spools)->where('status', SpoolStatus::Boxed),
+            'spools as on_spool_count' => fn (Builder $spools) => $mine($spools)->where('status', SpoolStatus::OnSpool),
+            'spools as owned_count' => fn (Builder $spools) => $mine($spools)->active(),
+        ]);
     }
 }

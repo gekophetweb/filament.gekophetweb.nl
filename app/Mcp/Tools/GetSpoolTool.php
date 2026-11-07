@@ -28,7 +28,7 @@ class GetSpoolTool extends SpoolTool
             ...$this->spoolData($spool),
             'events' => $spool->events()->limit(20)->get()->map(fn ($e) => [
                 'type' => $e->type->value,
-                'weight_g' => $e->weight,
+                'what' => $e->type->label(),
                 'at' => $e->created_at->toIso8601String(),
             ])->all(),
         ]);

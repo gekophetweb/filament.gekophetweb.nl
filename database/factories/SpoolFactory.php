@@ -18,17 +18,20 @@ class SpoolFactory extends Factory
         return [
             'user_id' => User::factory(),
             'filament_product_id' => FilamentProduct::factory(),
-            'status' => SpoolStatus::Sealed,
+            'status' => SpoolStatus::Boxed,
             'is_refill' => false,
-            'initial_weight' => 1000,
-            'remaining_weight' => 1000,
             'purchased_at' => now()->subDays(10),
             'location' => 'Shelf',
         ];
     }
 
-    public function remaining(int $grams): static
+    public function onSpool(): static
     {
-        return $this->state(['remaining_weight' => $grams, 'status' => SpoolStatus::InUse]);
+        return $this->state(['status' => SpoolStatus::OnSpool]);
+    }
+
+    public function usedUp(): static
+    {
+        return $this->state(['status' => SpoolStatus::UsedUp]);
     }
 }

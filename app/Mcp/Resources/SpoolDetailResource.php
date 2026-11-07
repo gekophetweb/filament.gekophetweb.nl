@@ -42,8 +42,6 @@ class SpoolDetailResource extends Resource implements HasUriTemplate
             'line' => $spool->product->line,
             'color_hex' => $spool->product->color_hex,
             'status' => $spool->status->value,
-            'remaining_weight_g' => $spool->remaining_weight,
-            'initial_weight_g' => $spool->initial_weight,
             'location' => $spool->location,
             'notes_untrusted_user_text' => $spool->notes,
         ]);

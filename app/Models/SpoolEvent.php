@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-#[Fillable(['type', 'weight', 'note'])]
+#[Fillable(['type', 'note'])]
 class SpoolEvent extends Model
 {
     public const UPDATED_AT = null;
@@ -16,7 +16,6 @@ class SpoolEvent extends Model
     {
         return [
             'type' => SpoolEventType::class,
-            'weight' => 'integer',
             'created_at' => 'datetime',
         ];
     }
@@ -24,6 +23,6 @@ class SpoolEvent extends Model
     /** @return BelongsTo<Spool, $this> */
     public function spool(): BelongsTo
     {
-        return $this->belongsTo(Spool::class);
+        return $this->belongsTo(Spool::class)->withTrashed();
     }
 }

@@ -4,7 +4,6 @@ namespace App\Actions;
 
 use App\Enums\SpoolEventType;
 use App\Enums\SpoolStatus;
-use App\Models\FilamentProduct;
 use App\Models\Spool;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
@@ -18,10 +17,8 @@ class AddSpool
     {
         return [
             'filament_product_id' => ['required', 'integer', Rule::exists('filament_products', 'id')],
-            'status' => ['sometimes', Rule::enum(SpoolStatus::class)],
+            'status' => ['sometimes', Rule::enum(SpoolStatus::class)->only(SpoolStatus::owned())],
             'is_refill' => ['sometimes', 'boolean'],
-            'initial_weight' => ['sometimes', 'integer', 'min:1', 'max:20000'],
-            'remaining_weight' => ['sometimes', 'integer', 'min:0', 'max:20000'],
             'purchased_at' => ['sometimes', 'nullable', 'date'],
             'price' => ['sometimes', 'nullable', 'numeric', 'min:0', 'max:99999'],
             'location' => ['sometimes', 'nullable', 'string', 'max:100'],
@@ -29,25 +26,22 @@ class AddSpool
         ];
     }
 
-    /** @param  array<string, mixed>  $input */
+    /**
+     * Add a spool to the user's inventory, boxed unless a status says otherwise.
+     *
+     * @param  array<string, mixed>  $input
+     */
     public function handle(User $user, array $input): Spool
     {
         $data = Validator::make($input, self::rules())->validate();
-
-        $product = FilamentProduct::findOrFail($data['filament_product_id']);
-        $data['initial_weight'] ??= $product->nominal_weight;
-        $data['remaining_weight'] = min($data['remaining_weight'] ?? $data['initial_weight'], $data['initial_weight']);
-        $data['status'] ??= SpoolStatus::Sealed->value;
+        $data['status'] ??= SpoolStatus::Boxed->value;
 
         return DB::transaction(function () use ($user, $data) {
             $spool = new Spool($data);
             $spool->user()->associate($user);
             $spool->save();
 
-            $spool->events()->create([
-                'type' => SpoolEventType::Added,
-                'weight' => $spool->remaining_weight,
-            ]);
+            $spool->events()->create(['type' => SpoolEventType::Added]);
 
             return $spool->load('product.brand', 'product.material');
         });

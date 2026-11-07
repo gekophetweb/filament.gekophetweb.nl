@@ -2,8 +2,8 @@
 
 namespace App\Livewire;
 
-use App\Actions\AddSpool;
 use App\Actions\SearchCatalog;
+use App\Livewire\Concerns\ManagesInventory;
 use App\Models\FilamentProduct;
 use App\Models\Material;
 use App\Support\Color;
@@ -19,7 +19,7 @@ use Livewire\WithPagination;
 #[Title('Catalog')]
 class Catalog extends Component
 {
-    use WithPagination;
+    use ManagesInventory, WithPagination;
 
     #[Url(except: '')]
     public string $q = '';
@@ -49,12 +49,6 @@ class Catalog extends Component
         $this->resetPage();
     }
 
-    public function addSpool(int $productId, AddSpool $add): void
-    {
-        $add->handle(Auth::user(), ['filament_product_id' => $productId]);
-        $this->dispatch('spool-added');
-    }
-
     public function render(SearchCatalog $search): View
     {
         $filters = [
@@ -62,11 +56,11 @@ class Catalog extends Component
             'material' => $this->material,
             'line' => $this->line,
             'color' => $this->color,
-            'owned' => in_array($this->owned, ['0', '1', 'low'], true) ? $this->owned : '',
+            'owned' => in_array($this->owned, SearchCatalog::OWNED_FILTERS, true) ? $this->owned : '',
         ];
 
         return view('livewire.catalog', [
-            'products' => $search->paginate(Auth::user(), $filters, 48),
+            'products' => $search->paginate(Auth::user(), $filters, 50),
             'materials' => Material::orderBy('name')->pluck('name'),
             'lines' => FilamentProduct::whereNotNull('line')->distinct()->orderBy('line')->pluck('line'),
             'families' => Color::families(),

@@ -2,7 +2,7 @@
 
 namespace App\Mcp\Tools;
 
-use App\Actions\MarkSpoolEmpty;
+use App\Actions\OpenSpool;
 use App\Models\User;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Laravel\Mcp\Request;
@@ -10,15 +10,13 @@ use Laravel\Mcp\Response;
 use Laravel\Mcp\Server\Attributes\Description;
 use Laravel\Mcp\Server\Attributes\Name;
 use Laravel\Mcp\Server\Tools\Annotations\IsDestructive;
-use Laravel\Mcp\Server\Tools\Annotations\IsIdempotent;
 use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 
-#[Name('mark_spool_empty')]
-#[Description('Mark one of the user\'s spools as empty (remaining weight 0). Changes data: only call when the user clearly asked for it. The spool stays in history; nothing is deleted.')]
+#[Name('put_spool_on_holder')]
+#[Description('Take one of the user\'s boxed spools out of its box and put it on the spool holder (status boxed -> on_spool). Changes data: only call when the user asked for it.')]
 #[IsReadOnly(false)]
-#[IsDestructive]
-#[IsIdempotent]
-class MarkSpoolEmptyTool extends SpoolTool
+#[IsDestructive(false)]
+class OpenSpoolTool extends SpoolTool
 {
     protected bool $writes = true;
 
@@ -31,7 +29,7 @@ class MarkSpoolEmptyTool extends SpoolTool
             return Response::error('Spool not found.');
         }
 
-        return Response::json($this->spoolData(app(MarkSpoolEmpty::class)->handle($spool)));
+        return Response::json($this->spoolData(app(OpenSpool::class)->handle($spool, 'via MCP')));
     }
 
     public function schema(JsonSchema $schema): array

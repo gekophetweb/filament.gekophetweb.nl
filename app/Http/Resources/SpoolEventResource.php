@@ -13,7 +13,6 @@ class SpoolEventResource extends JsonResource
     {
         return [
             'type' => $this->type->value,
-            'weight' => $this->weight,
             'note' => $this->note,
             'created_at' => $this->created_at?->toIso8601String(),
         ];

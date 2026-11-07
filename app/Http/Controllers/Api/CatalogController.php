@@ -8,6 +8,7 @@ use App\Http\Resources\FilamentProductResource;
 use App\Models\FilamentProduct;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Validation\Rule;
 
 class CatalogController extends Controller
 {
@@ -19,7 +20,7 @@ class CatalogController extends Controller
             'brand' => ['nullable', 'string', 'max:50'],
             'line' => ['nullable', 'string', 'max:50'],
             'color' => ['nullable', 'string', 'max:20'],
-            'owned' => ['nullable', 'in:0,1,low'],
+            'owned' => ['nullable', Rule::in(SearchCatalog::OWNED_FILTERS)],
             'updated_since' => ['nullable', 'date'],
             'per_page' => ['nullable', 'integer', 'min:1', 'max:'.SearchCatalog::MAX_PER_PAGE],
         ]);

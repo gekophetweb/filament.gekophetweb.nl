@@ -1,5 +1,9 @@
 <?php
 
+use App\Actions\AddSpool;
+use App\Actions\AdjustInventory;
+use App\Actions\MarkSpoolUsedUp;
+use App\Enums\SpoolStatus;
 use App\Livewire\Catalog;
 use App\Livewire\Devices;
 use App\Livewire\SpoolDetail;
@@ -8,7 +12,7 @@ use App\Models\FilamentProduct;
 use App\Models\Spool;
 use Livewire\Livewire;
 
-it('renders the catalog grid with swatches and filters by color', function () {
+it('renders the catalog as a list with swatches and filters by color', function () {
     $user = user();
     FilamentProduct::factory()->color('#0A2989')->create(['article_name' => 'Cobalt Blue']);
     FilamentProduct::factory()->color('#C12E1F')->create(['article_name' => 'Scarlet Red', 'color_hex_2' => '#FFFFFF']);
@@ -21,36 +25,73 @@ it('renders the catalog grid with swatches and filters by color', function () {
         ->assertDontSee('Scarlet Red');
 });
 
-it('adds a spool from the catalog', function () {
+it('changes boxed and on-spool counts from the catalog', function () {
     $user = user();
-    $product = FilamentProduct::factory()->create();
+    $product = FilamentProduct::factory()->create(['article_number' => '10100']);
 
-    Livewire::actingAs($user)->test(Catalog::class)->call('addSpool', $product->id)->assertSee('owned: 1');
+    Livewire::actingAs($user)->test(Catalog::class)
+        ->call('addBoxed', $product->id)
+        ->call('addBoxed', $product->id)
+        ->call('putOnSpool', $product->id)
+        ->assertSeeInOrder(['1', 'boxed', '1', 'on spool'])
+        ->assertSee('https://eu.store.bambulab.com/search?q=10100', false);
 
-    expect($user->spools()->count())->toBe(1);
+    expect($user->spools()->where('status', SpoolStatus::Boxed)->count())->toBe(1)
+        ->and($user->spools()->where('status', SpoolStatus::OnSpool)->count())->toBe(1);
 });
 
-it('weighs and empties own spools from the list', function () {
+it('puts own spools on the holder and marks them used up from the list', function () {
     $user = user();
     $spool = Spool::factory()->for($user)->create();
 
-    Livewire::actingAs($user)->test(Spools::class)
-        ->set("weights.{$spool->uuid}", 300)
-        ->call('weigh', $spool->uuid)
-        ->assertHasNoErrors();
-    expect($spool->fresh()->remaining_weight)->toBe(300);
+    Livewire::actingAs($user)->test(Spools::class)->call('putOnSpool', $spool->uuid);
+    expect($spool->fresh()->status)->toBe(SpoolStatus::OnSpool);
 
-    Livewire::actingAs($user)->test(Spools::class)->call('markEmpty', $spool->uuid);
-    expect($spool->fresh()->remaining_weight)->toBe(0);
+    Livewire::actingAs($user)->test(Spools::class)->call('useUp', $spool->uuid);
+    expect($spool->fresh()->status)->toBe(SpoolStatus::UsedUp);
 });
 
 it('cannot touch another user\'s spool through Livewire', function () {
     $other = Spool::factory()->create();
 
-    Livewire::actingAs(user())->test(Spools::class)->call('markEmpty', $other->uuid)->assertNotFound();
+    Livewire::actingAs(user())->test(Spools::class)->call('useUp', $other->uuid)->assertNotFound();
     $this->actingAs(user())->get("/spools/{$other->uuid}")->assertNotFound();
 
-    expect($other->fresh()->remaining_weight)->toBe(1000);
+    expect($other->fresh()->status)->toBe(SpoolStatus::Boxed);
+});
+
+it('shows a filament page with own history, a usage chart and a buy link', function () {
+    $user = user();
+    $product = FilamentProduct::factory()->create(['article_name' => 'Jade White', 'article_number' => '10100']);
+    $spool = app(AddSpool::class)->handle($user, ['filament_product_id' => $product->id]);
+    app(MarkSpoolUsedUp::class)->handle($spool, 'mine');
+    $theirs = app(AddSpool::class)->handle(user(), ['filament_product_id' => $product->id]);
+    app(MarkSpoolUsedUp::class)->handle($theirs, 'not mine');
+
+    $this->actingAs($user)->get("/filaments/{$product->id}")
+        ->assertOk()
+        ->assertSee('Jade White')
+        ->assertSee('https://eu.store.bambulab.com/search?q=10100', false)
+        ->assertSee(now()->format('F Y').': 1 added, 1 used up')
+        ->assertSeeInOrder(['Used up', 'mine', 'Added (boxed)'])
+        ->assertDontSee('not mine');
+});
+
+it('shows overall usage with the most used filaments', function () {
+    $user = user();
+    $product = FilamentProduct::factory()->create(['article_name' => 'Jade White']);
+    $inventory = app(AdjustInventory::class);
+    $inventory->add($user, $product);
+    $inventory->add($user, $product);
+    $inventory->open($user, $product);
+    $inventory->useUp($user, $product);
+
+    $this->actingAs($user)->get('/usage')
+        ->assertOk()
+        ->assertSee(now()->format('F Y').': 2 added, 1 used up')
+        ->assertSeeInOrder(['Most used filaments', 'Jade White', '1', 'used up']);
+
+    $this->actingAs(user())->get('/usage')->assertOk()->assertDontSee('Jade White');
 });
 
 it('shows the detail page with history', function () {

@@ -2,8 +2,8 @@
 
 namespace App\Livewire;
 
-use App\Actions\MarkSpoolEmpty;
-use App\Actions\RecordWeight;
+use App\Actions\MarkSpoolUsedUp;
+use App\Actions\OpenSpool;
 use App\Enums\SpoolStatus;
 use App\Models\Spool;
 use Illuminate\Contracts\View\View;
@@ -23,26 +23,19 @@ class Spools extends Component
     #[Url(except: 'active')]
     public string $status = 'active';
 
-    /** @var array<string, string|int|null> uuid => grams typed in the quick-weigh box */
-    public array $weights = [];
-
     public function updatedStatus(): void
     {
         $this->resetPage();
     }
 
-    public function weigh(string $uuid, RecordWeight $record): void
+    public function putOnSpool(string $uuid, OpenSpool $open): void
     {
-        $spool = $this->find($uuid);
-        $this->validate(["weights.{$uuid}" => ['required', 'integer', 'min:0', 'max:20000']], [], ["weights.{$uuid}" => 'weight']);
-
-        $record->handle($spool, (int) $this->weights[$uuid]);
-        unset($this->weights[$uuid]);
+        $open->handle($this->find($uuid));
     }
 
-    public function markEmpty(string $uuid, MarkSpoolEmpty $empty): void
+    public function useUp(string $uuid, MarkSpoolUsedUp $usedUp): void
     {
-        $empty->handle($this->find($uuid));
+        $usedUp->handle($this->find($uuid));
     }
 
     private function find(string $uuid): Spool
@@ -59,13 +52,12 @@ class Spools extends Component
 
         match ($this->status) {
             'active' => $query->active(),
-            'low' => $query->lowStock(),
             'all' => null,
             default => $query->where('status', SpoolStatus::tryFrom($this->status)?->value ?? 'none'),
         };
 
         return view('livewire.spools', [
-            'spools' => $query->paginate(48),
+            'spools' => $query->paginate(50),
             'statuses' => SpoolStatus::cases(),
         ]);
     }

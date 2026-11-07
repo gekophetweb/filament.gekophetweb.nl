@@ -2,6 +2,7 @@
 
 namespace App\Actions;
 
+use App\Enums\SpoolStatus;
 use App\Models\FilamentProduct;
 use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -12,9 +13,23 @@ class SearchCatalog
 {
     public const MAX_PER_PAGE = 100;
 
+    /** Values of the "owned" filter. */
+    public const OWNED = '1';
+
+    public const NOT_OWNED = '0';
+
+    public const BOXED = 'boxed';
+
+    public const ON_SPOOL = 'on_spool';
+
+    public const RUNNING_OUT = 'running_out';
+
+    public const OWNED_FILTERS = [self::OWNED, self::NOT_OWNED, self::BOXED, self::ON_SPOOL, self::RUNNING_OUT];
+
     /**
+     * The "owned" filter is one of OWNED_FILTERS; anything else shows every product.
+     *
      * @param  array{q?: ?string, material?: ?string, line?: ?string, color?: ?string, brand?: ?string, owned?: ?string, updated_since?: ?string}  $filters
-     *                                                                                                                                                       owned: "1" (owned), "0" (not owned), "low" (owned and low stock)
      * @return Builder<FilamentProduct>
      */
     public function query(User $user, array $filters = []): Builder
@@ -51,12 +66,18 @@ class SearchCatalog
             $query->where('updated_at', '>', Carbon::parse($since)->utc());
         }
 
-        $owned = fn (Builder $s) => $s->where('user_id', $user->id)->active();
+        $mine = fn (Builder $spools) => $spools->where('user_id', $user->id);
+        $owned = fn (Builder $spools) => $mine($spools)->active();
 
         match ((string) ($filters['owned'] ?? '')) {
-            '1' => $query->whereHas('spools', $owned),
-            '0' => $query->whereDoesntHave('spools', $owned),
-            'low' => $query->whereHas('spools', fn (Builder $s) => $s->where('user_id', $user->id)->lowStock()),
+            self::OWNED => $query->whereHas('spools', $owned),
+            self::NOT_OWNED => $query->whereDoesntHave('spools', $owned),
+            self::BOXED => $query->whereHas('spools', fn (Builder $spools) => $mine($spools)->where('status', SpoolStatus::Boxed)),
+            self::ON_SPOOL => $query->whereHas('spools', fn (Builder $spools) => $mine($spools)->where('status', SpoolStatus::OnSpool)),
+            // Running out: on the spool holder, but no boxed spool left as a backup.
+            self::RUNNING_OUT => $query
+                ->whereHas('spools', fn (Builder $spools) => $mine($spools)->where('status', SpoolStatus::OnSpool))
+                ->whereDoesntHave('spools', fn (Builder $spools) => $mine($spools)->where('status', SpoolStatus::Boxed)),
             default => null,
         };
 

@@ -25,6 +25,9 @@ class FilamentProductResource extends JsonResource
             'nominal_weight' => $this->nominal_weight,
             'has_refill' => $this->has_refill,
             'product_url' => $this->product_url,
+            'buy_url' => $this->buyUrl(),
+            'boxed_count' => $this->whenHas('boxed_count'),
+            'on_spool_count' => $this->whenHas('on_spool_count'),
             'owned_count' => $this->whenHas('owned_count'),
             'updated_at' => $this->updated_at?->toIso8601String(),
         ];

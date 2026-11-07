@@ -22,6 +22,7 @@ Route::middleware(['ip:api', 'auth-failures', 'throttle-ip:api-ip', 'auth:sanctu
         Route::post('/spools', [SpoolController::class, 'store']);
         Route::patch('/spools/{spool}', [SpoolController::class, 'update']);
         Route::delete('/spools/{spool}', [SpoolController::class, 'destroy']);
-        Route::post('/spools/{spool}/weigh', [SpoolController::class, 'weigh']);
+        Route::post('/spools/{spool}/open', [SpoolController::class, 'open']);
+        Route::post('/spools/{spool}/used-up', [SpoolController::class, 'usedUp']);
     });
 });

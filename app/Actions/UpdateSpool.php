@@ -3,11 +3,9 @@
 namespace App\Actions;
 
 use App\Enums\SpoolEventType;
-use App\Enums\SpoolStatus;
 use App\Models\Spool;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\Rule;
 
 class UpdateSpool
 {
@@ -15,7 +13,6 @@ class UpdateSpool
     public static function rules(): array
     {
         return [
-            'status' => ['sometimes', Rule::enum(SpoolStatus::class)],
             'is_refill' => ['sometimes', 'boolean'],
             'purchased_at' => ['sometimes', 'nullable', 'date'],
             'price' => ['sometimes', 'nullable', 'numeric', 'min:0', 'max:99999'],
@@ -25,8 +22,8 @@ class UpdateSpool
     }
 
     /**
-     * Update descriptive fields. Weight changes go through RecordWeight so
-     * they always leave an event behind.
+     * Update descriptive fields. Status changes go through OpenSpool, MarkSpoolUsedUp
+     * and RemoveSpool so they always leave an event behind.
      *
      * @param  array<string, mixed>  $input
      */

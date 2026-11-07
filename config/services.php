@@ -28,6 +28,11 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    // Buy links for Bambu Lab filaments open a search in this store (EU, US, UK, ...).
+    'bambulab' => [
+        'store_url' => env('BAMBULAB_STORE_URL', 'https://eu.store.bambulab.com'),
+    ],
+
     // SSO: "oidc" (generic OpenID Connect via SSO_ISSUER) or any built-in
     // Socialite driver such as "google" or "github".
     'sso' => [

@@ -105,16 +105,23 @@ service token or bypass for `/api/*` and `/mcp`.
 
 ## API
 
-Bearer token from the Devices page. `GET /me`, `GET /catalog` (`q, material, brand, line, color, owned=0|1|low, updated_since, per_page<=100`),
-`GET /catalog/{id}`, `GET|POST /spools`, `GET|PATCH|DELETE /spools/{uuid}` (soft delete),
-`POST /spools/{uuid}/weigh` (`weight` = net grams left), `GET /spools/{uuid}/events`.
+Spools are counted, not weighed: a spool is `boxed`, `on_spool` (on the spool holder) or `used_up`.
+
+Bearer token from the Devices page. `GET /me`, `GET /catalog` (`q, material, brand, line, color,
+owned=1|0|boxed|on_spool|running_out, updated_since, per_page<=100`; each product has `boxed_count`,
+`on_spool_count` and `buy_url`), `GET /catalog/{id}`, `GET|POST /spools`, `GET|PATCH /spools/{uuid}`,
+`POST /spools/{uuid}/open` (boxed → on spool), `POST /spools/{uuid}/used-up`,
+`DELETE /spools/{uuid}` (removed without counting as used; soft delete), `GET /spools/{uuid}/events`.
+The status changes and `DELETE` take an optional `note`.
 `GET /spools?updated_since=` also returns deleted spools (with `deleted_at`) for sync.
+
+Buy links open a search in the Bambu Lab store set by `BAMBULAB_STORE_URL` (default the EU store).
 
 ## MCP
 
 `POST https://filament.gekophetweb.nl/mcp` with `Authorization: Bearer <token>`.
-Tools: `search_catalog`, `list_spools`, `get_spool`, `low_stock_report` (read);
-`add_spool`, `record_weight`, `mark_spool_empty` (only shown to write tokens). Resource `spool://{uuid}`,
+Tools: `search_catalog`, `list_spools`, `get_spool`, `running_out_report` (read);
+`add_spool`, `put_spool_on_holder`, `mark_spool_used_up` (only shown to write tokens). Resource `spool://{uuid}`,
 prompt `suggest_reorder`.
 
 ## Development
