@@ -8,6 +8,7 @@ use App\Livewire\Catalog;
 use App\Livewire\Devices;
 use App\Livewire\FilamentDetail;
 use App\Livewire\Setup;
+use App\Livewire\ShareAndExport;
 use App\Livewire\SpoolDetail;
 use App\Livewire\Spools;
 use App\Livewire\Usage;
@@ -36,6 +37,7 @@ Route::middleware(['auth', 'throttle:web'])->group(function () {
     Route::get('/spools', Spools::class)->name('spools');
     Route::get('/spools/export', SpoolExportController::class)->name('spools.export');
     Route::get('/spools/{spool}', SpoolDetail::class)->name('spools.show');
+    Route::get('/share-export', ShareAndExport::class)->name('share-export');
     Route::get('/devices', Devices::class)->name('devices');
     Route::post('/logout', [SsoController::class, 'logout'])->name('logout');
 });

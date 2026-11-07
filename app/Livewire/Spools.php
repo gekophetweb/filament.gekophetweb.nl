@@ -2,7 +2,6 @@
 
 namespace App\Livewire;
 
-use App\Actions\ImportSpools;
 use App\Actions\MarkSpoolUsedUp;
 use App\Actions\OpenSpool;
 use App\Enums\SpoolStatus;
@@ -12,21 +11,17 @@ use App\Models\Spool;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
-use InvalidArgumentException;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
-use Livewire\Attributes\Validate;
 use Livewire\Component;
-use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
-use Livewire\WithFileUploads;
 use Livewire\WithPagination;
 
 #[Layout('layouts.app')]
 #[Title('My spools')]
 class Spools extends Component
 {
-    use WithFileUploads, WithPagination;
+    use WithPagination;
 
     #[Url(except: 'active')]
     public string $status = 'active';
@@ -34,13 +29,6 @@ class Spools extends Component
     /** Filament type (material name, e.g. PLA); empty for all. */
     #[Url(except: '')]
     public string $material = '';
-
-    /** The CSV to import; at most 2 MB. */
-    #[Validate(['required', 'file', 'mimes:csv,txt', 'max:2048'])]
-    public ?TemporaryUploadedFile $importFile = null;
-
-    /** @var array{created: int, updated: int, unchanged: int, errors: list<string>}|null */
-    public ?array $importResult = null;
 
     public function updatedStatus(): void
     {
@@ -60,31 +48,6 @@ class Spools extends Component
     public function useUp(string $uuid, MarkSpoolUsedUp $usedUp): void
     {
         $usedUp->handle($this->find($uuid));
-    }
-
-    public function import(ImportSpools $importer): void
-    {
-        $this->validate();
-
-        try {
-            $this->importResult = $importer->handle(Auth::user(), $this->importFile->getRealPath());
-        } catch (InvalidArgumentException $e) {
-            $this->addError('importFile', $e->getMessage());
-        }
-
-        $this->reset('importFile');
-        $this->resetPage();
-    }
-
-    /** Turn the read-only share link on, or replace it (the old link stops working). */
-    public function newShareLink(): void
-    {
-        Auth::user()->rotateShareToken();
-    }
-
-    public function stopSharing(): void
-    {
-        Auth::user()->stopSharing();
     }
 
     private function find(string $uuid): Spool

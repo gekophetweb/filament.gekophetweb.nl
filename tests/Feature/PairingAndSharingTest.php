@@ -2,7 +2,7 @@
 
 use App\Actions\DevicePairing;
 use App\Livewire\Devices;
-use App\Livewire\Spools;
+use App\Livewire\ShareAndExport;
 use App\Models\FilamentProduct;
 use App\Models\Spool;
 use Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyException;
@@ -73,7 +73,7 @@ it('shares a read-only list of boxed and on-spool filament without signing in', 
     Spool::factory()->for($user)->usedUp()->create(['filament_product_id' => $gone->id]);
     Spool::factory()->create(['filament_product_id' => $red->id]);
 
-    Livewire::actingAs($user)->test(Spools::class)->call('newShareLink')->assertSee('/share/', false);
+    Livewire::actingAs($user)->test(ShareAndExport::class)->call('newShareLink')->assertSee('/share/', false);
     $url = $user->fresh()->shareUrl();
 
     auth()->logout();
@@ -89,12 +89,12 @@ it('stops an old share link when a new one is made or sharing is turned off', fu
     $user = user();
     $old = route('share', $user->rotateShareToken());
 
-    Livewire::actingAs($user)->test(Spools::class)->call('newShareLink');
+    Livewire::actingAs($user)->test(ShareAndExport::class)->call('newShareLink');
     $this->get($old)->assertNotFound();
     $this->get($user->fresh()->shareUrl())->assertOk();
 
     $current = $user->fresh()->shareUrl();
-    Livewire::actingAs($user)->test(Spools::class)->call('stopSharing');
+    Livewire::actingAs($user)->test(ShareAndExport::class)->call('stopSharing');
     $this->get($current)->assertNotFound();
     expect($user->fresh()->shareUrl())->toBeNull();
 });

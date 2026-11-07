@@ -84,7 +84,7 @@ Re-running it is safe.
 
 ## Share link
 
-On **My spools**, *Create share link* makes a read-only link (`/share/<40 characters>`) that works without
+On **Share & export** (`/share-export`), *Create share link* makes a read-only link (`/share/<40 characters>`) that works without
 signing in. It shows the owner's name, and each filament they have boxed or on spool with its counts. Prices,
 notes, locations and history are left out. *New link* replaces it (the old link stops working) and
 *Stop sharing* turns it off. The link is still behind `ALLOWED_IPS_WEB`, so set that to `*` (or add the
@@ -92,7 +92,7 @@ viewers' networks) for people elsewhere to open it.
 
 ## Export and import your spools
 
-On **My spools**, *Export CSV* downloads all your spools (any status, deleted ones left out) with the
+On **Share & export** (and with the button on **My spools**), *Export CSV* downloads all your spools (any status, deleted ones left out) with the
 columns `id, article_number, filament, material, status, refill, purchased_at, price, location, notes, added_at`.
 *Import spools from CSV* reads such a file back, also after editing it in a spreadsheet (comma or
 semicolon separated, UTF-8 or Excel's Windows encoding, at most 2 MB / 5000 rows). Only `article_number`

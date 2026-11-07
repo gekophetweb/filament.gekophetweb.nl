@@ -82,6 +82,20 @@ it('filters own spools by filament type, counts boxed and on spool, and orders b
         ->assertDontSee('Jade White');
 });
 
+it('keeps only the export button on My spools and moves sharing and import to their own page', function () {
+    $user = user();
+
+    $this->actingAs($user)->get('/spools')->assertOk()
+        ->assertSee(route('spools.export'), false)
+        ->assertDontSee('Share a read-only link')
+        ->assertDontSee('Import spools from CSV');
+
+    $this->actingAs($user)->get('/share-export')->assertOk()
+        ->assertSee('Share a read-only link')
+        ->assertSee(route('spools.export'), false)
+        ->assertSee('Import spools from CSV');
+});
+
 it('never lists used-up spools on My spools, whatever the status filter', function () {
     $user = user();
     $usedUp = Spool::factory()->for($user)->usedUp()->create();

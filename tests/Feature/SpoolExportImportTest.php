@@ -3,7 +3,7 @@
 use App\Actions\ImportSpools;
 use App\Enums\SpoolEventType;
 use App\Enums\SpoolStatus;
-use App\Livewire\Spools;
+use App\Livewire\ShareAndExport;
 use App\Models\FilamentProduct;
 use App\Models\Spool;
 use Illuminate\Http\UploadedFile;
@@ -114,18 +114,17 @@ it('rejects a file without an article_number column', function () {
     app(ImportSpools::class)->handle(user(), csvFile("name,status\nJade White,boxed"));
 })->throws(InvalidArgumentException::class, 'article_number');
 
-it('imports an uploaded CSV from the spools page and shows the result', function () {
+it('imports an uploaded CSV from the Share & export page and shows the result', function () {
     $user = user();
     FilamentProduct::factory()->create(['article_number' => '10100', 'article_name' => 'Jade White']);
 
-    Livewire::actingAs($user)->test(Spools::class)
+    Livewire::actingAs($user)->test(ShareAndExport::class)
         ->set('importFile', UploadedFile::fake()->createWithContent('spools.csv', "article_number\n10100\n10100\n"))
         ->call('import')
         ->assertHasNoErrors()
-        ->assertSee('Import done: 2 added, 0 updated, 0 unchanged.')
-        ->assertSee('Jade White');
+        ->assertSee('Import done: 2 added, 0 updated, 0 unchanged.');
 
-    Livewire::actingAs($user)->test(Spools::class)
+    Livewire::actingAs($user)->test(ShareAndExport::class)
         ->set('importFile', UploadedFile::fake()->createWithContent('spools.csv', "name\nx\n"))
         ->call('import')
         ->assertHasErrors('importFile');
