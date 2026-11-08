@@ -9,6 +9,21 @@
         "dev"
       ],
       "port": 5173
+    },
+    {
+      "name": "app",
+      "runtimeExecutable": "php",
+      "runtimeArgs": [
+        "artisan",
+        "serve",
+        "--port=8000"
+      ],
+      "port": 8000,
+      "env": {
+        "CACHE_STORE": "array",
+        "SESSION_DRIVER": "file",
+        "QUEUE_CONNECTION": "sync"
+      }
     }
   ]
 }

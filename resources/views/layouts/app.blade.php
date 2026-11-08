@@ -5,6 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="robots" content="noindex, nofollow">
     <title>{{ $title ?? config('app.name') }}</title>
+    <link rel="icon" href="/favicon.ico" sizes="48x48">
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    <link rel="manifest" href="/site.webmanifest">
+    <meta name="theme-color" content="#1c1917">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @livewireStyles
 </head>
@@ -12,7 +17,10 @@
     @auth
         <header class="border-b border-stone-200 bg-white">
             <nav class="mx-auto flex max-w-7xl items-center gap-6 px-4 py-3">
-                <a href="{{ route('catalog') }}" class="font-semibold tracking-tight">Spool Tracker</a>
+                <a href="{{ route('catalog') }}" class="flex items-center gap-2 font-semibold tracking-tight">
+                    <img src="/images/logo.svg" alt="" class="size-7">
+                    Spool Tracker
+                </a>
                 <a href="{{ route('catalog') }}" @class(['text-sm', 'font-semibold text-emerald-700' => request()->routeIs('catalog', 'filaments.*')])>Catalog</a>
                 <a href="{{ route('spools') }}" @class(['text-sm', 'font-semibold text-emerald-700' => request()->routeIs('spools*')])>My spools</a>
                 <a href="{{ route('usage') }}" @class(['text-sm', 'font-semibold text-emerald-700' => request()->routeIs('usage')])>Usage</a>

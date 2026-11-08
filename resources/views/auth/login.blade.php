@@ -2,6 +2,7 @@
 
 @section('content')
     <div class="mx-auto mt-24 max-w-sm rounded-xl bg-white p-8 text-center shadow-sm">
+        <img src="/images/logo.svg" alt="" class="mx-auto mb-4 size-16">
         <h1 class="text-xl font-semibold">Spool Tracker</h1>
         <p class="mt-2 text-sm text-stone-500">Sign in with your organization account.</p>
 

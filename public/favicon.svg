@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Spool Tracker">
+    <title>Spool Tracker</title>
+    <rect width="64" height="64" rx="14" fill="#1c1917"/>
+    <circle cx="27" cy="32" r="21" fill="#e7e5e4"/>
+    <circle cx="27" cy="32" r="17" fill="#10b981"/>
+    <circle cx="27" cy="32" r="13.6" fill="none" stroke="#047857" stroke-width="1.2"/>
+    <circle cx="27" cy="32" r="10.4" fill="none" stroke="#047857" stroke-width="1.2"/>
+    <circle cx="27" cy="32" r="7" fill="#e7e5e4"/>
+    <circle cx="27" cy="32" r="2.8" fill="#1c1917"/>
+    <path d="M35 16.6 H43 C50 16.6 54.4 21 54.4 28 V47" fill="none" stroke="#1c1917" stroke-width="5.6" stroke-linecap="round"/>
+    <path d="M27 16.6 H43 C50 16.6 54.4 21 54.4 28 V47" fill="none" stroke="#10b981" stroke-width="3.2" stroke-linecap="round"/>
+</svg>
