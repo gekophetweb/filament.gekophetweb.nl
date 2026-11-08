@@ -2,6 +2,7 @@
 
 use App\Http\Middleware\EnsureIpAllowed;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
 
 function ipCheck(string $remoteAddr, array $headers = []): int
 {
@@ -48,6 +49,27 @@ it('ignores spoofed X-Forwarded-For from untrusted clients', function () {
     // Through the trusted proxy (cloudflared), the forwarded client IP counts.
     expect(ipCheck('172.28.0.3', ['X-Forwarded-For' => '192.168.1.10']))->toBe(200);
     expect(ipCheck('172.28.0.3', ['X-Forwarded-For' => '192.168.1.10, 8.8.8.8']))->toBe(403);
+});
+
+it('takes the scheme and client IP only from the configured proxy, through the HTTP stack', function (string $remoteAddr, string $seen) {
+    config(['trustedproxy.proxies' => ['172.28.0.0/24']]);
+    Route::get('/_proxy-check', fn (Request $request) => $request->getScheme().' '.$request->ip());
+
+    $this->withServerVariables(['REMOTE_ADDR' => $remoteAddr])
+        ->withHeaders(['X-Forwarded-Proto' => 'https', 'X-Forwarded-For' => '192.168.1.10'])
+        ->get('/_proxy-check')
+        ->assertContent($seen);
+})->with([
+    'cloudflared' => ['172.28.0.3', 'https 192.168.1.10'],
+    'untrusted client' => ['8.8.8.8', 'http 8.8.8.8'],
+]);
+
+it('reads the trusted proxies from TRUSTED_PROXIES into config, so they survive config caching', function () {
+    $_SERVER['TRUSTED_PROXIES'] = '172.28.0.0/24, 10.1.0.0/16';
+    $proxies = (require config_path('trustedproxy.php'))['proxies'];
+    unset($_SERVER['TRUSTED_PROXIES']);
+
+    expect($proxies)->toBe(['172.28.0.0/24', '10.1.0.0/16']);
 });
 
 it('blocks web routes with a bare 403 and logs the attempt', function () {

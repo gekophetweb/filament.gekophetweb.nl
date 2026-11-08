@@ -31,10 +31,8 @@ return Application::configure(basePath: dirname(__DIR__))
         then: fn () => Route::group([], base_path('routes/docs.php')),
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        // Only the fixed Docker frontend subnet (cloudflared) is trusted; never "*".
-        $proxies = array_values(array_filter(array_map('trim', explode(',', (string) env('TRUSTED_PROXIES', '')))));
+        // Which proxies are trusted comes from config/trustedproxy.php (cloudflared's subnet).
         $middleware->trustProxies(
-            at: $proxies,
             headers: Request::HEADER_X_FORWARDED_FOR | Request::HEADER_X_FORWARDED_PROTO | Request::HEADER_X_FORWARDED_PORT,
         );
 

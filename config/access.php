@@ -18,9 +18,6 @@ return [
         'mcp' => $ips('ALLOWED_IPS_MCP'),
     ],
 
-    // Trusted reverse proxies (the fixed Docker "frontend" subnet). Never "*".
-    'trusted_proxies' => $list('TRUSTED_PROXIES'),
-
     /*
     | SSO login allow-list: full emails ("me@example.com") and/or domains
     | ("@example.com"), or "*" so anyone with a verified email at the
