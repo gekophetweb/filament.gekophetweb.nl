@@ -106,12 +106,34 @@ keeps the `.env.local` value.
 
 ### Updating
 
-Each deploy:
+[docker/update.sh](docker/update.sh) updates the server to the latest commit of its branch. It does
+nothing when there is nothing new. Otherwise it backs up the database, fast-forwards the code, builds
+the images, runs the migrations with the new image while the old containers keep serving, then starts
+the new containers and waits until they are healthy.
+
+```bash
+/opt/filament/docker/update.sh            # update if GitHub has new commits
+/opt/filament/docker/update.sh --force    # rebuild and restart anyway
+```
+
+To update automatically, add it to the crontab of the user that runs Docker (`crontab -e`), e.g.
+nightly at 04:00:
+
+```
+0 4 * * * /opt/filament/docker/update.sh >> $HOME/filament-update.log 2>&1
+```
+
+It never runs twice at once and exits non-zero on any failure (with `MAILTO` set, cron mails the
+output). Local edits such as the removed port mapping from step 7 are kept; if an update changes the
+same file, it stops before changing anything and `git status` shows what to resolve.
+
+By hand, an update is:
 
 ```bash
 cd /opt/filament && git pull
-docker compose build && docker compose --profile tunnel up -d
-docker compose exec app php artisan migrate --force
+docker compose --profile tunnel build
+docker compose --profile tunnel run --rm --no-deps app php artisan migrate --force
+docker compose --profile tunnel up -d
 ```
 
 The config, route, view and event caches are built when the web container starts.
