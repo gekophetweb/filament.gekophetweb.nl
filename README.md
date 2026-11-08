@@ -8,30 +8,72 @@ See [PLAN.md](PLAN.md) for the design.
 In code, `FilamentProduct` is a catalog item and `Spool` is a physical spool you own
 (not the Filament admin framework).
 
-## First deploy
+## Install on a Debian server
 
-1. `cp .env.example .env` and set `DB_PASSWORD`, `REDIS_PASSWORD` and `CLOUDFLARE_TUNNEL_TOKEN`
-   (see [Cloudflare Tunnel](#cloudflare-tunnel)). Leave SSO, the allow-lists and `APP_KEY` empty: the
-   installation sets those itself (see step 3). The containers only read `.env`.
-2. Build, start and prepare the database:
+The app runs from [docker-compose.yml](docker-compose.yml): the web app (Octane), a queue worker, the
+scheduler, PostgreSQL, Redis and `cloudflared`, which makes it reachable at
+`https://filament.gekophetweb.nl` without opening any ports. `gekophetweb.nl` must already be a domain
+on your Cloudflare account.
+
+1. Install Docker and git (skip if present):
+   ```bash
+   sudo apt update && sudo apt install -y ca-certificates curl git
+   curl -fsSL https://get.docker.com | sudo sh
+   sudo usermod -aG docker $USER && newgrp docker
+   ```
+2. Get the code:
+   ```bash
+   sudo mkdir -p /opt/filament && sudo chown $USER: /opt/filament
+   git clone https://github.com/gekophetweb/filament.gekophetweb.nl.git /opt/filament
+   cd /opt/filament
+   ```
+   Never put a `docker-compose.override.yml` on the server: that file is for local development only
+   (see [Development](#development)).
+3. Create the tunnel in Cloudflare:
+   1. Cloudflare dashboard → Zero Trust → Networks → Tunnels → Create a tunnel → Cloudflared
+      (name it e.g. `filament`).
+   2. Copy the token from the install command it shows (the long string after `--token`). Do not
+      install cloudflared on the host; the `cloudflared` container runs it.
+   3. Under Public hostnames, add subdomain `filament`, domain `gekophetweb.nl`, service type **HTTP**,
+      URL `app:8000`. Cloudflare creates the DNS record itself.
+4. `cp .env.example .env` and set:
+   - `DB_PASSWORD` and `REDIS_PASSWORD`: long random strings (`openssl rand -hex 24`)
+   - `CLOUDFLARE_TUNNEL_TOKEN`: the token from step 3
+
+   `APP_URL`, `SSO_REDIRECT_URI` and `TRUSTED_PROXIES` are already right for this domain. Leave SSO,
+   the allow-lists and `APP_KEY` empty: the installation sets those itself (see step 6). The
+   containers only read `.env`; Docker Compose reads the tunnel token from it when it creates the
+   `cloudflared` container.
+5. Build, start and prepare the database:
    ```bash
    docker compose build
    docker compose --profile tunnel up -d
    docker compose exec app php artisan migrate --force
    docker compose exec app php artisan db:seed --force   # all Bambu Lab filaments
    ```
-3. Open the setup wizard. The first start generates `APP_KEY` and prints a one-time link:
+6. Open the setup wizard. Until it has run, nobody can sign in and the empty allow-lists block every
+   address. The first start generates `APP_KEY` and prints a one-time link:
    ```bash
    docker compose logs app | grep "Setup URL"
    ```
-   The wizard only answers on `http://127.0.0.1:8000` on the Docker host (for a remote server:
-   `ssh -L 8000:127.0.0.1:8000 user@server`), never through the tunnel. It walks through the public
-   address, the identity provider (Keycloak, Authentik, Authelia, Zitadel, Pocket ID, Entra ID, Google,
-   Okta, Auth0, GitLab or any OIDC provider, each with setup instructions, and a discovery check), who may use it (anyone, or only listed accounts and networks), and a real test sign-in. Only then does it save,
-   reload the app and close itself for good (`storage/app/setup.lock`).
+   The wizard only answers on `http://127.0.0.1:8000` on the Docker host, never through the tunnel.
+   From your own computer, forward the port and open the link there:
+   ```bash
+   ssh -L 8000:127.0.0.1:8000 user@server
+   ```
+   It walks through the public address, the identity provider (Keycloak, Authentik, Authelia, Zitadel,
+   Pocket ID, Entra ID, Google, Okta, Auth0, GitLab or any OIDC provider, each with setup instructions,
+   and a discovery check), who may use it (anyone, or only listed accounts and networks), and a real
+   test sign-in. Register both `https://filament.gekophetweb.nl/auth/callback` and
+   `http://127.0.0.1:8000/setup/callback` as redirect URIs at the identity provider. Only after the
+   test sign-in does it save, reload the app and close itself for good (`storage/app/setup.lock`).
    Without a browser: `docker compose exec app php artisan sso:setup` (same steps, no test sign-in).
-4. In Cloudflare Zero Trust, point the tunnel's public hostname to `http://app:8000`,
-   then remove the `127.0.0.1:8000` port mapping from `docker-compose.yml`.
+7. Remove the `ports:` mapping (`127.0.0.1:8000:8000`) from the `app` service in `docker-compose.yml`
+   and run `docker compose --profile tunnel up -d`. The app is now only reachable through the tunnel
+   at `https://filament.gekophetweb.nl`.
+
+Check it with `docker compose ps` and `docker compose logs -f cloudflared app`; the tunnel shows as
+Healthy in Zero Trust.
 
 ### Where the installation keeps its settings
 
@@ -50,21 +92,21 @@ docker compose restart app queue scheduler
 Other changes: edit `.env` and run `docker compose up -d --force-recreate`. A key set in both files
 keeps the `.env.local` value.
 
-### Cloudflare Tunnel
+### Updating
 
-The tunnel token is not assigned by the app; Docker Compose reads it from `.env` on the host when it
-creates the `cloudflared` container:
+Each deploy:
 
-1. Cloudflare dashboard → Zero Trust → Networks → Tunnels → Create a tunnel → Cloudflared.
-2. Copy the token from the install command it shows (the long string after `--token`).
-3. Put it in `.env` as `CLOUDFLARE_TUNNEL_TOKEN=...` and run `docker compose --profile tunnel up -d`.
-4. Under Public hostnames, point your hostname to `http://app:8000`.
+```bash
+cd /opt/filament && git pull
+docker compose build && docker compose --profile tunnel up -d
+docker compose exec app php artisan migrate --force
+```
 
-After changing the token, run `docker compose --profile tunnel up -d --force-recreate cloudflared`.
-The setup wizard does not touch it, because the containers cannot change what Compose reads.
-
-Each deploy: `docker compose build && docker compose up -d && docker compose exec app php artisan migrate --force`.
 The config, route, view and event caches are built when the web container starts.
+
+After changing the tunnel token in `.env`, run
+`docker compose --profile tunnel up -d --force-recreate cloudflared`. The setup wizard does not touch
+the token, because the containers cannot change what Compose reads.
 
 ## Catalog
 
@@ -191,3 +233,5 @@ Tests run in a throwaway PHP container, so no local PHP or Composer is needed:
 
 `./docker/backup.sh` writes a gzipped `pg_dump` to `./backups` and keeps 14 days.
 Schedule it with host cron, copy the files off-host, and test a restore (the command is in the script).
+Also back up the `filament_app_storage` volume: it holds `APP_KEY` in `storage/app/.env.local`, and
+without it encrypted data is lost.
