@@ -34,8 +34,14 @@ on your Cloudflare account.
       (name it e.g. `filament`).
    2. Copy the token from the install command it shows (the long string after `--token`). Do not
       install cloudflared on the host; the `cloudflared` container runs it.
-   3. Under Public hostnames, add subdomain `filament`, domain `gekophetweb.nl`, service type **HTTP**,
-      URL `app:8000`. Cloudflare creates the DNS record itself.
+   3. Add a public hostname (also called a published application route): subdomain `filament`,
+      domain `gekophetweb.nl`, and as service URL **`http://app:8000`** (in forms with a separate
+      type field: type **HTTP**, URL `app:8000`). Cloudflare creates the DNS record itself.
+
+      `app` is the web service in `docker-compose.yml`, which the `cloudflared` container reaches by
+      name over the `frontend` network, and `8000` is the port inside that container, so this keeps
+      working after step 7. Do not use `localhost` or `127.0.0.1` (inside the `cloudflared` container
+      that is the container itself) or `https://` (the app serves plain HTTP; Cloudflare does HTTPS).
 4. `cp .env.example .env` and set:
    - `DB_PASSWORD` and `REDIS_PASSWORD`: long random strings (`openssl rand -hex 24`)
    - `CLOUDFLARE_TUNNEL_TOKEN`: the token from step 3
@@ -61,6 +67,12 @@ on your Cloudflare account.
    ```bash
    ssh -L 8000:127.0.0.1:8000 user@server
    ```
+   If something on your own computer already uses port 8000 (such as a local development copy of this
+   app), SSH only warns that it cannot bind the port, and the link opens that local app instead (a
+   404 when its setup is already done). Stop it first (`docker compose stop` in that folder) and
+   reconnect, or forward another port (`ssh -L 8001:127.0.0.1:8000 user@server`), change `8000` to
+   `8001` in the link, and register the callback URI the wizard shows (`http://127.0.0.1:8001/setup/callback`).
+
    It walks through the public address, the identity provider (Keycloak, Authentik, Authelia, Zitadel,
    Pocket ID, Entra ID, Google, Okta, Auth0, GitLab or any OIDC provider, each with setup instructions,
    and a discovery check), who may use it (anyone, or only listed accounts and networks), and a real
