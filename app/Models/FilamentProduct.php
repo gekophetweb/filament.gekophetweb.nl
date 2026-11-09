@@ -83,6 +83,16 @@ class FilamentProduct extends Model
     }
 
     /**
+     * Products the user has at least one boxed or on-spool spool of: what their share link shows.
+     *
+     * @param  Builder<FilamentProduct>  $query
+     */
+    public function scopeInStockFor(Builder $query, User $user): void
+    {
+        $query->whereHas('spools', fn (Builder $spools) => $spools->whereBelongsTo($user)->active());
+    }
+
+    /**
      * Adds the user's counts for this product: boxed_count, on_spool_count and
      * owned_count (both together).
      *

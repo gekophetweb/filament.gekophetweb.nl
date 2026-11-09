@@ -25,6 +25,13 @@
                 <a href="{{ route('spools') }}" @class(['text-sm', 'font-semibold text-emerald-700' => request()->routeIs('spools*')])>My spools</a>
                 <a href="{{ route('usage') }}" @class(['text-sm', 'font-semibold text-emerald-700' => request()->routeIs('usage')])>Usage</a>
                 <a href="{{ route('share-export') }}" @class(['text-sm', 'font-semibold text-emerald-700' => request()->routeIs('share-export')])>Share &amp; export</a>
+                @php($unreadPrintRequests = auth()->user()->printRequests()->unread()->count())
+                <a href="{{ route('print-requests') }}" @class(['text-sm', 'font-semibold text-emerald-700' => request()->routeIs('print-requests')])>
+                    Print requests
+                    @if ($unreadPrintRequests)
+                        <span class="ml-0.5 rounded-full bg-emerald-600 px-1.5 text-xs font-semibold text-white tabular-nums" aria-label="{{ $unreadPrintRequests }} unread">{{ $unreadPrintRequests }}</span>
+                    @endif
+                </a>
                 <a href="{{ route('devices') }}" @class(['text-sm', 'font-semibold text-emerald-700' => request()->routeIs('devices')])>Devices</a>
                 <a href="{{ route('docs.api') }}" @class(['text-sm', 'font-semibold text-emerald-700' => request()->routeIs('docs.*')])>API docs</a>
                 <x-theme-toggle class="ml-auto" />

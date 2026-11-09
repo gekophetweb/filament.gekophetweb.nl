@@ -55,6 +55,7 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('sso-callback', fn (Request $r) => Limit::perMinute(20)->by($r->ip()));
         RateLimiter::for('token-exchange', fn (Request $r) => Limit::perMinute(10)->by($r->ip()));
         RateLimiter::for('share', fn (Request $r) => Limit::perMinute(30)->by($r->ip()));
+        RateLimiter::for('print-request', fn (Request $r) => Limit::perHour($limit('print_requests_per_hour'))->by($r->ip()));
         RateLimiter::for('docs', fn (Request $r) => Limit::perMinute(60)->by($r->ip()));
 
         // Cheap IP throttle that runs before token authentication.

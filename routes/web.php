@@ -2,11 +2,13 @@
 
 use App\Http\Controllers\Auth\SetupSignInTestController;
 use App\Http\Controllers\Auth\SsoController;
+use App\Http\Controllers\PrintRequestController;
 use App\Http\Controllers\SharedSpoolsController;
 use App\Http\Controllers\SpoolExportController;
 use App\Livewire\Catalog;
 use App\Livewire\Devices;
 use App\Livewire\FilamentDetail;
+use App\Livewire\PrintRequests;
 use App\Livewire\Setup;
 use App\Livewire\ShareAndExport;
 use App\Livewire\SpoolDetail;
@@ -30,6 +32,10 @@ Route::middleware('guest')->group(function () {
 Route::get('/share/{token}', SharedSpoolsController::class)
     ->where('token', '[A-Za-z0-9]{40}')->middleware('throttle:share')->name('share');
 
+// Every working share link takes print requests, read-only or not.
+Route::post('/share/{token}/print-requests', [PrintRequestController::class, 'store'])
+    ->where('token', '[A-Za-z0-9]{40}')->middleware('throttle:print-request')->name('share.print-requests.store');
+
 Route::middleware(['auth', 'throttle:web'])->group(function () {
     Route::get('/', Catalog::class)->name('catalog');
     Route::get('/filaments/{product}', FilamentDetail::class)->name('filaments.show');
@@ -38,6 +44,8 @@ Route::middleware(['auth', 'throttle:web'])->group(function () {
     Route::get('/spools/export', SpoolExportController::class)->name('spools.export');
     Route::get('/spools/{spool}', SpoolDetail::class)->name('spools.show');
     Route::get('/share-export', ShareAndExport::class)->name('share-export');
+    Route::get('/print-requests', PrintRequests::class)->name('print-requests');
+    Route::get('/print-requests/{printRequest}/stl', [PrintRequestController::class, 'download'])->name('print-requests.stl');
     Route::get('/devices', Devices::class)->name('devices');
     Route::post('/logout', [SsoController::class, 'logout'])->name('logout');
 });

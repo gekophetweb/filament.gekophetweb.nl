@@ -5,7 +5,8 @@
         <h2 class="font-semibold">Share a read-only link</h2>
         <p class="mt-1 text-sm text-stone-600">
             Anyone with the link sees which filaments you have and how many are boxed or on spool, without signing in.
-            No purchase dates or history.
+            No purchase dates or history. Visitors can also send you a <a href="{{ route('print-requests') }}" class="underline">print request</a>
+            with an STL file or a link and up to {{ \App\Models\PrintRequest::MAX_COLORS }} of your colors.
         </p>
         @if ($shareUrl)
             <div class="mt-3 flex flex-wrap items-center gap-2" x-data="{ copied: false }">

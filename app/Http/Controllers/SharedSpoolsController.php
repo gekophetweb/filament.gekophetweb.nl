@@ -4,12 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Models\FilamentProduct;
 use App\Models\User;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Response;
 
 /**
  * Public, read-only view of someone's boxed and on-spool filament, reached through their share link.
- * Shows only filaments and counts: no purchase dates or history.
+ * Shows only filaments and counts: no purchase dates or history. Whatever the link allows,
+ * visitors can always send a print request from it (see PrintRequestController).
  */
 class SharedSpoolsController extends Controller
 {
@@ -19,7 +19,7 @@ class SharedSpoolsController extends Controller
 
         $products = FilamentProduct::query()
             ->withOwnedCount($owner)
-            ->whereHas('spools', fn (Builder $spools) => $spools->whereBelongsTo($owner)->active())
+            ->inStockFor($owner)
             ->with('material')
             ->orderBy('article_number')
             ->get();

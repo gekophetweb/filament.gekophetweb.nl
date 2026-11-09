@@ -20,10 +20,21 @@ class User extends Authenticatable
     /** @use HasFactory<UserFactory> */
     use HasApiTokens, HasFactory, Notifiable;
 
+    /** Same as the column default, so a user created in this request has it too. */
+    protected $attributes = [
+        'emails_print_requests' => true,
+    ];
+
     /** @return HasMany<Spool, $this> */
     public function spools(): HasMany
     {
         return $this->hasMany(Spool::class);
+    }
+
+    /** @return HasMany<PrintRequest, $this> */
+    public function printRequests(): HasMany
+    {
+        return $this->hasMany(PrintRequest::class);
     }
 
     /**
@@ -66,6 +77,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'emails_print_requests' => 'boolean',
         ];
     }
 }

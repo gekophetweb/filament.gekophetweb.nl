@@ -35,7 +35,12 @@ return [
         'api_write_per_minute' => (int) env('RATE_LIMIT_API_WRITE_PER_MINUTE', 30),
         'api_write_per_day' => (int) env('RATE_LIMIT_API_WRITE_PER_DAY', 1000),
         'mcp_per_minute' => (int) env('RATE_LIMIT_MCP_PER_MINUTE', 60),
+        'print_requests_per_hour' => (int) env('RATE_LIMIT_PRINT_REQUESTS_PER_HOUR', 10),
     ],
+
+    // Largest STL a visitor may upload with a print request through a share link, in megabytes.
+    // PHP's upload_max_filesize and post_max_size must allow at least this much (the Docker image sets 64M).
+    'print_request_max_upload_mb' => (int) env('PRINT_REQUEST_MAX_UPLOAD_MB', 50),
 
     // Active API/MCP tokens one user may have at the same time.
     'max_tokens_per_user' => (int) env('MAX_TOKENS_PER_USER', 10),

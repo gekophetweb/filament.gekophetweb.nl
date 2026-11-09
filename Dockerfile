@@ -18,7 +18,8 @@ RUN npm run build
 
 # --- Runtime ---
 FROM dunglas/frankenphp:1-php8.5 AS app
-RUN install-php-extensions pdo_pgsql redis pcntl opcache intl zip bcmath
+RUN install-php-extensions pdo_pgsql redis pcntl opcache intl zip bcmath \
+ && printf 'upload_max_filesize=64M\npost_max_size=64M\n' > "$PHP_INI_DIR/conf.d/uploads.ini"
 ENV OCTANE_SERVER=frankenphp
 WORKDIR /app
 COPY --from=vendor /app /app

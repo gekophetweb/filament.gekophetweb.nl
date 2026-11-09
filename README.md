@@ -166,6 +166,17 @@ dates and history are left out. *New link* replaces it (the old link stops worki
 *Stop sharing* turns it off. The link is still behind `ALLOWED_IPS_WEB`, so set that to `*` (or add the
 viewers' networks) for people elsewhere to open it.
 
+Every working share link also has a **Request a print** form, whatever else the link allows. Visitors give their name,
+an STL file (at most `PRINT_REQUEST_MAX_UPLOAD_MB`, default 50) or a link to the model, and up to 4 colors picked from
+the filaments the link shows. Requests land in the **Print requests** inbox (`/print-requests`, the nav shows the
+unread count). Opening one marks it read; there the owner downloads the STL, marks it printed or declined (or unread
+again), or deletes it with its file. Folders show open, unread or all requests. STL files are kept in
+`storage/app/private/print-requests`. Each IP may send `RATE_LIMIT_PRINT_REQUESTS_PER_HOUR` (default 10) requests an hour.
+
+The owner also gets an email for each new request (turn it off on the inbox page). Replying goes to the requester
+when they left an email address. Set the `MAIL_*` variables (see `.env.example`) for real delivery; with the default
+`MAIL_MAILER=log` the emails only go to the log. The `queue` container sends them.
+
 ## Export and import your spools
 
 On **Share & export** (and with the button on **My spools**), *Export CSV* downloads all your spools (any status, deleted ones left out) with the
