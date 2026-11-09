@@ -35,13 +35,27 @@ function printRequestUrl(User $owner): string
 
 beforeEach(fn () => Storage::fake('local'));
 
-it('shows the print request form on the share page without signing in', function () {
+it('shows the print request form on its own share link tab without signing in', function () {
     [$owner, $products] = sharingOwner(1);
+    $formPage = route('share.print-request', $owner->share_token);
 
     $this->get($owner->shareUrl())->assertOk()
-        ->assertSee('Request a print')
+        ->assertSee($formPage, false)
+        ->assertDontSee(printRequestUrl($owner), false);
+
+    $this->get($formPage)->assertOk()
+        ->assertHeader('X-Robots-Tag', 'noindex, nofollow')
+        ->assertSee($owner->shareUrl(), false)
         ->assertSee(printRequestUrl($owner), false)
         ->assertSee('name="colors[]" value="'.$products->first()->id.'"', false);
+});
+
+it('does not show the print request tab of a link that was turned off', function () {
+    [$owner] = sharingOwner(1);
+    $formPage = route('share.print-request', $owner->share_token);
+    $owner->stopSharing();
+
+    $this->get($formPage)->assertNotFound();
 });
 
 it('takes a print request with an STL file and up to four colors from a visitor', function () {
@@ -54,7 +68,7 @@ it('takes a print request with an STL file and up to four colors from a visitor'
         'stl' => UploadedFile::fake()->create('benchy.stl', 120, 'model/stl'),
         'colors' => $picked->all(),
         'notes' => 'Two please',
-    ])->assertRedirect($owner->shareUrl().'#print-request')->assertSessionHas('print_request_sent');
+    ])->assertRedirect(route('share.print-request', $owner->share_token))->assertSessionHas('print_request_sent');
 
     $printRequest = $owner->printRequests()->sole();
     expect($printRequest->requester_name)->toBe('Sam')

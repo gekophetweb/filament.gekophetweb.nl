@@ -33,6 +33,8 @@ Route::get('/share/{token}', SharedSpoolsController::class)
     ->where('token', '[A-Za-z0-9]{40}')->middleware('throttle:share')->name('share');
 
 // Every working share link takes print requests, read-only or not.
+Route::get('/share/{token}/print-request', [PrintRequestController::class, 'create'])
+    ->where('token', '[A-Za-z0-9]{40}')->middleware('throttle:share')->name('share.print-request');
 Route::post('/share/{token}/print-requests', [PrintRequestController::class, 'store'])
     ->where('token', '[A-Za-z0-9]{40}')->middleware('throttle:print-request')->name('share.print-requests.store');
 

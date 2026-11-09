@@ -166,7 +166,7 @@ dates and history are left out. *New link* replaces it (the old link stops worki
 *Stop sharing* turns it off. The link is still behind `ALLOWED_IPS_WEB`, so set that to `*` (or add the
 viewers' networks) for people elsewhere to open it.
 
-Every working share link also has a **Request a print** form, whatever else the link allows. Visitors give their name,
+Every working share link also has a **Request a print** tab at the top (`/share/<token>/print-request`), whatever else the link allows. Visitors give their name,
 an STL file (at most `PRINT_REQUEST_MAX_UPLOAD_MB`, default 50) or a link to the model, and up to 4 colors picked from
 the filaments the link shows. Requests land in the **Print requests** inbox (`/print-requests`, the nav shows the
 unread count). Opening one marks it read; there the owner downloads the STL, marks it printed or declined (or unread

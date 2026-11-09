@@ -3,10 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Actions\SubmitPrintRequest;
+use App\Models\FilamentProduct;
 use App\Models\PrintRequest;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -16,14 +18,29 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
  */
 class PrintRequestController extends Controller
 {
+    /**
+     * The print request tab of a share link; colors to pick are the filaments the link shows.
+     */
+    public function create(string $token): Response
+    {
+        $owner = User::where('share_token', $token)->firstOrFail();
+
+        return response()
+            ->view('share-print-request', [
+                'owner' => $owner,
+                'products' => FilamentProduct::query()->inStockFor($owner)->with('material')->orderBy('article_number')->get(),
+            ])
+            ->header('Referrer-Policy', 'no-referrer')
+            ->header('X-Robots-Tag', 'noindex, nofollow');
+    }
+
     public function store(Request $request, string $token, SubmitPrintRequest $submit): RedirectResponse
     {
         $owner = User::where('share_token', $token)->firstOrFail();
 
         $submit->handle($owner, $request->all());
 
-        return redirect()->to(route('share', $token).'#print-request')
-            ->with('print_request_sent', true);
+        return redirect()->route('share.print-request', $token)->with('print_request_sent', true);
     }
 
     /**
