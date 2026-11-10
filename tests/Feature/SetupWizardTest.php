@@ -1,6 +1,7 @@
 <?php
 
 use App\Livewire\Setup;
+use App\Support\Mail\DkimKey;
 use App\Support\Setup\OidcDiscoveryCheck;
 use App\Support\Setup\SetupState;
 use Illuminate\Support\Facades\Crypt;
@@ -54,7 +55,7 @@ function unlockedDraft(array $draft = [], bool $tested = true): void
 {
     session([
         'setup.unlocked' => true,
-        'setup.step' => 5,
+        'setup.step' => 6,
         'setup.checked_issuer' => ISSUER,
         'setup.secret' => Crypt::encryptString('s3cret$value'),
         'setup.draft' => array_merge([
@@ -299,6 +300,70 @@ describe('steps', function () {
     it('needs a successful test sign-in to leave step 4', function () {
         Livewire::test(Setup::class)->set('step', 4)->call('next')->assertHasErrors('test')->assertSet('step', 4);
     });
+
+    it('suggests a from address on the public domain', function () {
+        unlockedDraft();
+
+        Livewire::test(Setup::class)->assertSet('mail_from_address', 'spools@spools.example.com');
+    });
+
+    it('validates the Mail step and keeps the SMTP password out of the component', function () {
+        unlockedDraft();
+
+        Livewire::test(Setup::class)
+            ->set('step', 5)
+            ->set(['mail_mailer' => 'smtp', 'mail_host' => '', 'mail_password' => 'mail-s3cret'])
+            ->call('next')
+            ->assertHasErrors('mail_host')
+            ->assertSet('step', 5)
+            ->assertSet('mail_password', '')
+            ->set('mail_host', 'smtp.example.com')
+            ->call('next')
+            ->assertHasNoErrors()
+            ->assertSet('step', 6);
+
+        expect(Crypt::decryptString(session('setup.mail_password')))->toBe('mail-s3cret')
+            ->and(session('setup.draft'))->not->toHaveKey('mail_password');
+    });
+
+    it('generates a DKIM key in the session and shows its DNS record', function () {
+        unlockedDraft();
+
+        Livewire::test(Setup::class)
+            ->set(['step' => 5, 'mail_mailer' => 'smtp'])
+            ->call('generateDkimKey')
+            ->assertSet('mail_dkim_private_key', '')
+            ->assertSet('mail_dkim_selector', 'spools')
+            ->assertSet('mail_dkim_domain', 'spools.example.com')
+            ->assertSee(['spools._domainkey.spools.example.com', 'v=DKIM1; k=rsa; p='])
+            ->assertDontSee('BEGIN PRIVATE KEY');
+
+        expect(Crypt::decryptString(session('setup.dkim_key')))->toContain('BEGIN PRIVATE KEY');
+    });
+
+    it('writes the SMTP and DKIM settings when saving', function () {
+        Process::fake();
+        app(SetupState::class)->token();
+        unlockedDraft([
+            'mail_mailer' => 'smtp', 'mail_host' => 'smtp.example.com', 'mail_port' => '465',
+            'mail_dkim_domain' => 'spools.example.com', 'mail_dkim_selector' => 'mail',
+        ]);
+        session([
+            'setup.mail_password' => Crypt::encryptString('mail-s3cret'),
+            'setup.dkim_key' => Crypt::encryptString(DkimKey::generate()),
+        ]);
+
+        Livewire::test(Setup::class)->assertSee('mail._domainkey.spools.example.com')->call('save')->assertHasNoErrors()->assertSet('saved', true);
+
+        expect(file_get_contents($this->dir.'/.env'))
+            ->toContain("MAIL_MAILER='smtp'")
+            ->toContain("MAIL_HOST='smtp.example.com'")
+            ->toContain("MAIL_PORT='465'")
+            ->toContain("MAIL_PASSWORD='mail-s3cret'")
+            ->toContain("MAIL_DKIM_SELECTOR='mail'")
+            ->toMatch("/MAIL_DKIM_PRIVATE_KEY='[A-Za-z0-9+\\/=]{100,}'/");
+        expect(session('setup.mail_password'))->toBeNull()->and(session('setup.dkim_key'))->toBeNull();
+    });
 });
 
 describe('discovery check', function () {
@@ -380,6 +445,9 @@ describe('save', function () {
             ->toContain("SSO_REDIRECT_URI='https://spools.example.com/auth/callback'")
             ->toContain("SSO_ALLOWED_EMAILS='me@example.com'")
             ->toContain("ALLOWED_IPS_WEB='192.168.1.0/24'")
+            ->toContain("MAIL_MAILER='log'")
+            ->toContain("MAIL_FROM_ADDRESS='spools@spools.example.com'")
+            ->toContain("MAIL_DKIM_DOMAIN=''")
             ->toContain('APP_NAME=Spools');
         expect(app(SetupState::class)->isComplete())->toBeTrue()
             ->and(file_exists($this->dir.'/setup.token'))->toBeFalse()

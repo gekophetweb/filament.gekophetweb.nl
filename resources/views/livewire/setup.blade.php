@@ -255,6 +255,19 @@
                     {{ $tested ? 'Test again' : 'Sign in with '.$presets[$preset]['label'] }}
                 </a>
                 @error('test') <p class="mt-2 text-sm text-red-700">{{ $message }}</p> @enderror
+            @elseif ($step === 5)
+                <h2 class="text-lg font-semibold">How should the app send email?</h2>
+                <p class="mt-2 text-sm text-stone-600">The app emails you about print requests and sends sign-in codes to people without SSO. You can change this later on the mail settings page.</p>
+                <div class="mt-4">
+                    @include('setup.mail-fields', [
+                        'live' => true,
+                        'values' => $mailValues,
+                        'dkimKey' => $dkimKey,
+                        'passwordStored' => $mailPasswordStored,
+                        'keyStored' => $dkimKey !== null,
+                        'testTo' => $tested['email'] ?? 'your test account',
+                    ])
+                </div>
             @else
                 <h2 class="text-lg font-semibold">Review and save</h2>
 
@@ -270,6 +283,9 @@
                     <dt class="text-stone-500">API IPs</dt><dd class="font-mono break-all">{{ $ips_api === '*' ? 'Any address' : ($ips_api ?: 'blocked') }}</dd>
                     <dt class="text-stone-500">MCP IPs</dt><dd class="font-mono break-all">{{ $ips_mcp === '*' ? 'Any address' : ($ips_mcp ?: 'blocked') }}</dd>
                     <dt class="text-stone-500">Tested as</dt><dd>{{ $tested['email'] ?? 'not tested' }}</dd>
+                    <dt class="text-stone-500">Email</dt><dd>{{ \App\Actions\Setup\SaveMailSettings::MAILERS[$mail_mailer] ?? $mail_mailer }}@if ($mail_mailer === 'smtp') <span class="font-mono break-all">({{ $mail_host }}:{{ $mail_port }})</span>@endif</dd>
+                    <dt class="text-stone-500">Send from</dt><dd class="break-all">{{ $mail_from_name }} &lt;{{ $mail_from_address }}&gt;</dd>
+                    <dt class="text-stone-500">DKIM</dt><dd class="font-mono break-all">{{ $mail_mailer === 'smtp' && $mail_dkim_domain ? "{$mail_dkim_selector}._domainkey.{$mail_dkim_domain}" : 'off' }}</dd>
                 </dl>
 
                 @unless ($envWritable)
@@ -277,7 +293,7 @@
                 @endunless
                 @error('test') <p class="mt-3 text-sm text-red-700">{{ $message }}</p> @enderror
                 @error('save') <p class="mt-3 rounded bg-red-50 px-3 py-2 text-sm text-red-700">{{ $message }}</p> @enderror
-                @foreach (\App\Actions\Setup\SaveSetup::FIELDS as $field)
+                @foreach ([...\App\Actions\Setup\SaveSetup::FIELDS, ...\App\Actions\Setup\SaveMailSettings::FIELDS] as $field)
                     @error($field) <p wire:key="save-error-{{ $field }}" class="mt-2 text-sm text-red-700">{{ $message }}</p> @enderror
                 @endforeach
             @endif
@@ -289,7 +305,7 @@
                     <span></span>
                 @endif
 
-                @if ($step < 5)
+                @if ($step < array_key_last(\App\Livewire\Setup::STEPS))
                     <button type="button" wire:click="next" wire:loading.attr="disabled"
                             @disabled($step === 2 && ! $connectionChecked || $step === 4 && ! $tested)
                             class="rounded-lg bg-emerald-700 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-50">

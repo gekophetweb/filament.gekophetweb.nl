@@ -75,8 +75,8 @@ on your Cloudflare account.
 
    It walks through the public address, the identity provider (Keycloak, Authentik, Authelia, Zitadel,
    Pocket ID, Entra ID, Google, Okta, Auth0, GitLab or any OIDC provider, each with setup instructions,
-   and a discovery check), who may use it (anyone, or only listed accounts and networks), and a real
-   test sign-in. Register both `https://filament.gekophetweb.nl/auth/callback` and
+   and a discovery check), who may use it (anyone, or only listed accounts and networks), a real
+   test sign-in, and how the app sends email (see [Mail settings](#mail-settings)). Register both `https://filament.gekophetweb.nl/auth/callback` and
    `http://127.0.0.1:8000/setup/callback` as redirect URIs at the identity provider. Only after the
    test sign-in does it save, reload the app and close itself for good (`storage/app/setup.lock`).
    Without a browser: `docker compose exec app php artisan sso:setup` (same steps, no test sign-in).
@@ -103,6 +103,35 @@ docker compose restart app queue scheduler
 
 Other changes: edit `.env` and run `docker compose up -d --force-recreate`. A key set in both files
 keeps the `.env.local` value.
+
+### Mail settings
+
+The app emails the owner about print requests and sends sign-in codes to requesters without SSO. The
+setup wizard's **Mail** step sets how: through an SMTP server, or only to the log (nothing is delivered).
+It also sets the **send from** address and name, and optional **DKIM** signing:
+
+- Fill in the DKIM domain (the from address's domain, or a parent of it) and a selector, then
+  *Generate a new key* or paste your own RSA private key (PEM).
+- Publish the TXT record the page shows at `<selector>._domainkey.<domain>`. Receivers only trust the
+  signature once it is live.
+- *Send a test email* sends right away with the values in the form, before saving, so you can check the
+  `DKIM-Signature` result in the headers.
+
+Leave the DKIM domain empty when your mail provider signs for you. The private key is stored base64
+encoded as `MAIL_DKIM_PRIVATE_KEY` in `storage/app/.env.local`.
+
+On an installation that is already set up, the same form is at `/mail-settings`. It is only reachable
+directly on the Docker host (`http://127.0.0.1:8000`, never through the tunnel) with a one-time link,
+valid for an hour:
+
+```bash
+docker compose exec app php artisan setup:mail-url
+```
+
+On a remote server, open an SSH tunnel first (`ssh -L 8000:127.0.0.1:8000 <user>@<server>`). If you
+removed the `127.0.0.1:8000:8000` port mapping (install step 7), add it back for a moment, or set the
+`MAIL_*` keys in `storage/app/.env.local` by hand as shown above. Saving reloads the app and restarts
+the queue worker.
 
 ### Updating
 
@@ -186,7 +215,7 @@ all requests. STL files are kept in
 `storage/app/private/print-requests`. Each requester may send `RATE_LIMIT_PRINT_REQUESTS_PER_HOUR` (default 10) requests an hour.
 
 The owner also gets an email for each new request (turn it off on the inbox page). Replying goes to the requester
-(their verified sign-in email). Set the `MAIL_*` variables (see `.env.example`) for real delivery; with the default
+(their verified sign-in email). Set up real delivery in the [Mail settings](#mail-settings); with the default
 `MAIL_MAILER=log` the emails only go to the log. The `queue` container sends them.
 
 ## Export and import your spools

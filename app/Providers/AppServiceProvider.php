@@ -2,10 +2,12 @@
 
 namespace App\Providers;
 
+use App\Support\Mail\DkimSigningTransport;
 use App\Support\PrintRequester;
 use App\Support\Sso\OidcProvider;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
+use Illuminate\Mail\MailManager;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Socialite\Contracts\Factory as Socialite;
@@ -22,6 +24,21 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->configureSso();
         $this->configureRateLimiting();
+        $this->configureDkim();
+    }
+
+    /**
+     * SMTP mailers sign with DKIM when their "dkim" config is filled in; the transport itself is Laravel's own.
+     */
+    private function configureDkim(): void
+    {
+        $this->callAfterResolving('mail.manager', function (MailManager $manager): void {
+            $manager->extend('smtp', function (array $config) use ($manager) {
+                $smtp = (fn (array $config) => $this->createSmtpTransport($config))->call($manager, $config);
+
+                return DkimSigningTransport::wrap($smtp, $config['dkim'] ?? []);
+            });
+        });
     }
 
     private function configureSso(): void

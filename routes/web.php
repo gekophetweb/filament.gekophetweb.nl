@@ -4,6 +4,7 @@ use App\Http\Controllers\Auth\PrintRequesterEmailCodeController;
 use App\Http\Controllers\Auth\PrintRequesterSignInController;
 use App\Http\Controllers\Auth\SetupSignInTestController;
 use App\Http\Controllers\Auth\SsoController;
+use App\Http\Controllers\MailSettingsController;
 use App\Http\Controllers\PrintRequestController;
 use App\Http\Controllers\SpoolExportController;
 use App\Livewire\Catalog;
@@ -21,6 +22,10 @@ use Illuminate\Support\Facades\Route;
 Route::get('/setup', Setup::class)->middleware('throttle:login')->name('setup');
 Route::get('/setup/test', [SetupSignInTestController::class, 'redirect'])->middleware('throttle:login')->name('setup.test');
 Route::get('/setup/callback', [SetupSignInTestController::class, 'callback'])->middleware('throttle:sso-callback')->name('setup.callback');
+
+// Mail settings once the app is set up: direct local requests with the link from `php artisan setup:mail-url`.
+Route::get('/mail-settings', [MailSettingsController::class, 'show'])->middleware('throttle:login')->name('mail-settings');
+Route::post('/mail-settings', [MailSettingsController::class, 'update'])->middleware('throttle:login')->name('mail-settings.update');
 
 // Only the login page and the SSO round trip are reachable without a session.
 Route::middleware('guest')->group(function () {
