@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Auth\PrintRequesterEmailCodeController;
 use App\Http\Controllers\Auth\PrintRequesterSignInController;
 use App\Http\Controllers\Auth\SetupSignInTestController;
 use App\Http\Controllers\Auth\SsoController;
@@ -36,6 +37,12 @@ Route::get('/share/{token}/print-request', [PrintRequestController::class, 'redi
     ->where('token', '[A-Za-z0-9]{40}')->middleware('throttle:share')->name('share.print-request');
 Route::get('/share/{token}/sign-in', [PrintRequesterSignInController::class, 'redirect'])
     ->where('token', '[A-Za-z0-9]{40}')->middleware('throttle:login')->name('share.sign-in');
+Route::post('/share/{token}/email-code', [PrintRequesterEmailCodeController::class, 'send'])
+    ->where('token', '[A-Za-z0-9]{40}')->middleware('throttle:print-request-code')->name('share.email-code');
+Route::post('/share/{token}/email-code/verify', [PrintRequesterEmailCodeController::class, 'verify'])
+    ->where('token', '[A-Za-z0-9]{40}')->middleware('throttle:login')->name('share.email-code.verify');
+Route::post('/share/{token}/email-code/cancel', [PrintRequesterEmailCodeController::class, 'cancel'])
+    ->where('token', '[A-Za-z0-9]{40}')->middleware('throttle:share')->name('share.email-code.cancel');
 Route::post('/share/{token}/sign-out', [PrintRequesterSignInController::class, 'signOut'])
     ->where('token', '[A-Za-z0-9]{40}')->middleware('throttle:share')->name('share.sign-out');
 Route::post('/share/{token}/print-requests', [PrintRequestController::class, 'store'])

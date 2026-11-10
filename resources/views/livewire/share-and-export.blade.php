@@ -28,9 +28,9 @@
     <section class="rounded-xl bg-white p-4 shadow-sm">
         <h2 class="font-semibold">Who may request prints</h2>
         <p class="mt-1 text-sm text-stone-600">
-            People on this list may send requests through your link. They sign in with SSO first, and you
+            People on this list may send requests through your link. They sign in with SSO or a code sent to their email first, and you
             see their verified email in your <a href="{{ route('print-requests') }}" class="underline">print requests</a>.
-            One per line: an email, <code>@domain</code> for everyone at that domain, or <code>*</code> for anyone who can sign in.
+            One per line: an email, <code>@domain</code> for everyone at that domain, or <code>*</code> for anyone with a working email.
             Leave it empty to take no print requests.
         </p>
         <form wire:submit="savePrintRequesters" class="mt-3 space-y-2">

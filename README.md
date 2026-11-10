@@ -166,10 +166,17 @@ On **Share & export** (`/share-export`), *Create share link* makes a print reque
 not list the owner's filament; old `/share/<token>/print-request` links redirect to it.
 
 The link takes print requests once the owner fills in **Who may request prints** on Share & export: one email,
-`@domain` or `*` (anyone who can sign in) per line. Empty means the page only says no requests are taken. Visitors
-sign in with the same SSO provider and callback URL as the app, so nothing new has to be registered at the identity
-provider. They don't get an account: only their verified email and name are kept in the session, and that email is
-the request's contact. The owner, signed in to the app, may always send a request through their own link. Requesters
+`@domain` or `*` (anyone with that email) per line. Empty means the page only says no requests are taken. Visitors
+prove their email in one of two ways:
+
+- **Email code:** they type their name and email and get a 6-digit code by email, valid for 15 minutes and 5 tries.
+  Codes only go to emails on the list, but the page says the same either way, so the list cannot be probed. Each IP
+  and each email get at most `RATE_LIMIT_PRINT_REQUEST_CODES_PER_HOUR` (default 5) codes an hour. This needs working
+  `MAIL_*` settings and the `queue` container.
+- **SSO:** the same provider and callback URL as the app, so nothing new has to be registered at the identity provider.
+
+They don't get an account: only their verified email and name are kept in the session, and that email is the
+request's contact. The owner, signed in to the app, may always send a request through their own link. Requesters
 give their name, an STL file (at most `PRINT_REQUEST_MAX_UPLOAD_MB`, default 50) or a link to the model, and up to 4
 colors picked from the owner's in-stock filament. Under the form they see their own requests with the status and the
 owner's reply. Requests land in the **Print requests** inbox (`/print-requests`, the nav shows the unread count).

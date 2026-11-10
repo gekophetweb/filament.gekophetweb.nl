@@ -36,6 +36,8 @@ return [
         'api_write_per_day' => (int) env('RATE_LIMIT_API_WRITE_PER_DAY', 1000),
         'mcp_per_minute' => (int) env('RATE_LIMIT_MCP_PER_MINUTE', 60),
         'print_requests_per_hour' => (int) env('RATE_LIMIT_PRINT_REQUESTS_PER_HOUR', 10),
+        // Emailed sign-in codes for print requesters, per IP and per email address.
+        'print_request_codes_per_hour' => (int) env('RATE_LIMIT_PRINT_REQUEST_CODES_PER_HOUR', 5),
     ],
 
     // Largest STL a visitor may upload with a print request through a share link, in megabytes.

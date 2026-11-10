@@ -1,15 +1,18 @@
 <?php
 
 use App\Enums\PrintRequestStatus;
+use App\Http\Controllers\Auth\PrintRequesterEmailCodeController;
 use App\Livewire\PrintRequests;
 use App\Livewire\ShareAndExport;
 use App\Models\FilamentProduct;
 use App\Models\PrintRequest;
 use App\Models\Spool;
 use App\Models\User;
+use App\Notifications\PrintRequesterCode;
 use App\Notifications\PrintRequestReceived;
 use App\Support\PrintRequester;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Notifications\AnonymousNotifiable;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
@@ -163,6 +166,79 @@ it('uses the verified email as the contact, whatever the form sends', function (
     $this->post(printRequestUrl($owner), ['requester_name' => 'Sam', 'requester_contact' => 'someone-else@example.com', 'model_url' => 'https://example.com/m']);
 
     expect($owner->printRequests()->sole()->requester_contact)->toBe('sam@example.com');
+});
+
+/**
+ * Ask for an emailed code on the owner's share link and return the code that was mailed, or null when none was.
+ */
+function requestEmailCode(User $owner, string $email, string $name = 'Sam'): ?string
+{
+    Notification::fake();
+    test()->post(route('share.email-code', $owner->share_token), ['name' => $name, 'email' => $email])
+        ->assertRedirect($owner->shareUrl());
+
+    return Notification::sent(new AnonymousNotifiable, PrintRequesterCode::class)->last()?->code;
+}
+
+it('signs in a guest with a code mailed to their email', function () {
+    [$owner] = sharingOwner(1, requesterEmail: null, allowList: 'friend@example.com');
+
+    $code = requestEmailCode($owner, 'Friend@Example.com', 'Friend');
+
+    expect($code)->toMatch('/^\d{6}$/');
+    Notification::assertSentOnDemand(PrintRequesterCode::class, fn (PrintRequesterCode $n, array $channels, AnonymousNotifiable $notifiable) => $notifiable->routes['mail'] === ['friend@example.com' => 'Friend']);
+    $this->get($owner->shareUrl())->assertSee(['a 6-digit code is on its way', 'friend@example.com'])->assertDontSee(printRequestUrl($owner), false);
+
+    $this->post(route('share.email-code.verify', $owner->share_token), ['code' => $code])->assertRedirect($owner->shareUrl());
+
+    $this->assertGuest();
+    $this->get($owner->shareUrl())->assertSee(['Signed in as', 'friend@example.com'])->assertSee(printRequestUrl($owner), false);
+    $this->post(printRequestUrl($owner), ['requester_name' => 'Friend', 'model_url' => 'https://example.com/m'])->assertSessionHasNoErrors();
+    expect($owner->printRequests()->sole()->requester_email)->toBe('friend@example.com');
+});
+
+it('mails no code to an email the owner does not allow, but says the same', function () {
+    [$owner] = sharingOwner(1, requesterEmail: null, allowList: 'friend@example.com');
+
+    expect(requestEmailCode($owner, 'stranger@example.org'))->toBeNull();
+
+    $this->get($owner->shareUrl())->assertSee(['a 6-digit code is on its way', 'stranger@example.org']);
+    $this->post(route('share.email-code.verify', $owner->share_token), ['code' => '000000'])->assertSessionHasErrors('code', null, 'emailCode');
+    expect(session(PrintRequester::SESSION_KEY))->toBeNull();
+});
+
+it('rejects a wrong code, and drops the code after too many tries', function () {
+    [$owner] = sharingOwner(1, requesterEmail: null, allowList: 'friend@example.com');
+    $code = requestEmailCode($owner, 'friend@example.com');
+    $wrong = $code === '111111' ? '222222' : '111111';
+    $verify = route('share.email-code.verify', $owner->share_token);
+
+    foreach (range(1, PrintRequesterEmailCodeController::MAX_ATTEMPTS) as $attempt) {
+        $this->post($verify, ['code' => $wrong])->assertSessionHasErrors('code', null, 'emailCode');
+    }
+    $this->post($verify, ['code' => $code])->assertSessionHas('print_requester_error');
+
+    expect(session(PrintRequester::SESSION_KEY))->toBeNull();
+});
+
+it('rejects an expired code', function () {
+    [$owner] = sharingOwner(1, requesterEmail: null, allowList: 'friend@example.com');
+    $code = requestEmailCode($owner, 'friend@example.com');
+
+    $this->travel(PrintRequesterEmailCodeController::CODE_MINUTES + 1)->minutes();
+    $this->post(route('share.email-code.verify', $owner->share_token), ['code' => $code])->assertSessionHas('print_requester_error');
+
+    expect(session(PrintRequester::SESSION_KEY))->toBeNull();
+});
+
+it('limits how many codes one email gets per hour', function () {
+    config(['access.rate_limits.print_request_codes_per_hour' => 2]);
+    [$owner] = sharingOwner(1, requesterEmail: null, allowList: 'friend@example.com');
+    $send = fn () => $this->post(route('share.email-code', $owner->share_token), ['name' => 'Sam', 'email' => 'friend@example.com']);
+
+    $send()->assertRedirect();
+    $send()->assertRedirect();
+    $send()->assertTooManyRequests();
 });
 
 it('signs a requester out', function () {

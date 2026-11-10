@@ -40,10 +40,53 @@
             @endif
 
             @if (! $requester)
-                <div class="mt-3 rounded-lg border border-stone-200 bg-stone-50 p-3 text-sm">
-                    <p>{{ $owner->name }} only takes requests from people they know. Sign in so they can see who you are.</p>
-                    <a href="{{ route('share.sign-in', $owner->share_token) }}"
-                       class="mt-2 inline-block rounded-md bg-stone-900 px-3 py-1.5 text-white hover:bg-stone-700">Sign in to request a print</a>
+                @php($pendingEmail = \App\Http\Controllers\Auth\PrintRequesterEmailCodeController::pendingEmail())
+                <div class="mt-3 space-y-3 rounded-lg border border-stone-200 bg-stone-50 p-3 text-sm">
+                    <p>{{ $owner->name }} only takes requests from people they know. Sign in, or get a code by email, so they can see who you are.</p>
+
+                    @if ($pendingEmail)
+                        <form method="POST" action="{{ route('share.email-code.verify', $owner->share_token) }}" class="space-y-2">
+                            @csrf
+                            <p>
+                                If {{ $owner->name }} takes requests from <strong>{{ $pendingEmail }}</strong>,
+                                a {{ \App\Http\Controllers\Auth\PrintRequesterEmailCodeController::CODE_LENGTH }}-digit code is on its way there.
+                                It works for {{ \App\Http\Controllers\Auth\PrintRequesterEmailCodeController::CODE_MINUTES }} minutes.
+                            </p>
+                            <div class="flex flex-wrap items-center gap-2">
+                                <input name="code" inputmode="numeric" autocomplete="one-time-code" required maxlength="12"
+                                       aria-label="Code from the email" placeholder="123456"
+                                       class="w-32 rounded-md border-stone-300 px-2 py-1.5 font-mono tracking-widest">
+                                <button type="submit" class="rounded-md bg-stone-900 px-3 py-1.5 text-white hover:bg-stone-700">Continue</button>
+                            </div>
+                            @error('code', 'emailCode') <p class="text-xs text-red-700">{{ $message }}</p> @enderror
+                        </form>
+                        <form method="POST" action="{{ route('share.email-code.cancel', $owner->share_token) }}">
+                            @csrf
+                            <button type="submit" class="text-stone-600 underline hover:text-stone-900">Use another email</button>
+                        </form>
+                    @else
+                        <form method="POST" action="{{ route('share.email-code', $owner->share_token) }}" class="space-y-2">
+                            @csrf
+                            <div class="grid gap-2 sm:grid-cols-2">
+                                <label class="block">
+                                    <span class="text-xs font-medium text-stone-500">Your name</span>
+                                    <input name="name" value="{{ old('name') }}" required maxlength="100" autocomplete="name"
+                                           class="mt-1 w-full rounded-md border-stone-300 px-2 py-1.5">
+                                    @error('name', 'emailCode') <span class="text-xs text-red-700">{{ $message }}</span> @enderror
+                                </label>
+                                <label class="block">
+                                    <span class="text-xs font-medium text-stone-500">Your email</span>
+                                    <input type="email" name="email" value="{{ old('email') }}" required maxlength="255" autocomplete="email"
+                                           class="mt-1 w-full rounded-md border-stone-300 px-2 py-1.5">
+                                    @error('email', 'emailCode') <span class="text-xs text-red-700">{{ $message }}</span> @enderror
+                                </label>
+                            </div>
+                            <button type="submit" class="rounded-md bg-stone-900 px-3 py-1.5 text-white hover:bg-stone-700">Email me a code</button>
+                        </form>
+                        <p class="text-stone-600">
+                            Or <a href="{{ route('share.sign-in', $owner->share_token) }}" class="font-medium underline hover:text-stone-900">sign in with SSO</a>.
+                        </p>
+                    @endif
                 </div>
             @elseif (! $isAllowed)
                 <div class="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm" role="alert">
