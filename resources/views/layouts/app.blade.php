@@ -41,6 +41,7 @@
                 </form>
             </nav>
         </header>
+        <x-missing-settings />
     @else
         <div class="mx-auto flex max-w-7xl justify-end px-4 pt-3">
             <x-theme-toggle />

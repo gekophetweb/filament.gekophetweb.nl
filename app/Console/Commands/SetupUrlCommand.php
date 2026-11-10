@@ -2,18 +2,22 @@
 
 namespace App\Console\Commands;
 
+use App\Support\Setup\MailSettingsAccess;
+use App\Support\Setup\MissingSettings;
 use App\Support\Setup\SetupState;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 
 #[Signature('setup:url')]
-#[Description('Print the one-time setup wizard link while the app is not set up yet (run by the container entrypoint)')]
+#[Description('Print the one-time setup wizard link while the app is not set up yet, or what a set-up app still lacks (run by the container entrypoint)')]
 class SetupUrlCommand extends Command
 {
-    public function handle(SetupState $setup): int
+    public function handle(SetupState $setup, MissingSettings $settings, MailSettingsAccess $mailAccess): int
     {
         if ($setup->isComplete()) {
+            $this->reportMissingSettings($settings, $mailAccess);
+
             return self::SUCCESS;
         }
 
@@ -27,5 +31,37 @@ class SetupUrlCommand extends Command
         $this->line('');
 
         return self::SUCCESS;
+    }
+
+    /**
+     * List missing settings (and tips) with a one-time link to the page that fixes them.
+     * Prints nothing when everything is set.
+     */
+    private function reportMissingSettings(MissingSettings $settings, MailSettingsAccess $mailAccess): void
+    {
+        $missing = $settings->missing();
+        $tips = $settings->tips();
+
+        if ($missing === [] && $tips === []) {
+            return;
+        }
+
+        $this->line('');
+        $this->line($missing !== [] ? '  This app is set up, but some settings are missing:' : '  This app is set up. A tip:');
+        foreach ($missing as $item) {
+            $this->line("  - {$item['message']}");
+        }
+        foreach ($tips as $item) {
+            $this->line("  - Tip: {$item['message']}");
+        }
+
+        // A link only for something missing, so a tip alone does not put a fresh token in the log at every start.
+        if ($missing !== []) {
+            $url = rtrim((string) config('setup.local_url'), '/').'/mail-settings?token='.$mailAccess->issueToken();
+            $this->line('  Fix them on the Docker host (the link works once, for '.config('setup.mail_token_minutes').' minutes):');
+            $this->line("  Mail settings URL: {$url}");
+        }
+        $this->line('  '.($missing !== [] ? 'A new link' : 'To change it').': docker compose exec app php artisan setup:mail-url');
+        $this->line('');
     }
 }

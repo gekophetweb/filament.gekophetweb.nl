@@ -4,6 +4,7 @@ use App\Actions\Setup\SaveMailSettings;
 use App\Support\Mail\DkimKey;
 use App\Support\Mail\DkimSigningTransport;
 use App\Support\Setup\MailSettingsAccess;
+use App\Support\Setup\MissingSettings;
 use Illuminate\Mail\Events\MessageSent;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\File;
@@ -127,6 +128,39 @@ describe('settings', function () {
         'no selector' => [['mail_dkim_selector' => ''], 'mail_dkim_selector'],
         'not a key' => [['mail_dkim_private_key' => 'hello'], 'mail_dkim_private_key'],
     ]);
+});
+
+describe('missing settings', function () {
+    it('finds mail that is not delivered or comes from an example address', function (string $mailer, string $from, array $keys) {
+        config(['mail.default' => $mailer, 'mail.from.address' => $from]);
+
+        expect(array_column(app(MissingSettings::class)->missing(), 'key'))->toBe($keys);
+    })->with([
+        'log only, example address' => ['log', 'hello@example.com', ['mail_log', 'mail_from']],
+        'example subdomain' => ['smtp', 'spools@mail.example.org', ['mail_from']],
+        '.test domain' => ['smtp', 'spools@spools.test', ['mail_from']],
+        'no from address' => ['smtp', '', ['mail_from']],
+        'all set' => ['smtp', 'spools@gekophetweb.nl', []],
+        'lookalike domain' => ['smtp', 'spools@myexample.com', []],
+    ]);
+
+    it('only gives a tip for SMTP mail without DKIM', function () {
+        config(['mail.default' => 'smtp', 'mail.from.address' => 'spools@gekophetweb.nl', 'mail.mailers.smtp.dkim.domain' => null]);
+
+        expect(app(MissingSettings::class)->missing())->toBe([])
+            ->and(array_column(app(MissingSettings::class)->tips(), 'key'))->toBe(['mail_dkim']);
+    });
+
+    it('shows signed-in users a banner until the mail settings are done', function () {
+        $user = user();
+        config(['mail.default' => 'log', 'mail.from.address' => 'spools@gekophetweb.nl']);
+
+        $this->actingAs($user)->get(route('catalog'))->assertOk()
+            ->assertSee(['Some settings are missing', 'Email only goes to the log', 'php artisan setup:mail-url']);
+
+        config(['mail.default' => 'smtp']);
+        $this->actingAs($user)->get(route('catalog'))->assertOk()->assertDontSee('Some settings are missing');
+    });
 });
 
 describe('mail settings page', function () {

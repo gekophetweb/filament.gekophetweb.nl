@@ -133,6 +133,20 @@ removed the `127.0.0.1:8000:8000` port mapping (install step 7), add it back for
 `MAIL_*` keys in `storage/app/.env.local` by hand as shown above. Saving reloads the app and restarts
 the queue worker.
 
+### Missing settings
+
+An installation set up with an older version can lack settings that were added later. At every start
+the container log lists what is missing, with a one-time link to fix it:
+
+```bash
+docker compose logs app | grep -A6 "settings are missing"
+```
+
+Signed-in users also see a banner until it is fixed. For now this checks mail: it counts as missing
+while email only goes to the log (`MAIL_MAILER=log`) or the send-from address is still an example
+address (`@example.com`, `.test` and the like). SMTP mail without DKIM is only mentioned as a tip in
+the log, without a link.
+
 ### Updating
 
 [docker/update.sh](docker/update.sh) updates the server to the latest commit of its branch. It does
