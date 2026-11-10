@@ -14,10 +14,9 @@ class ResolveSsoUser
      */
     public function handle(string $provider, SocialiteUser $identity): ?User
     {
-        $email = Str::lower((string) $identity->getEmail());
-        $raw = method_exists($identity, 'getRaw') ? $identity->getRaw() : [];
+        $email = self::verifiedEmail($identity);
 
-        if ($email === '' || ($raw['email_verified'] ?? true) === false || ! $this->isAllowed($email)) {
+        if ($email === null || ! $this->isAllowed($email)) {
             return null;
         }
 
@@ -43,6 +42,17 @@ class ResolveSsoUser
         $user->save();
 
         return $user;
+    }
+
+    /**
+     * The identity's lower-case email, or null when it has none or the provider says it is not verified.
+     */
+    public static function verifiedEmail(SocialiteUser $identity): ?string
+    {
+        $email = Str::lower((string) $identity->getEmail());
+        $raw = method_exists($identity, 'getRaw') ? $identity->getRaw() : [];
+
+        return $email === '' || ($raw['email_verified'] ?? true) === false ? null : $email;
     }
 
     public function isAllowed(string $email): bool

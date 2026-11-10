@@ -2,26 +2,35 @@
 
 use App\Enums\PrintRequestStatus;
 use App\Livewire\PrintRequests;
+use App\Livewire\ShareAndExport;
 use App\Models\FilamentProduct;
 use App\Models\PrintRequest;
 use App\Models\Spool;
 use App\Models\User;
 use App\Notifications\PrintRequestReceived;
+use App\Support\PrintRequester;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
+use Laravel\Socialite\Facades\Socialite;
+use Laravel\Socialite\Two\User as SocialiteUser;
 use Livewire\Livewire;
 
 /**
- * An owner with a share link and the given number of in-stock filaments.
+ * An owner with a share link that takes print requests from anyone who signs in, and the given number of in-stock filaments.
+ * Unless told otherwise, the visitor is signed in as the requester sam@example.com.
  *
  * @return array{0: User, 1: Collection<int, FilamentProduct>}
  */
-function sharingOwner(int $filaments = 5): array
+function sharingOwner(int $filaments = 5, ?string $requesterEmail = 'sam@example.com', string $allowList = '*'): array
 {
     $owner = user();
     $owner->rotateShareToken();
+    $owner->forceFill(['print_requester_emails' => $allowList])->save();
+    if ($requesterEmail !== null) {
+        signInAsRequester($requesterEmail);
+    }
     $products = FilamentProduct::factory()->count($filaments)->create();
     $products->each(fn (FilamentProduct $product) => Spool::factory()->for($owner)->create(['filament_product_id' => $product->id]));
 
@@ -33,29 +42,190 @@ function printRequestUrl(User $owner): string
     return route('share.print-requests.store', $owner->share_token);
 }
 
-beforeEach(fn () => Storage::fake('local'));
+function signInAsRequester(string $email, string $name = 'Sam'): void
+{
+    test()->withSession([PrintRequester::SESSION_KEY => ['email' => $email, 'name' => $name]]);
+}
 
-it('shows the print request form on its own share link tab without signing in', function () {
+function requesterIdentity(string $email, array $raw = []): SocialiteUser
+{
+    return (new SocialiteUser)->setRaw($raw)->map(['id' => 'sub-'.$email, 'name' => 'Sam Requester', 'email' => $email]);
+}
+
+beforeEach(function () {
+    Storage::fake('local');
+    config(['services.sso.provider' => 'oidc']);
+});
+
+it('opens the share link on the print request form for a signed-in requester', function () {
     [$owner, $products] = sharingOwner(1);
-    $formPage = route('share.print-request', $owner->share_token);
 
     $this->get($owner->shareUrl())->assertOk()
-        ->assertSee($formPage, false)
-        ->assertDontSee(printRequestUrl($owner), false);
-
-    $this->get($formPage)->assertOk()
         ->assertHeader('X-Robots-Tag', 'noindex, nofollow')
-        ->assertSee($owner->shareUrl(), false)
+        ->assertSee(['Request a print from', 'Signed in as', 'sam@example.com'])
         ->assertSee(printRequestUrl($owner), false)
         ->assertSee('name="colors[]" value="'.$products->first()->id.'"', false);
 });
 
-it('does not show the print request tab of a link that was turned off', function () {
+it('sends old print request tab links to the share link', function () {
     [$owner] = sharingOwner(1);
-    $formPage = route('share.print-request', $owner->share_token);
-    $owner->stopSharing();
 
-    $this->get($formPage)->assertNotFound();
+    $this->get(route('share.print-request', $owner->share_token))->assertRedirect($owner->shareUrl())->assertStatus(301);
+});
+
+it('says the owner takes no requests while nobody is allowed to request prints', function () {
+    [$owner] = sharingOwner(1, allowList: '');
+
+    $this->get($owner->shareUrl())->assertOk()
+        ->assertSee('is not taking print requests right now')
+        ->assertDontSee(printRequestUrl($owner), false);
+    $this->get(route('share.sign-in', $owner->share_token))->assertNotFound();
+    $this->post(printRequestUrl($owner), ['requester_name' => 'Sam', 'model_url' => 'https://example.com/m'])->assertNotFound();
+    expect(PrintRequest::count())->toBe(0);
+});
+
+it('asks visitors to sign in before they can request a print', function () {
+    [$owner] = sharingOwner(1, requesterEmail: null);
+
+    $this->get($owner->shareUrl())->assertOk()
+        ->assertSee(route('share.sign-in', $owner->share_token), false)
+        ->assertDontSee(printRequestUrl($owner), false);
+
+    $this->post(printRequestUrl($owner), ['requester_name' => 'Sam', 'model_url' => 'https://example.com/m'])
+        ->assertRedirect($owner->shareUrl());
+    expect(PrintRequest::count())->toBe(0);
+});
+
+it('signs a requester in through the regular SSO callback without making an account', function () {
+    [$owner] = sharingOwner(1, requesterEmail: null);
+    Socialite::fake('oidc', requesterIdentity('Friend@Example.com'));
+
+    $this->get(route('share.sign-in', $owner->share_token))->assertRedirect();
+    $this->get(route('sso.callback'))->assertRedirect($owner->shareUrl());
+
+    $this->assertGuest();
+    expect(User::count())->toBe(1);
+    $this->get($owner->shareUrl())
+        ->assertSee(['friend@example.com', 'Sam Requester'])
+        ->assertSee(printRequestUrl($owner), false);
+});
+
+it('does not sign in a requester whose email is not verified', function () {
+    [$owner] = sharingOwner(1, requesterEmail: null);
+    Socialite::fake('oidc', requesterIdentity('friend@example.com', ['email_verified' => false]));
+
+    $this->get(route('share.sign-in', $owner->share_token));
+    $this->get(route('sso.callback'))
+        ->assertRedirect($owner->shareUrl())
+        ->assertSessionHas('print_requester_error');
+
+    expect(session(PrintRequester::SESSION_KEY))->toBeNull();
+});
+
+it('does not treat a later app login as a requester sign-in that was never finished', function () {
+    config(['access.allowed_emails' => ['me@example.com']]);
+    [$owner] = sharingOwner(1, requesterEmail: null);
+    Socialite::fake('oidc', requesterIdentity('me@example.com'));
+
+    $this->get(route('share.sign-in', $owner->share_token));
+    $this->get(route('sso.redirect'));
+    $this->get(route('sso.callback'))->assertRedirect(route('catalog'));
+
+    $this->assertAuthenticated();
+});
+
+it('only takes requests from people on the owner\'s list', function () {
+    [$owner] = sharingOwner(1, requesterEmail: 'stranger@example.org', allowList: "friend@example.com\n@family.example");
+
+    $this->get($owner->shareUrl())->assertOk()
+        ->assertSee('does not take print requests from stranger@example.org')
+        ->assertDontSee(printRequestUrl($owner), false);
+    $this->post(printRequestUrl($owner), ['requester_name' => 'Sam', 'model_url' => 'https://example.com/m'])->assertForbidden();
+
+    signInAsRequester('kid@family.example');
+    $this->post(printRequestUrl($owner), ['requester_name' => 'Kid', 'model_url' => 'https://example.com/m'])->assertSessionHasNoErrors();
+
+    expect($owner->printRequests()->sole()->requester_contact)->toBe('kid@family.example');
+});
+
+it('lets the signed-in owner request a print through their own link', function () {
+    [$owner] = sharingOwner(1, requesterEmail: null, allowList: 'friend@example.com');
+
+    $this->actingAs($owner)->post(printRequestUrl($owner), ['requester_name' => 'Me', 'model_url' => 'https://example.com/m'])
+        ->assertSessionHasNoErrors();
+
+    expect($owner->printRequests()->sole()->requester_contact)->toBe($owner->email);
+});
+
+it('uses the verified email as the contact, whatever the form sends', function () {
+    [$owner] = sharingOwner(1);
+
+    $this->post(printRequestUrl($owner), ['requester_name' => 'Sam', 'requester_contact' => 'someone-else@example.com', 'model_url' => 'https://example.com/m']);
+
+    expect($owner->printRequests()->sole()->requester_contact)->toBe('sam@example.com');
+});
+
+it('signs a requester out', function () {
+    [$owner] = sharingOwner(1);
+
+    $this->post(route('share.sign-out', $owner->share_token))->assertRedirect($owner->shareUrl());
+
+    expect(session(PrintRequester::SESSION_KEY))->toBeNull();
+});
+
+it('lets the owner set who may request prints', function () {
+    $owner = user();
+
+    Livewire::actingAs($owner)->test(ShareAndExport::class)
+        ->set('printRequesterEmails', "Friend@Example.com, @family.example\n\nfriend@example.com")
+        ->call('savePrintRequesters')
+        ->assertHasNoErrors()
+        ->assertSet('printRequesterEmails', "friend@example.com\n@family.example")
+        ->set('printRequesterEmails', "friend@example.com\nnot an email")
+        ->call('savePrintRequesters')
+        ->assertHasErrors('printRequesterEmails');
+
+    expect($owner->fresh()->printRequesterAllowList())->toBe(['friend@example.com', '@family.example']);
+});
+
+it('shows requesters only their own requests, with the status and the owner\'s reply but not the private note', function () {
+    [$owner] = sharingOwner(1);
+    PrintRequest::factory()->for($owner)->printed()->create([
+        'requester_email' => 'sam@example.com', 'model_url' => 'https://example.com/benchy',
+        'reply' => 'Ready on Friday', 'private_note' => 'Used the old roll',
+    ]);
+    PrintRequest::factory()->for($owner)->create(['requester_email' => 'other@example.com', 'model_url' => 'https://example.com/not-mine']);
+    PrintRequest::factory()->create(['requester_email' => 'sam@example.com', 'model_url' => 'https://example.com/other-owner']);
+
+    $this->get($owner->shareUrl())->assertOk()
+        ->assertSee(['Your requests', 'Printed', 'https://example.com/benchy', 'Ready on Friday'])
+        ->assertDontSee(['Used the old roll', 'not-mine', 'other-owner']);
+});
+
+it('lets the owner reply to a request and keep a private note', function () {
+    $owner = user();
+    $request = PrintRequest::factory()->for($owner)->create();
+
+    Livewire::actingAs($owner)->test(PrintRequests::class)
+        ->call('open', $request->uuid)
+        ->set('reply', '  Ready on Friday ')
+        ->set('privateNote', 'Used the old roll')
+        ->call('saveComments')
+        ->assertHasNoErrors()
+        ->assertSee('Saved.');
+
+    expect($request->fresh())->reply->toBe('Ready on Friday')->private_note->toBe('Used the old roll');
+});
+
+it('does not let the owner reply to someone else\'s request', function () {
+    $other = PrintRequest::factory()->create();
+
+    Livewire::actingAs(user())->test(PrintRequests::class)
+        ->set('selected', $other->uuid)
+        ->set('reply', 'Hi')
+        ->call('saveComments')
+        ->assertNotFound();
+    expect($other->fresh()->reply)->toBeNull();
 });
 
 it('takes a print request with an STL file and up to four colors from a visitor', function () {
@@ -68,7 +238,7 @@ it('takes a print request with an STL file and up to four colors from a visitor'
         'stl' => UploadedFile::fake()->create('benchy.stl', 120, 'model/stl'),
         'colors' => $picked->all(),
         'notes' => 'Two please',
-    ])->assertRedirect(route('share.print-request', $owner->share_token))->assertSessionHas('print_request_sent');
+    ])->assertRedirect($owner->shareUrl())->assertSessionHas('print_request_sent');
 
     $printRequest = $owner->printRequests()->sole();
     expect($printRequest->requester_name)->toBe('Sam')
@@ -144,7 +314,7 @@ it('does not take print requests through a link that was turned off', function (
     expect(PrintRequest::count())->toBe(0);
 });
 
-it('limits how many print requests one address sends per hour', function () {
+it('limits how many print requests one requester sends per hour', function () {
     config(['access.rate_limits.print_requests_per_hour' => 2]);
     [$owner] = sharingOwner(1);
     $input = ['requester_name' => 'Sam', 'model_url' => 'https://example.com/m'];

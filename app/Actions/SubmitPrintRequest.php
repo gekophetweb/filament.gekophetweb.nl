@@ -43,9 +43,12 @@ class SubmitPrintRequest
 
     /**
      * @param  array<string, mixed>  $input
+     * @param  string  $requesterEmail  The requester's verified sign-in email; it is also the contact.
      */
-    public function handle(User $owner, array $input): PrintRequest
+    public function handle(User $owner, array $input, string $requesterEmail): PrintRequest
     {
+        $input['requester_contact'] = $requesterEmail;
+
         $data = Validator::make($input, self::rules($owner), [
             'stl.required_without' => 'Upload an STL file or paste a link to the model.',
             'model_url.required_without' => 'Paste a link to the model or upload an STL file.',
@@ -60,6 +63,7 @@ class SubmitPrintRequest
             'notes' => $data['notes'] ?? null,
         ]);
         $printRequest->uuid = (string) Str::uuid();
+        $printRequest->requester_email = Str::lower($requesterEmail);
         $printRequest->user()->associate($owner);
 
         $stl = $data['stl'] ?? null;

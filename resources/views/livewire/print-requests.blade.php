@@ -1,8 +1,3 @@
-@php($statusClasses = [
-    'open' => 'bg-amber-100 text-amber-900',
-    'printed' => 'bg-emerald-100 text-emerald-900',
-    'declined' => 'bg-stone-200 text-stone-700',
-])
 <div class="space-y-4">
     <div class="flex flex-wrap items-end justify-between gap-3">
         <div>
@@ -53,7 +48,7 @@
                                     <span class="shrink-0 text-xs text-stone-500">{{ $printRequest->created_at->diffForHumans(short: true) }}</span>
                                 </span>
                                 <span class="mt-0.5 flex items-center gap-2 text-xs text-stone-500">
-                                    <span class="rounded px-1.5 py-0.5 {{ $statusClasses[$printRequest->status->value] }}">{{ $printRequest->status->label() }}</span>
+                                    <span class="rounded px-1.5 py-0.5 {{ $printRequest->status->badgeClasses() }}">{{ $printRequest->status->label() }}</span>
                                     <span class="truncate">{{ $printRequest->stl_original_name ?? $printRequest->model_url }}</span>
                                     <span class="ml-auto flex shrink-0 -space-x-1">
                                         @foreach ($printRequest->colors as $color)
@@ -93,7 +88,7 @@
                             @endif
                         </p>
                     </div>
-                    <span class="rounded px-1.5 py-0.5 text-xs {{ $statusClasses[$opened->status->value] }}">{{ $opened->status->label() }}</span>
+                    <span class="rounded px-1.5 py-0.5 text-xs {{ $opened->status->badgeClasses() }}">{{ $opened->status->label() }}</span>
                 </div>
 
                 <div class="flex flex-wrap gap-3 text-sm">
@@ -124,6 +119,29 @@
                 @if ($opened->notes)
                     <p class="whitespace-pre-line text-sm text-stone-700">{{ $opened->notes }}</p>
                 @endif
+
+                <form wire:submit="saveComments" class="grid gap-3 border-t border-stone-100 pt-3 sm:grid-cols-2">
+                    <label class="block">
+                        <span class="text-xs font-medium text-stone-500">Reply to {{ $opened->requester_name }}</span>
+                        <textarea wire:model="reply" rows="3" maxlength="2000" placeholder="Ready on Friday, pick it up any time…"
+                                  class="mt-1 w-full rounded-md border-stone-300 px-2 py-1.5 text-sm"></textarea>
+                        <span class="text-xs text-stone-500">They see this with the status on your share link.</span>
+                        @error('reply') <span class="block text-xs text-red-700">{{ $message }}</span> @enderror
+                    </label>
+                    <label class="block">
+                        <span class="text-xs font-medium text-stone-500">Private note</span>
+                        <textarea wire:model="privateNote" rows="3" maxlength="2000" placeholder="Only you see this."
+                                  class="mt-1 w-full rounded-md border-stone-300 px-2 py-1.5 text-sm"></textarea>
+                        @error('privateNote') <span class="block text-xs text-red-700">{{ $message }}</span> @enderror
+                    </label>
+                    <div class="flex items-center gap-3 sm:col-span-2">
+                        <button type="submit" class="rounded-md border border-stone-300 px-3 py-1.5 text-sm hover:bg-stone-50">Save reply and note</button>
+                        <span wire:loading wire:target="saveComments" class="text-sm text-stone-500">Saving…</span>
+                        @if ($commentsSaved)
+                            <span class="text-sm text-emerald-700" role="status">Saved.</span>
+                        @endif
+                    </div>
+                </form>
 
                 <div class="flex flex-wrap gap-2 border-t border-stone-100 pt-3 text-sm">
                     @if ($opened->status === \App\Enums\PrintRequestStatus::Open)

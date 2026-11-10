@@ -1,9 +1,9 @@
 <?php
 
+use App\Http\Controllers\Auth\PrintRequesterSignInController;
 use App\Http\Controllers\Auth\SetupSignInTestController;
 use App\Http\Controllers\Auth\SsoController;
 use App\Http\Controllers\PrintRequestController;
-use App\Http\Controllers\SharedSpoolsController;
 use App\Http\Controllers\SpoolExportController;
 use App\Livewire\Catalog;
 use App\Livewire\Devices;
@@ -28,13 +28,16 @@ Route::middleware('guest')->group(function () {
     Route::get('/auth/callback', [SsoController::class, 'callback'])->middleware('throttle:sso-callback')->name('sso.callback');
 });
 
-// Read-only share links work without signing in (still behind the web IP allow-list).
-Route::get('/share/{token}', SharedSpoolsController::class)
+// The share link is the print request page (still behind the web IP allow-list). It takes requests once the
+// owner lists who may send them; requesters sign in through SSO first.
+Route::get('/share/{token}', [PrintRequestController::class, 'create'])
     ->where('token', '[A-Za-z0-9]{40}')->middleware('throttle:share')->name('share');
-
-// Every working share link takes print requests, read-only or not.
-Route::get('/share/{token}/print-request', [PrintRequestController::class, 'create'])
+Route::get('/share/{token}/print-request', [PrintRequestController::class, 'redirectToShare'])
     ->where('token', '[A-Za-z0-9]{40}')->middleware('throttle:share')->name('share.print-request');
+Route::get('/share/{token}/sign-in', [PrintRequesterSignInController::class, 'redirect'])
+    ->where('token', '[A-Za-z0-9]{40}')->middleware('throttle:login')->name('share.sign-in');
+Route::post('/share/{token}/sign-out', [PrintRequesterSignInController::class, 'signOut'])
+    ->where('token', '[A-Za-z0-9]{40}')->middleware('throttle:share')->name('share.sign-out');
 Route::post('/share/{token}/print-requests', [PrintRequestController::class, 'store'])
     ->where('token', '[A-Za-z0-9]{40}')->middleware('throttle:print-request')->name('share.print-requests.store');
 

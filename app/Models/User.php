@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Actions\Auth\ResolveSsoUser;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
@@ -48,7 +49,7 @@ class User extends Authenticatable
     }
 
     /**
-     * Turn on the read-only share link, or replace it so the old link stops working.
+     * Turn on the print request share link, or replace it so the old link stops working.
      */
     public function rotateShareToken(): string
     {
@@ -65,6 +66,50 @@ class User extends Authenticatable
     public function shareUrl(): ?string
     {
         return $this->share_token ? route('share', $this->share_token) : null;
+    }
+
+    /**
+     * Who may send print requests through the share link: lower-case emails, "@domain" entries or "*".
+     *
+     * @return list<string>
+     */
+    public function printRequesterAllowList(): array
+    {
+        return self::splitAllowList((string) $this->print_requester_emails);
+    }
+
+    /**
+     * Whether the share link takes print requests at all (someone is on the requester list).
+     */
+    public function takesPrintRequests(): bool
+    {
+        return $this->printRequesterAllowList() !== [];
+    }
+
+    /**
+     * Whether this signed-in, verified email may send print requests. The owner always may, once requests are on.
+     */
+    public function allowsPrintRequestsFrom(string $email): bool
+    {
+        if (! $this->takesPrintRequests()) {
+            return false;
+        }
+
+        return Str::lower($email) === Str::lower((string) $this->email)
+            || ResolveSsoUser::matchesAllowList($email, $this->printRequesterAllowList());
+    }
+
+    /**
+     * Split a list typed one per line (or comma separated) into lower-case, unique entries.
+     *
+     * @return list<string>
+     */
+    public static function splitAllowList(string $entries): array
+    {
+        return array_values(array_unique(array_filter(array_map(
+            fn (string $entry) => Str::lower(trim($entry)),
+            preg_split('/[\s,;]+/', $entries) ?: [],
+        ))));
     }
 
     /**

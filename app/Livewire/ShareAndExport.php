@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Actions\ImportSpools;
+use App\Models\User;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
 use InvalidArgumentException;
@@ -14,7 +15,7 @@ use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use Livewire\WithFileUploads;
 
 /**
- * The read-only share link, and exporting or importing your spools as CSV.
+ * The print request share link and who may use it, and exporting or importing your spools as CSV.
  */
 #[Layout('layouts.app')]
 #[Title('Share & export')]
@@ -29,6 +30,11 @@ class ShareAndExport extends Component
     /** @var array{created: int, updated: int, unchanged: int, errors: list<string>}|null */
     public ?array $importResult = null;
 
+    /** Who may send print requests through the share link: one email, "@domain" or "*" per line. */
+    public string $printRequesterEmails = '';
+
+    public bool $printRequestersSaved = false;
+
     public function import(ImportSpools $importer): void
     {
         $this->validate();
@@ -42,7 +48,7 @@ class ShareAndExport extends Component
         $this->reset('importFile');
     }
 
-    /** Turn the read-only share link on, or replace it (the old link stops working). */
+    /** Turn the share link on, or replace it (the old link stops working). */
     public function newShareLink(): void
     {
         Auth::user()->rotateShareToken();
@@ -51,6 +57,39 @@ class ShareAndExport extends Component
     public function stopSharing(): void
     {
         Auth::user()->stopSharing();
+    }
+
+    public function mount(): void
+    {
+        $this->printRequesterEmails = implode("\n", Auth::user()->printRequesterAllowList());
+    }
+
+    public function savePrintRequesters(): void
+    {
+        $this->validate(['printRequesterEmails' => ['nullable', 'string', 'max:10000']]);
+        $entries = User::splitAllowList($this->printRequesterEmails);
+
+        $invalid = array_filter($entries, fn (string $entry) => ! self::isValidAllowListEntry($entry));
+        if ($invalid !== []) {
+            $this->addError('printRequesterEmails', 'Not an email, @domain or *: '.implode(', ', $invalid));
+
+            return;
+        }
+
+        Auth::user()->forceFill(['print_requester_emails' => $entries === [] ? null : implode("\n", $entries)])->save();
+        $this->printRequesterEmails = implode("\n", $entries);
+        $this->printRequestersSaved = true;
+    }
+
+    private static function isValidAllowListEntry(string $entry): bool
+    {
+        if ($entry === '*') {
+            return true;
+        }
+
+        $email = str_starts_with($entry, '@') ? 'someone'.$entry : $entry;
+
+        return filter_var($email, FILTER_VALIDATE_EMAIL) !== false;
     }
 
     public function render(): View

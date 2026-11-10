@@ -6,6 +6,7 @@ use App\Actions\SubmitPrintRequest;
 use App\Models\FilamentProduct;
 use App\Models\PrintRequest;
 use App\Models\User;
+use App\Support\PrintRequester;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -14,33 +15,60 @@ use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
- * Print requests: visitors send them through any working share link, the owner downloads the STL.
+ * Print requests: signed-in requesters the owner allows send them through the share link, the owner downloads the STL.
  */
 class PrintRequestController extends Controller
 {
     /**
-     * The print request tab of a share link; colors to pick are the filaments the link shows.
+     * The share link page: a sign-in button, or the form for an allowed requester with their own earlier
+     * requests (status and the owner's reply). Colors to pick are the owner's in-stock filaments.
      */
     public function create(string $token): Response
     {
         $owner = User::where('share_token', $token)->firstOrFail();
+        $requester = PrintRequester::current();
+        $isAllowed = $requester !== null && $owner->allowsPrintRequestsFrom($requester->email);
 
         return response()
             ->view('share-print-request', [
                 'owner' => $owner,
-                'products' => FilamentProduct::query()->inStockFor($owner)->with('material')->orderBy('article_number')->get(),
+                'requester' => $requester,
+                'isAllowed' => $isAllowed,
+                'products' => $isAllowed
+                    ? FilamentProduct::query()->inStockFor($owner)->with('material')->orderBy('article_number')->get()
+                    : collect(),
+                'ownRequests' => $isAllowed
+                    ? $owner->printRequests()->where('requester_email', $requester->email)->with('colors')->latest()->limit(50)->get()
+                    : collect(),
             ])
             ->header('Referrer-Policy', 'no-referrer')
             ->header('X-Robots-Tag', 'noindex, nofollow');
     }
 
+    /**
+     * The print request page used to be a tab next to the filament list; old links land on the share link.
+     */
+    public function redirectToShare(string $token): RedirectResponse
+    {
+        return redirect()->route('share', $token, 301);
+    }
+
+    /**
+     * The verified email of the signed-in requester is the contact; it cannot be typed in.
+     */
     public function store(Request $request, string $token, SubmitPrintRequest $submit): RedirectResponse
     {
-        $owner = User::where('share_token', $token)->firstOrFail();
+        $owner = $this->ownerTakingRequests($token);
+        $requester = PrintRequester::current();
 
-        $submit->handle($owner, $request->all());
+        if ($requester === null) {
+            return redirect()->route('share', $token);
+        }
+        abort_unless($owner->allowsPrintRequestsFrom($requester->email), 403);
 
-        return redirect()->route('share.print-request', $token)->with('print_request_sent', true);
+        $submit->handle($owner, $request->except('requester_contact'), $requester->email);
+
+        return redirect()->route('share', $token)->with('print_request_sent', true);
     }
 
     /**
@@ -56,5 +84,16 @@ class PrintRequestController extends Controller
             $printRequest->stl_original_name ?: "{$printRequest->uuid}.stl",
             ['Content-Type' => 'application/octet-stream', 'X-Content-Type-Options' => 'nosniff'],
         );
+    }
+
+    /**
+     * The owner of a working share link that takes print requests; 404 otherwise, so a link that takes none shows no sign of it.
+     */
+    private function ownerTakingRequests(string $token): User
+    {
+        $owner = User::where('share_token', $token)->firstOrFail();
+        abort_unless($owner->takesPrintRequests(), 404);
+
+        return $owner;
     }
 }

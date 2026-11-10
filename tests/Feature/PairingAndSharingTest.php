@@ -63,15 +63,10 @@ it('respects the token limit when pairing', function () {
     Livewire::actingAs($user)->test(Devices::class)->set('name', 'Phone')->call('showQr')->assertHasErrors('name');
 });
 
-it('shares a read-only list of boxed and on-spool filament without signing in', function () {
+it('opens the share link on the print request page without listing the owner\'s filament', function () {
     $user = user();
     $white = FilamentProduct::factory()->create(['article_number' => '10100', 'article_name' => 'Jade White']);
-    $red = FilamentProduct::factory()->create(['article_number' => '10200', 'article_name' => 'Scarlet Red']);
-    $gone = FilamentProduct::factory()->create(['article_name' => 'Used Up Blue']);
     Spool::factory()->for($user)->count(2)->create(['filament_product_id' => $white->id, 'purchased_at' => '2026-02-14']);
-    Spool::factory()->for($user)->onSpool()->create(['filament_product_id' => $red->id]);
-    Spool::factory()->for($user)->usedUp()->create(['filament_product_id' => $gone->id]);
-    Spool::factory()->create(['filament_product_id' => $red->id]);
 
     Livewire::actingAs($user)->test(ShareAndExport::class)->call('newShareLink')->assertSee('/share/', false);
     $url = $user->fresh()->shareUrl();
@@ -79,9 +74,8 @@ it('shares a read-only list of boxed and on-spool filament without signing in', 
     auth()->logout();
     $this->get($url)->assertOk()
         ->assertHeader('X-Robots-Tag', 'noindex, nofollow')
-        ->assertSeeInOrder(['Jade White', '2', '0', 'Scarlet Red', '0', '1'])
-        ->assertDontSee('Used Up Blue')
-        ->assertDontSee('2026-02-14');
+        ->assertSee('Request a print from')
+        ->assertDontSee(['Jade White', '2026-02-14', 'In boxes', 'On spools']);
 });
 
 it('stops an old share link when a new one is made or sharing is turned off', function () {

@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Gate;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
+use Livewire\Attributes\Validate;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -33,6 +34,16 @@ class PrintRequests extends Component
     #[Url(as: 'request')]
     public ?string $selected = null;
 
+    /** Reply on the opened request; the requester sees it on the share link. */
+    #[Validate(['nullable', 'string', 'max:2000'])]
+    public string $reply = '';
+
+    /** Note on the opened request that only the owner sees. */
+    #[Validate(['nullable', 'string', 'max:2000'])]
+    public string $privateNote = '';
+
+    public bool $commentsSaved = false;
+
     public function mount(): void
     {
         if ($this->selected) {
@@ -52,6 +63,23 @@ class PrintRequests extends Component
 
         $printRequest->markRead();
         $this->selected = $printRequest->uuid;
+        $this->reply = (string) $printRequest->reply;
+        $this->privateNote = (string) $printRequest->private_note;
+        $this->commentsSaved = false;
+        $this->resetValidation();
+    }
+
+    public function saveComments(): void
+    {
+        $printRequest = $this->find((string) $this->selected);
+        Gate::authorize('update', $printRequest);
+        $this->validate();
+
+        $printRequest->forceFill([
+            'reply' => trim($this->reply) === '' ? null : trim($this->reply),
+            'private_note' => trim($this->privateNote) === '' ? null : trim($this->privateNote),
+        ])->save();
+        $this->commentsSaved = true;
     }
 
     public function close(): void
