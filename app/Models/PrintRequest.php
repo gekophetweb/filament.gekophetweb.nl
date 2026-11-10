@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use App\Enums\PrintRequestStatus;
+use App\Support\FilamentEstimate;
+use App\Support\StlMeasurement;
 use Database\Factories\PrintRequestFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
@@ -51,8 +53,41 @@ class PrintRequest extends Model
         return [
             'status' => PrintRequestStatus::class,
             'stl_size' => 'integer',
+            'stl_volume' => 'float',
+            'stl_dimensions' => 'array',
             'read_at' => 'datetime',
         ];
+    }
+
+    /**
+     * About how much filament the STL takes in the picked colors' material(s), or null without a measured STL.
+     */
+    public function filamentEstimate(): ?FilamentEstimate
+    {
+        if (! $this->stl_volume) {
+            return null;
+        }
+
+        $materials = $this->colors->loadMissing('material')->map(fn (FilamentProduct $color) => $color->material->name)->all();
+
+        return FilamentEstimate::forVolume($this->stl_volume, $materials);
+    }
+
+    /** The STL's size, for example "42 × 30 × 18 mm", or null when it was not measured. */
+    public function dimensionsLabel(): ?string
+    {
+        if (! is_array($this->stl_dimensions) || count($this->stl_dimensions) !== 3) {
+            return null;
+        }
+
+        return collect($this->stl_dimensions)->map(fn ($size) => rtrim(rtrim(number_format((float) $size, 1, '.', ''), '0'), '.'))->join(' × ').' mm';
+    }
+
+    /** Whether the STL's size suggests it was not exported in millimetres, so the estimate is off. */
+    public function looksMisScaled(): bool
+    {
+        return is_array($this->stl_dimensions) && count($this->stl_dimensions) === 3
+            && StlMeasurement::looksMisScaled(array_map('floatval', $this->stl_dimensions));
     }
 
     public function isUnread(): bool

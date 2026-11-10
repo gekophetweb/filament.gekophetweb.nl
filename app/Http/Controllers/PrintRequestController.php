@@ -38,7 +38,7 @@ class PrintRequestController extends Controller
                     ? FilamentProduct::query()->inStockFor($owner)->with('material')->orderBy('article_number')->get()
                     : collect(),
                 'ownRequests' => $isAllowed
-                    ? $owner->printRequests()->where('requester_email', $requester->email)->with('colors')->latest()->limit(50)->get()
+                    ? $owner->printRequests()->where('requester_email', $requester->email)->with('colors.material')->latest()->limit(50)->get()
                     : collect(),
             ])
             ->header('Referrer-Policy', 'no-referrer')

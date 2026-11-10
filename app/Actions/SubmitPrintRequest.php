@@ -6,6 +6,7 @@ use App\Models\FilamentProduct;
 use App\Models\PrintRequest;
 use App\Models\User;
 use App\Notifications\PrintRequestReceived;
+use App\Support\StlMeasurement;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -68,6 +69,11 @@ class SubmitPrintRequest
 
         $stl = $data['stl'] ?? null;
         if ($stl instanceof UploadedFile) {
+            // Measured here, from the upload itself, so the estimate is there for the owner's email.
+            $measurement = StlMeasurement::fromFile((string) $stl->getRealPath());
+            $printRequest->stl_volume = $measurement?->volume;
+            $printRequest->stl_dimensions = $measurement ? array_map(fn (float $size) => round($size, 1), $measurement->dimensions) : null;
+
             $printRequest->fill([
                 'stl_path' => $stl->storeAs(self::STL_DIRECTORY, "{$printRequest->uuid}.stl", 'local'),
                 'stl_original_name' => Str::limit(basename($stl->getClientOriginalName()), 250, ''),

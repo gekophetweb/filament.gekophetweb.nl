@@ -103,6 +103,8 @@
                     @endif
                 </div>
 
+                <x-filament-estimate :print-request="$opened" />
+
                 @if ($opened->colors->isNotEmpty())
                     <div class="flex flex-wrap gap-2">
                         @foreach ($opened->colors as $color)

@@ -169,6 +169,9 @@
                                 </span>
                                 <span class="shrink-0 text-xs text-stone-500">{{ $printRequest->created_at->format('j M Y') }}</span>
                             </div>
+                            @if ($printRequest->stl_volume)
+                                <x-filament-estimate :print-request="$printRequest" class="text-xs" />
+                            @endif
                             @if ($printRequest->reply)
                                 <p class="whitespace-pre-line rounded-md bg-stone-50 px-2 py-1.5 text-stone-700">
                                     <span class="font-medium">{{ $owner->name }}:</span> {{ $printRequest->reply }}
