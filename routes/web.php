@@ -1,9 +1,11 @@
 <?php
 
+use App\Http\Controllers\Auth\PrintRequesterEmailCodeController;
+use App\Http\Controllers\Auth\PrintRequesterSignInController;
 use App\Http\Controllers\Auth\SetupSignInTestController;
 use App\Http\Controllers\Auth\SsoController;
+use App\Http\Controllers\MailSettingsController;
 use App\Http\Controllers\PrintRequestController;
-use App\Http\Controllers\SharedSpoolsController;
 use App\Http\Controllers\SpoolExportController;
 use App\Livewire\Catalog;
 use App\Livewire\Devices;
@@ -21,6 +23,10 @@ Route::get('/setup', Setup::class)->middleware('throttle:login')->name('setup');
 Route::get('/setup/test', [SetupSignInTestController::class, 'redirect'])->middleware('throttle:login')->name('setup.test');
 Route::get('/setup/callback', [SetupSignInTestController::class, 'callback'])->middleware('throttle:sso-callback')->name('setup.callback');
 
+// Mail settings once the app is set up: direct local requests with the link from `php artisan setup:mail-url`.
+Route::get('/mail-settings', [MailSettingsController::class, 'show'])->middleware('throttle:login')->name('mail-settings');
+Route::post('/mail-settings', [MailSettingsController::class, 'update'])->middleware('throttle:login')->name('mail-settings.update');
+
 // Only the login page and the SSO round trip are reachable without a session.
 Route::middleware('guest')->group(function () {
     Route::get('/login', [SsoController::class, 'login'])->middleware('throttle:login')->name('login');
@@ -28,13 +34,22 @@ Route::middleware('guest')->group(function () {
     Route::get('/auth/callback', [SsoController::class, 'callback'])->middleware('throttle:sso-callback')->name('sso.callback');
 });
 
-// Read-only share links work without signing in (still behind the web IP allow-list).
-Route::get('/share/{token}', SharedSpoolsController::class)
+// The share link is the print request page (still behind the web IP allow-list). It takes requests once the
+// owner lists who may send them; requesters sign in through SSO first.
+Route::get('/share/{token}', [PrintRequestController::class, 'create'])
     ->where('token', '[A-Za-z0-9]{40}')->middleware('throttle:share')->name('share');
-
-// Every working share link takes print requests, read-only or not.
-Route::get('/share/{token}/print-request', [PrintRequestController::class, 'create'])
+Route::get('/share/{token}/print-request', [PrintRequestController::class, 'redirectToShare'])
     ->where('token', '[A-Za-z0-9]{40}')->middleware('throttle:share')->name('share.print-request');
+Route::get('/share/{token}/sign-in', [PrintRequesterSignInController::class, 'redirect'])
+    ->where('token', '[A-Za-z0-9]{40}')->middleware('throttle:login')->name('share.sign-in');
+Route::post('/share/{token}/email-code', [PrintRequesterEmailCodeController::class, 'send'])
+    ->where('token', '[A-Za-z0-9]{40}')->middleware('throttle:print-request-code')->name('share.email-code');
+Route::post('/share/{token}/email-code/verify', [PrintRequesterEmailCodeController::class, 'verify'])
+    ->where('token', '[A-Za-z0-9]{40}')->middleware('throttle:login')->name('share.email-code.verify');
+Route::post('/share/{token}/email-code/cancel', [PrintRequesterEmailCodeController::class, 'cancel'])
+    ->where('token', '[A-Za-z0-9]{40}')->middleware('throttle:share')->name('share.email-code.cancel');
+Route::post('/share/{token}/sign-out', [PrintRequesterSignInController::class, 'signOut'])
+    ->where('token', '[A-Za-z0-9]{40}')->middleware('throttle:share')->name('share.sign-out');
 Route::post('/share/{token}/print-requests', [PrintRequestController::class, 'store'])
     ->where('token', '[A-Za-z0-9]{40}')->middleware('throttle:print-request')->name('share.print-requests.store');
 

@@ -47,6 +47,13 @@ return [
             'password' => env('MAIL_PASSWORD'),
             'timeout' => null,
             'local_domain' => env('MAIL_EHLO_DOMAIN', parse_url((string) env('APP_URL', 'http://localhost'), PHP_URL_HOST)),
+            // Signs every message when domain, selector and key are set (see DkimSigningTransport).
+            // The private key is the PEM, base64 encoded so it fits on one .env line.
+            'dkim' => [
+                'domain' => env('MAIL_DKIM_DOMAIN'),
+                'selector' => env('MAIL_DKIM_SELECTOR'),
+                'private_key' => env('MAIL_DKIM_PRIVATE_KEY'),
+            ],
         ],
 
         'ses' => [

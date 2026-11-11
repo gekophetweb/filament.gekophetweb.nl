@@ -3,9 +3,9 @@
 namespace App\Actions\Setup;
 
 use App\Support\EnvWriter;
+use App\Support\Setup\AppReloader;
 use App\Support\Setup\SetupState;
 use Closure;
-use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 use RuntimeException;
@@ -23,7 +23,7 @@ class SaveSetup
     /** List value that allows everyone: any verified email, or any IP address. */
     public const EVERYONE = '*';
 
-    public function __construct(private SetupState $setup) {}
+    public function __construct(private SetupState $setup, private AppReloader $reloader) {}
 
     public function writer(): EnvWriter
     {
@@ -103,11 +103,12 @@ class SaveSetup
 
     /**
      * @param  array<string, mixed>  $input
+     * @param  array<string, string>  $extraEnv  Further .env values to write with these, such as the mail settings.
      * @return list<string> Warnings about reload steps that did not succeed.
      */
-    public function handle(array $input): array
+    public function handle(array $input, array $extraEnv = []): array
     {
-        $env = $this->envValues($this->validate($input));
+        $env = $this->envValues($this->validate($input)) + $extraEnv;
         $writer = $this->writer();
 
         if (! $writer->isWritable()) {
@@ -117,37 +118,7 @@ class SaveSetup
         $writer->set($env);
         $this->setup->complete();
 
-        return $this->reload(array_keys($env));
-    }
-
-    /**
-     * Rebuild the config in fresh processes (this one still holds the old
-     * values) and restart Octane workers and queue workers.
-     *
-     * @param  list<string>  $keys  Written keys, removed from the child environment so the new file wins.
-     * @return list<string>
-     */
-    private function reload(array $keys): array
-    {
-        $warnings = [];
-        $artisan = fn (string $command) => Process::path(base_path())
-            ->timeout(60)
-            ->env(array_fill_keys($keys, false))
-            ->run(['php', 'artisan', $command]);
-
-        $config = $artisan(app()->configurationIsCached() ? 'config:cache' : 'config:clear');
-        if ($config->failed()) {
-            $warnings[] = 'Rebuilding the config cache failed: '.trim($config->errorOutput() ?: $config->output());
-        }
-
-        $artisan('queue:restart');
-
-        if ($artisan('octane:status')->successful()) {
-            // After the response, so this request is not cut off by its own worker restart.
-            defer(fn () => $artisan('octane:reload'));
-        }
-
-        return $warnings;
+        return $this->reloader->reload(array_keys($env));
     }
 
     /**

@@ -18,6 +18,15 @@ return [
     'env_path' => base_path(LocalEnvironment::RELATIVE_PATH),
     'backup_path' => storage_path('app/env-backups'),
 
+    /*
+    | Mail settings page (/mail-settings) for installs that are already set up.
+    | Same rules as the wizard: direct local requests only, opened with a
+    | one-time link from `php artisan setup:mail-url`. The link works for
+    | mail_token_minutes; the page then stays open that long in that browser.
+    */
+    'mail_token_path' => storage_path('app/mail-settings.token'),
+    'mail_token_minutes' => 60,
+
     // Printed by `php artisan setup:url` (the published port in docker-compose.yml).
     'local_url' => 'http://127.0.0.1:8000',
 

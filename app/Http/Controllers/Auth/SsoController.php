@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Actions\Auth\ResolveSsoUser;
 use App\Http\Controllers\Controller;
+use App\Support\PrintRequester;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -20,19 +21,33 @@ class SsoController extends Controller
         return view('auth.login');
     }
 
-    public function redirect(): SymfonyRedirect
+    public function redirect(Request $request): SymfonyRedirect
     {
+        // A print requester sign-in that was started but never finished must not take over this one.
+        $request->session()->forget(PrintRequester::PENDING_SESSION_KEY);
+
         return Socialite::driver($this->provider())->redirect();
     }
 
+    /**
+     * The one callback URL registered at the identity provider, for app logins and print requester sign-ins.
+     */
     public function callback(Request $request, ResolveSsoUser $resolve): RedirectResponse
     {
+        $requesterToken = $request->session()->pull(PrintRequester::PENDING_SESSION_KEY);
+
         try {
             $identity = Socialite::driver($this->provider())->user();
         } catch (Throwable $e) {
             Log::warning('SSO callback failed', ['error' => $e->getMessage(), 'ip' => $request->ip()]);
 
-            return redirect()->route('login')->with('error', 'Sign-in failed. Please try again.');
+            return is_string($requesterToken)
+                ? redirect()->route('share', $requesterToken)->with('print_requester_error', 'Sign-in failed. Please try again.')
+                : redirect()->route('login')->with('error', 'Sign-in failed. Please try again.');
+        }
+
+        if (is_string($requesterToken)) {
+            return PrintRequesterSignInController::complete($request, $requesterToken, $identity);
         }
 
         $user = $resolve->handle($this->provider(), $identity);

@@ -88,11 +88,11 @@ it('keeps only the export button on My spools and moves sharing and import to th
 
     $this->actingAs($user)->get('/spools')->assertOk()
         ->assertSee(route('spools.export'), false)
-        ->assertDontSee('Share a read-only link')
+        ->assertDontSee('Print request link')
         ->assertDontSee('Import spools from CSV');
 
     $this->actingAs($user)->get('/share-export')->assertOk()
-        ->assertSee('Share a read-only link')
+        ->assertSee('Print request link')
         ->assertSee(route('spools.export'), false)
         ->assertSee('Import spools from CSV');
 });

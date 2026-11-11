@@ -2,7 +2,9 @@
 
 namespace App\Livewire;
 
+use App\Actions\Setup\SaveMailSettings;
 use App\Actions\Setup\SaveSetup;
+use App\Support\Mail\DkimKey;
 use App\Support\Setup\OidcDiscoveryCheck;
 use App\Support\Setup\SetupState;
 use App\Support\Setup\SsoPresets;
@@ -10,10 +12,12 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Str;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 use RuntimeException;
+use Throwable;
 
 /**
  * First-run wizard: public address, identity provider, who may sign in,
@@ -26,7 +30,10 @@ use RuntimeException;
 #[Title('Set up Spool Tracker')]
 class Setup extends Component
 {
-    public const STEPS = [1 => 'Address', 2 => 'Sign-in provider', 3 => 'Access', 4 => 'Test sign-in', 5 => 'Save'];
+    public const STEPS = [1 => 'Address', 2 => 'Sign-in provider', 3 => 'Access', 4 => 'Test sign-in', 5 => 'Mail', 6 => 'Save'];
+
+    /** Mail fields that stay out of the draft: they move to the session encrypted, like the client secret. */
+    private const MAIL_SECRETS = ['mail_password', 'mail_dkim_private_key'];
 
     public int $step = 1;
 
@@ -56,6 +63,30 @@ class Setup extends Component
 
     public string $ips_mcp = '';
 
+    public string $mail_mailer = 'log';
+
+    public string $mail_host = '';
+
+    public string $mail_port = '587';
+
+    public string $mail_scheme = '';
+
+    public string $mail_username = '';
+
+    /** Only holds a newly typed password until the next action; then it moves to the session. */
+    public string $mail_password = '';
+
+    public string $mail_from_address = '';
+
+    public string $mail_from_name = '';
+
+    public string $mail_dkim_domain = '';
+
+    public string $mail_dkim_selector = '';
+
+    /** Only holds a newly pasted key until the next action; then it moves to the session. */
+    public string $mail_dkim_private_key = '';
+
     /** @var list<array{label: string, status: string, detail: string}> */
     public array $checks = [];
 
@@ -82,12 +113,14 @@ class Setup extends Component
         }
 
         foreach (session('setup.draft', []) as $field => $value) {
-            if (property_exists($this, $field) && $field !== 'client_secret') {
+            if (property_exists($this, $field) && $field !== 'client_secret' && ! in_array($field, self::MAIL_SECRETS, true)) {
                 $this->{$field} = $value;
             }
         }
 
         $this->app_url = $this->app_url ?: rtrim((string) config('app.url'), '/');
+        $this->mail_from_name = $this->mail_from_name ?: (string) config('app.name');
+        $this->mail_from_address = $this->mail_from_address ?: $this->suggestedFromAddress();
         $this->step = (int) session('setup.step', 1);
     }
 
@@ -117,12 +150,15 @@ class Setup extends Component
     public function next(SaveSetup $save): void
     {
         $this->authorizeSetup();
+        // Errors from an earlier try stay in the component until cleared, and would block the step below.
+        $this->resetErrorBag();
 
         match ($this->step) {
             1 => $this->completeAddress($save),
             2 => $this->completeProvider($save),
             3 => $this->completeAccess($save),
             4 => $this->requireTestedSignIn(),
+            5 => $this->completeMail(app(SaveMailSettings::class)),
             default => null,
         };
 
@@ -177,7 +213,46 @@ class Setup extends Component
         $this->saveDraft();
     }
 
-    public function save(SaveSetup $save): void
+    /** Make a DKIM key for the Mail step; the private half only lives in the session until saving. */
+    public function generateDkimKey(): void
+    {
+        $this->authorizeSetup();
+        $this->storeMailSecrets();
+
+        session(['setup.dkim_key' => Crypt::encryptString(DkimKey::generate())]);
+        $this->mail_dkim_selector = $this->mail_dkim_selector ?: SaveMailSettings::DEFAULT_DKIM_SELECTOR;
+        $this->mail_dkim_domain = $this->mail_dkim_domain ?: Str::after($this->mail_from_address, '@');
+        $this->saveDraft();
+    }
+
+    /** Send a test email with the Mail step's settings to the account that tested the sign-in. */
+    public function sendTestEmail(SaveMailSettings $mail): void
+    {
+        $this->authorizeSetup();
+        $this->storeMailSecrets();
+        $this->saveDraft();
+        $to = session('setup.tested.email');
+
+        if (! $to) {
+            $this->addError('mail_test', 'Test the sign-in first; the test email goes to that account.');
+
+            return;
+        }
+
+        $values = $mail->validate($this->mailInput());
+
+        try {
+            $mail->sendTest($values, $to);
+        } catch (Throwable $e) {
+            $this->addError('mail_test', 'Sending failed: '.$e->getMessage());
+
+            return;
+        }
+
+        session()->flash('mail_test_result', $values['mail_mailer'] === 'log' ? "Written to the log (addressed to {$to})." : "Sent to {$to}.");
+    }
+
+    public function save(SaveSetup $save, SaveMailSettings $mail): void
     {
         $this->authorizeSetup();
         $this->requireTestedSignIn();
@@ -187,14 +262,15 @@ class Setup extends Component
         }
 
         try {
-            $this->warnings = $save->handle($this->input());
+            $mailEnv = $mail->envValues($mail->validate($this->mailInput()));
+            $this->warnings = $save->handle($this->input(), $mailEnv);
         } catch (RuntimeException $e) {
             $this->addError('save', $e->getMessage());
 
             return;
         }
 
-        session()->forget(['setup.draft', 'setup.secret', 'setup.step', 'setup.checked_issuer', 'setup.tested', 'setup.unlocked']);
+        session()->forget(['setup.draft', 'setup.secret', 'setup.mail_password', 'setup.dkim_key', 'setup.step', 'setup.checked_issuer', 'setup.tested', 'setup.unlocked']);
         $this->saved = true;
     }
 
@@ -209,6 +285,9 @@ class Setup extends Component
             'publicCallback' => rtrim($this->app_url, '/').'/auth/callback',
             'testCallback' => route('setup.callback'),
             'connectionChecked' => session('setup.checked_issuer') !== null && session('setup.checked_issuer') === rtrim(trim($this->issuer), '/'),
+            'mailValues' => collect(SaveMailSettings::FIELDS)->mapWithKeys(fn (string $field) => [$field => $this->{$field}])->all(),
+            'dkimKey' => $this->sessionSecret('setup.dkim_key'),
+            'mailPasswordStored' => session()->has('setup.mail_password'),
         ]);
     }
 
@@ -245,6 +324,56 @@ class Setup extends Component
         $this->ips_mcp = $values['ips_mcp'];
     }
 
+    private function completeMail(SaveMailSettings $mail): void
+    {
+        $this->storeMailSecrets();
+        $values = $mail->validate($this->mailInput());
+
+        $this->mail_dkim_domain = $values['mail_dkim_domain'];
+        $this->mail_dkim_selector = $values['mail_dkim_selector'];
+    }
+
+    /**
+     * The Mail step's values, with the password and DKIM key from the session.
+     *
+     * @return array<string, string>
+     */
+    private function mailInput(): array
+    {
+        return array_merge(
+            collect(SaveMailSettings::FIELDS)->mapWithKeys(fn (string $field) => [$field => $this->{$field}])->all(),
+            [
+                'mail_password' => (string) $this->sessionSecret('setup.mail_password'),
+                'mail_dkim_private_key' => (string) $this->sessionSecret('setup.dkim_key'),
+            ],
+        );
+    }
+
+    private function storeMailSecrets(): void
+    {
+        foreach (['mail_password' => 'setup.mail_password', 'mail_dkim_private_key' => 'setup.dkim_key'] as $field => $key) {
+            if (trim($this->{$field}) !== '') {
+                session([$key => Crypt::encryptString(trim($this->{$field}))]);
+                $this->{$field} = '';
+            }
+        }
+    }
+
+    private function sessionSecret(string $key): ?string
+    {
+        $secret = session($key);
+
+        return $secret ? Crypt::decryptString($secret) : null;
+    }
+
+    /** "spools@" the public address's domain, when that is a real domain name. */
+    private function suggestedFromAddress(): string
+    {
+        $host = (string) parse_url($this->app_url, PHP_URL_HOST);
+
+        return str_contains($host, '.') && filter_var($host, FILTER_VALIDATE_IP) === false ? "spools@{$host}" : '';
+    }
+
     private function requireTestedSignIn(): void
     {
         if (session('setup.tested') === null) {
@@ -271,6 +400,7 @@ class Setup extends Component
         session([
             'setup.step' => $this->step,
             'setup.draft' => collect(['app_url', 'preset', 'tenant', 'issuer', 'client_id', 'audience', 'allowed_emails', 'ips_web', 'ips_api', 'ips_mcp'])
+                ->merge(array_diff(SaveMailSettings::FIELDS, self::MAIL_SECRETS))
                 ->mapWithKeys(fn (string $field) => [$field => $this->{$field}])
                 ->all(),
         ]);

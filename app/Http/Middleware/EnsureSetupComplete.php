@@ -22,6 +22,11 @@ class EnsureSetupComplete
         if ($this->setup->isComplete()) {
             abort_if($isSetupRoute, 404);
 
+            // The mail settings page also runs on http://127.0.0.1:8000 (see below).
+            if ($request->routeIs('mail-settings', 'mail-settings.*') && $this->setup->isDirectLocalRequest($request)) {
+                config(['session.secure' => $request->isSecure()]);
+            }
+
             return $next($request);
         }
 

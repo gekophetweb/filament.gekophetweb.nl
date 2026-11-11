@@ -52,6 +52,11 @@ class PrintRequestReceived extends Notification implements ShouldQueue
                 ? "STL file: {$request->stl_original_name}"
                 : 'No STL file, only a link.');
 
+        if ($estimate = $request->filamentEstimate()) {
+            $message->line("Estimated filament: {$estimate->label()} ({$request->dimensionsLabel()}, without supports)"
+                .($request->looksMisScaled() ? '. The size looks off; the STL may not be in millimetres.' : ''));
+        }
+
         if ($request->model_url) {
             $message->line("Model: {$request->model_url}");
         }

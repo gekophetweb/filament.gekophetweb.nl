@@ -30,10 +30,47 @@ it('prints the setup link with a token until setup is complete', function () {
     expect(app(SetupState::class)->tokenMatches((string) file_get_contents($this->dir.'/setup.token')))->toBeTrue();
 });
 
-it('prints nothing once setup is complete', function () {
+it('prints nothing once setup is complete and nothing is missing', function () {
+    config(['mail.default' => 'smtp', 'mail.from.address' => 'spools@gekophetweb.nl', 'mail.mailers.smtp.dkim.domain' => 'gekophetweb.nl']);
     app(SetupState::class)->complete();
 
-    $this->artisan('setup:url')->doesntExpectOutputToContain('Setup URL')->assertSuccessful();
+    $this->artisan('setup:url')->doesntExpectOutputToContain('Setup URL')->doesntExpectOutputToContain('missing')->assertSuccessful();
+});
+
+it('lists missing settings of a set-up app with a link to fix them', function () {
+    config([
+        'mail.default' => 'log',
+        'mail.from.address' => 'hello@example.com',
+        'setup.mail_token_path' => $this->dir.'/mail-settings.token',
+    ]);
+    app(SetupState::class)->complete();
+
+    $this->artisan('setup:url')
+        ->expectsOutputToContain('some settings are missing')
+        ->expectsOutputToContain('Email only goes to the log')
+        ->expectsOutputToContain('still the example address hello@example.com')
+        ->expectsOutputToContain('Mail settings URL: http://127.0.0.1:8000/mail-settings?token=')
+        ->doesntExpectOutputToContain('Setup URL')
+        ->assertSuccessful();
+
+    expect(file_exists($this->dir.'/mail-settings.token'))->toBeTrue();
+});
+
+it('mentions a tip without putting a link in the log', function () {
+    config([
+        'mail.default' => 'smtp',
+        'mail.from.address' => 'spools@gekophetweb.nl',
+        'mail.mailers.smtp.dkim.domain' => null,
+        'setup.mail_token_path' => $this->dir.'/mail-settings.token',
+    ]);
+    app(SetupState::class)->complete();
+
+    $this->artisan('setup:url')
+        ->expectsOutputToContain('Tip: Email is sent without a DKIM signature')
+        ->doesntExpectOutputToContain('Mail settings URL')
+        ->assertSuccessful();
+
+    expect(file_exists($this->dir.'/mail-settings.token'))->toBeFalse();
 });
 
 it('configures SSO from the terminal', function () {

@@ -6,6 +6,7 @@ use App\Models\FilamentProduct;
 use App\Models\PrintRequest;
 use App\Models\User;
 use App\Notifications\PrintRequestReceived;
+use App\Support\StlMeasurement;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -43,9 +44,12 @@ class SubmitPrintRequest
 
     /**
      * @param  array<string, mixed>  $input
+     * @param  string  $requesterEmail  The requester's verified sign-in email; it is also the contact.
      */
-    public function handle(User $owner, array $input): PrintRequest
+    public function handle(User $owner, array $input, string $requesterEmail): PrintRequest
     {
+        $input['requester_contact'] = $requesterEmail;
+
         $data = Validator::make($input, self::rules($owner), [
             'stl.required_without' => 'Upload an STL file or paste a link to the model.',
             'model_url.required_without' => 'Paste a link to the model or upload an STL file.',
@@ -60,10 +64,16 @@ class SubmitPrintRequest
             'notes' => $data['notes'] ?? null,
         ]);
         $printRequest->uuid = (string) Str::uuid();
+        $printRequest->requester_email = Str::lower($requesterEmail);
         $printRequest->user()->associate($owner);
 
         $stl = $data['stl'] ?? null;
         if ($stl instanceof UploadedFile) {
+            // Measured here, from the upload itself, so the estimate is there for the owner's email.
+            $measurement = StlMeasurement::fromFile((string) $stl->getRealPath());
+            $printRequest->stl_volume = $measurement?->volume;
+            $printRequest->stl_dimensions = $measurement ? array_map(fn (float $size) => round($size, 1), $measurement->dimensions) : null;
+
             $printRequest->fill([
                 'stl_path' => $stl->storeAs(self::STL_DIRECTORY, "{$printRequest->uuid}.stl", 'local'),
                 'stl_original_name' => Str::limit(basename($stl->getClientOriginalName()), 250, ''),

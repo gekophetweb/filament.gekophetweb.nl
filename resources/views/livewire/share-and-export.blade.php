@@ -2,11 +2,10 @@
     <h1 class="text-xl font-semibold">Share &amp; export</h1>
 
     <section class="rounded-xl bg-white p-4 shadow-sm">
-        <h2 class="font-semibold">Share a read-only link</h2>
+        <h2 class="font-semibold">Print request link</h2>
         <p class="mt-1 text-sm text-stone-600">
-            Anyone with the link sees which filaments you have and how many are boxed or on spool, without signing in.
-            No purchase dates or history. Visitors can also send you a <a href="{{ route('print-requests') }}" class="underline">print request</a>
-            with an STL file or a link and up to {{ \App\Models\PrintRequest::MAX_COLORS }} of your colors.
+            People on the list below open this link, sign in and send you a print request: an STL file or a link, and up to
+            {{ \App\Models\PrintRequest::MAX_COLORS }} of the colors you have in stock. They see the status of their own requests and your reply there.
         </p>
         @if ($shareUrl)
             <div class="mt-3 flex flex-wrap items-center gap-2" x-data="{ copied: false }">
@@ -24,6 +23,28 @@
         @else
             <button type="button" wire:click="newShareLink" class="mt-3 rounded-md bg-stone-900 px-3 py-1.5 text-sm text-white hover:bg-stone-700">Create share link</button>
         @endif
+    </section>
+
+    <section class="rounded-xl bg-white p-4 shadow-sm">
+        <h2 class="font-semibold">Who may request prints</h2>
+        <p class="mt-1 text-sm text-stone-600">
+            People on this list may send requests through your link. They sign in with SSO or a code sent to their email first, and you
+            see their verified email in your <a href="{{ route('print-requests') }}" class="underline">print requests</a>.
+            One per line: an email, <code>@domain</code> for everyone at that domain, or <code>*</code> for anyone with a working email.
+            Leave it empty to take no print requests.
+        </p>
+        <form wire:submit="savePrintRequesters" class="mt-3 space-y-2">
+            <textarea wire:model="printRequesterEmails" rows="4" aria-label="Who may request prints"
+                      placeholder="friend@example.com&#10;@family.example"
+                      class="w-full rounded-md border-stone-300 px-2 py-1.5 font-mono text-sm"></textarea>
+            @error('printRequesterEmails') <p class="text-sm text-red-700">{{ $message }}</p> @enderror
+            <div class="flex items-center gap-3">
+                <button type="submit" class="rounded-md bg-stone-900 px-3 py-1.5 text-sm text-white hover:bg-stone-700">Save</button>
+                @if ($printRequestersSaved)
+                    <span class="text-sm text-emerald-700" role="status">Saved.</span>
+                @endif
+            </div>
+        </form>
     </section>
 
     <section class="rounded-xl bg-white p-4 shadow-sm">
