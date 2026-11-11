@@ -23,7 +23,7 @@ Route::get('/setup', Setup::class)->middleware('throttle:login')->name('setup');
 Route::get('/setup/test', [SetupSignInTestController::class, 'redirect'])->middleware('throttle:login')->name('setup.test');
 Route::get('/setup/callback', [SetupSignInTestController::class, 'callback'])->middleware('throttle:sso-callback')->name('setup.callback');
 
-// Mail settings once the app is set up: direct local requests with the link from `php artisan setup:mail-url`.
+// Mail settings once the app is set up, with the link from `php artisan setup:mail-url` (locally or through the tunnel).
 Route::get('/mail-settings', [MailSettingsController::class, 'show'])->middleware('throttle:login')->name('mail-settings');
 Route::post('/mail-settings', [MailSettingsController::class, 'update'])->middleware('throttle:login')->name('mail-settings.update');
 
