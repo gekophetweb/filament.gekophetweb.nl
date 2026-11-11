@@ -165,7 +165,11 @@ describe('missing settings', function () {
 
 describe('mail settings page', function () {
     it('opens with the one-time link from the command, only once', function () {
-        $this->artisan('setup:mail-url')->expectsOutputToContain('Mail settings URL: http://127.0.0.1:8000/mail-settings?token=')->assertSuccessful();
+        config(['app.url' => 'https://spools.example.com']);
+        $this->artisan('setup:mail-url')
+            ->expectsOutputToContain('Mail settings URL: https://spools.example.com/mail-settings?token=')
+            ->expectsOutputToContain('On the Docker host: http://127.0.0.1:8000/mail-settings?token=')
+            ->assertSuccessful();
         $token = json_decode(file_get_contents($this->dir.'/mail-settings.token'), true)['token'];
 
         $this->get(route('mail-settings'))->assertOk()->assertSee('setup:mail-url')->assertDontSee('Send from address');
@@ -185,8 +189,20 @@ describe('mail settings page', function () {
         $this->get(route('mail-settings'))->assertDontSee('Send from address');
     });
 
-    it('is not there for requests through a proxy or tunnel', function () {
-        $this->withHeader('CF-Connecting-IP', '203.0.113.7')->get(route('mail-settings'))->assertNotFound();
+    it('opens through the tunnel with the link from an address on the web allow-list', function () {
+        config(['access.ips.web' => ['203.0.113.0/24']]);
+        $this->withServerVariables(['REMOTE_ADDR' => '203.0.113.7'])->withHeader('CF-Connecting-IP', '203.0.113.7');
+
+        unlockMailSettings();
+
+        $this->get(route('mail-settings'))->assertOk()->assertSee('Send from address');
+    });
+
+    it('is blocked through the tunnel from an address that is not on the web allow-list', function () {
+        config(['access.ips.web' => ['203.0.113.0/24']]);
+        $this->withServerVariables(['REMOTE_ADDR' => '198.51.100.9'])->withHeader('CF-Connecting-IP', '198.51.100.9');
+
+        $this->get(route('mail-settings', ['token' => app(MailSettingsAccess::class)->issueToken()]))->assertForbidden();
     });
 
     it('opens locally even when the web allow-list does not cover the Docker host', function () {

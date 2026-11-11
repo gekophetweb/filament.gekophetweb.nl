@@ -49,7 +49,8 @@ it('lists missing settings of a set-up app with a link to fix them', function ()
         ->expectsOutputToContain('some settings are missing')
         ->expectsOutputToContain('Email only goes to the log')
         ->expectsOutputToContain('still the example address hello@example.com')
-        ->expectsOutputToContain('Mail settings URL: http://127.0.0.1:8000/mail-settings?token=')
+        ->expectsOutputToContain('Mail settings URL: '.rtrim((string) config('app.url'), '/').'/mail-settings?token=')
+        ->expectsOutputToContain('On the Docker host: http://127.0.0.1:8000/mail-settings?token=')
         ->doesntExpectOutputToContain('Setup URL')
         ->assertSuccessful();
 

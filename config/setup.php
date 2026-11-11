@@ -19,10 +19,11 @@ return [
     'backup_path' => storage_path('app/env-backups'),
 
     /*
-    | Mail settings page (/mail-settings) for installs that are already set up.
-    | Same rules as the wizard: direct local requests only, opened with a
-    | one-time link from `php artisan setup:mail-url`. The link works for
-    | mail_token_minutes; the page then stays open that long in that browser.
+    | Mail settings page (/mail-settings) for installs that are already set up,
+    | opened with a one-time link from `php artisan setup:mail-url`: on the
+    | Docker host, or through the tunnel from an address on the web allow-list.
+    | The link works for mail_token_minutes; the page then stays open that
+    | long in that browser.
     */
     'mail_token_path' => storage_path('app/mail-settings.token'),
     'mail_token_minutes' => 60,

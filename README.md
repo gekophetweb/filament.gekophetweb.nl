@@ -120,18 +120,19 @@ It also sets the **send from** address and name, and optional **DKIM** signing:
 Leave the DKIM domain empty when your mail provider signs for you. The private key is stored base64
 encoded as `MAIL_DKIM_PRIVATE_KEY` in `storage/app/.env.local`.
 
-On an installation that is already set up, the same form is at `/mail-settings`. It is only reachable
-directly on the Docker host (`http://127.0.0.1:8000`, never through the tunnel) with a one-time link,
-valid for an hour:
+On an installation that is already set up, the same form is at `/mail-settings`. It opens with a
+one-time link, valid for an hour:
 
 ```bash
 docker compose exec app php artisan setup:mail-url
 ```
 
-On a remote server, open an SSH tunnel first (`ssh -L 8000:127.0.0.1:8000 <user>@<server>`). If you
-removed the `127.0.0.1:8000:8000` port mapping (install step 7), add it back for a moment, or set the
-`MAIL_*` keys in `storage/app/.env.local` by hand as shown above. Saving reloads the app and restarts
-the queue worker.
+The command prints the link twice with the same token: on the public address (`APP_URL`, through the
+tunnel) and on the Docker host (`http://127.0.0.1:8000`). The public link only opens from an address on
+the web allow-list (`ALLOWED_IPS_WEB`). The Docker host link works from anywhere that reaches the
+published port, for example through an SSH tunnel (`ssh -L 8000:127.0.0.1:8000 <user>@<server>`). You
+can also set the `MAIL_*` keys in `storage/app/.env.local` by hand as shown above. Saving reloads the
+app and restarts the queue worker.
 
 ### Missing settings
 

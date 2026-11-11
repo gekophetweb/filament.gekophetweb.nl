@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Actions\Setup\SaveMailSettings;
 use App\Support\Mail\DkimKey;
 use App\Support\Setup\MailSettingsAccess;
-use App\Support\Setup\SetupState;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -16,8 +15,8 @@ use RuntimeException;
 use Throwable;
 
 /**
- * The setup wizard's Mail step for an app that is already set up: direct local requests only,
- * opened with the one-time link from `php artisan setup:mail-url`.
+ * The setup wizard's Mail step for an app that is already set up, opened with the one-time link from
+ * `php artisan setup:mail-url`: on the Docker host, or through the tunnel from an address on the web allow-list.
  */
 class MailSettingsController extends Controller
 {
@@ -27,12 +26,10 @@ class MailSettingsController extends Controller
     /** Secrets are never flashed back into the form. */
     private const SECRETS = ['mail_password', 'mail_dkim_private_key'];
 
-    public function __construct(private SetupState $setup, private MailSettingsAccess $access) {}
+    public function __construct(private MailSettingsAccess $access) {}
 
     public function show(Request $request): Response|RedirectResponse
     {
-        $this->requireDirectLocalRequest($request);
-
         if ($request->filled('token')) {
             if (! $this->access->redeem((string) $request->query('token'))) {
                 session()->flash('mail_settings_error', 'That link is not valid any more. Run `php artisan setup:mail-url` for a new one.');
@@ -57,7 +54,6 @@ class MailSettingsController extends Controller
 
     public function update(Request $request, SaveMailSettings $mail): RedirectResponse
     {
-        $this->requireDirectLocalRequest($request);
         abort_unless($this->access->isUnlocked(), 403);
 
         $input = $this->input($request);
@@ -132,10 +128,5 @@ class MailSettingsController extends Controller
         $key = session(self::GENERATED_KEY);
 
         return $key ? Crypt::decryptString($key) : null;
-    }
-
-    private function requireDirectLocalRequest(Request $request): void
-    {
-        abort_unless($this->setup->isDirectLocalRequest($request), 404);
     }
 }
