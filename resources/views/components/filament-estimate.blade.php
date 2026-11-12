@@ -4,6 +4,7 @@
 @if ($estimate)
     <p {{ $attributes->class('text-sm text-stone-600') }}>
         <span class="font-medium text-stone-900">{{ $estimate->label() }}</span>
+        · {{ $estimate->priceLabel() }}
         · {{ $printRequest->dimensionsLabel() }}
         <span class="text-xs text-stone-500">(estimate from the STL, without supports)</span>
         @if ($printRequest->looksMisScaled())

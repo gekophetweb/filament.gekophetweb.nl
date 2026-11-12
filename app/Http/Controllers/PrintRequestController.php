@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
@@ -69,6 +70,24 @@ class PrintRequestController extends Controller
         $submit->handle($owner, $request->except('requester_contact'), $requester->email);
 
         return redirect()->route('share', $token)->with('print_request_sent', true);
+    }
+
+    /**
+     * The requester deletes one of their own requests (and its STL). Someone else's request answers 404.
+     */
+    public function destroy(string $token, PrintRequest $printRequest): RedirectResponse
+    {
+        $owner = User::where('share_token', $token)->firstOrFail();
+        $requester = PrintRequester::current();
+
+        abort_unless(
+            $requester !== null && $printRequest->user_id === $owner->id && $printRequest->requester_email === Str::lower($requester->email),
+            404,
+        );
+
+        $printRequest->delete();
+
+        return redirect()->route('share', $token)->with('print_request_deleted', true);
     }
 
     /**

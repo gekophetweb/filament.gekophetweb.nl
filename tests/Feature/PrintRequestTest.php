@@ -10,6 +10,7 @@ use App\Models\Spool;
 use App\Models\User;
 use App\Notifications\PrintRequesterCode;
 use App\Notifications\PrintRequestReceived;
+use App\Notifications\PrintRequestReplied;
 use App\Support\PrintRequester;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Notifications\AnonymousNotifiable;
@@ -275,6 +276,7 @@ it('shows requesters only their own requests, with the status and the owner\'s r
 
     $this->get($owner->shareUrl())->assertOk()
         ->assertSee(['Your requests', 'Printed', 'https://example.com/benchy', 'Ready on Friday'])
+        ->assertSeeInOrder(['Your requests', 'New request', 'Send request'])
         ->assertDontSee(['Used the old roll', 'not-mine', 'other-owner']);
 });
 
@@ -291,6 +293,45 @@ it('lets the owner reply to a request and keep a private note', function () {
         ->assertSee('Saved.');
 
     expect($request->fresh())->reply->toBe('Ready on Friday')->private_note->toBe('Used the old roll');
+});
+
+it('emails a new reply to the requester with a link to the share page', function () {
+    Notification::fake();
+    [$owner] = sharingOwner(1);
+    $request = PrintRequest::factory()->for($owner)->create([
+        'requester_name' => 'Sam', 'requester_email' => 'sam@example.com', 'model_url' => 'https://example.com/benchy',
+    ]);
+
+    Livewire::actingAs($owner)->test(PrintRequests::class)
+        ->call('open', $request->uuid)
+        ->set('reply', "Ready on Friday.\n\nPick it up any time.")
+        ->call('saveComments')
+        ->assertSee('The reply is emailed to sam@example.com.');
+
+    Notification::assertSentOnDemand(PrintRequestReplied::class, function (PrintRequestReplied $notification, array $channels, AnonymousNotifiable $notifiable) use ($owner, $request) {
+        $mail = $notification->toMail($notifiable);
+
+        return $notifiable->routes['mail'] === ['sam@example.com' => 'Sam']
+            && $notification->printRequest->is($request)
+            && $mail->subject === "{$owner->name} replied to your print request"
+            && in_array('Ready on Friday.', $mail->introLines, true)
+            && in_array('Pick it up any time.', $mail->introLines, true)
+            && $mail->actionUrl === $owner->shareUrl();
+    });
+});
+
+it('only emails a reply when it is new or changed and there is an email to send it to', function () {
+    Notification::fake();
+    $owner = user();
+    $replied = PrintRequest::factory()->for($owner)->create(['requester_email' => 'sam@example.com', 'reply' => 'Ready on Friday']);
+    $withoutEmail = PrintRequest::factory()->for($owner)->create(['requester_email' => null]);
+
+    $component = Livewire::actingAs($owner)->test(PrintRequests::class);
+    $component->call('open', $replied->uuid)->set('privateNote', 'Used the old roll')->call('saveComments');
+    $component->call('open', $replied->uuid)->set('reply', '')->call('saveComments');
+    $component->call('open', $withoutEmail->uuid)->set('reply', 'Hi')->call('saveComments')->assertDontSee('The reply is emailed');
+
+    Notification::assertNothingSent();
 });
 
 it('does not let the owner reply to someone else\'s request', function () {
@@ -418,6 +459,51 @@ it('lists open requests for the owner and lets them mark one printed', function 
         ->assertDontSee('Someone Else');
 
     expect($open->fresh()->status)->toBe(PrintRequestStatus::Printed);
+});
+
+it('lets the owner accept or decline a new request, keeping accepted ones in the open folder', function () {
+    $owner = user();
+    $toAccept = PrintRequest::factory()->for($owner)->create(['requester_name' => 'Sam']);
+    $toDecline = PrintRequest::factory()->for($owner)->create(['requester_name' => 'Alex']);
+
+    $inbox = Livewire::actingAs($owner)->test(PrintRequests::class)
+        ->call('open', $toAccept->uuid)
+        ->assertSee(['Accept', 'Decline'])
+        ->assertDontSee('Mark printed')
+        ->call('setStatus', $toAccept->uuid, 'accepted')
+        ->assertSee(['Mark printed', 'Decline'])
+        ->call('setStatus', $toDecline->uuid, 'declined');
+
+    expect($toAccept->fresh()->status)->toBe(PrintRequestStatus::Accepted)
+        ->and($toDecline->fresh()->status)->toBe(PrintRequestStatus::Declined);
+    $inbox->call('close')->assertSee('Sam')->assertDontSee('Alex')->assertViewHas('counts', fn (array $counts) => $counts['open'] === 1);
+});
+
+it('lets the requester delete their own request and its STL from the share link', function () {
+    Storage::fake('local');
+    [$owner] = sharingOwner(1);
+    Storage::disk('local')->put('print-requests/mine.stl', 'solid');
+    $mine = PrintRequest::factory()->for($owner)->create(['requester_email' => 'sam@example.com', 'stl_path' => 'print-requests/mine.stl']);
+    $theirs = PrintRequest::factory()->for($owner)->create(['requester_email' => 'other@example.com']);
+    $elsewhere = PrintRequest::factory()->create(['requester_email' => 'sam@example.com']);
+
+    $this->delete(route('share.print-requests.destroy', [$owner->share_token, $mine]))
+        ->assertRedirect($owner->shareUrl())->assertSessionHas('print_request_deleted');
+    $this->delete(route('share.print-requests.destroy', [$owner->share_token, $theirs]))->assertNotFound();
+    $this->delete(route('share.print-requests.destroy', [$owner->share_token, $elsewhere]))->assertNotFound();
+
+    expect(PrintRequest::find($mine->id))->toBeNull()
+        ->and($theirs->fresh())->not->toBeNull()
+        ->and($elsewhere->fresh())->not->toBeNull();
+    Storage::disk('local')->assertMissing('print-requests/mine.stl');
+});
+
+it('does not let a visitor who is not signed in delete a request', function () {
+    [$owner] = sharingOwner(1, requesterEmail: null);
+    $request = PrintRequest::factory()->for($owner)->create(['requester_email' => 'sam@example.com']);
+
+    $this->delete(route('share.print-requests.destroy', [$owner->share_token, $request]))->assertNotFound();
+    expect($request->fresh())->not->toBeNull();
 });
 
 it('marks a request read when the owner opens it, and unread again on request', function () {

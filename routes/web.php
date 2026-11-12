@@ -52,6 +52,8 @@ Route::post('/share/{token}/sign-out', [PrintRequesterSignInController::class, '
     ->where('token', '[A-Za-z0-9]{40}')->middleware('throttle:share')->name('share.sign-out');
 Route::post('/share/{token}/print-requests', [PrintRequestController::class, 'store'])
     ->where('token', '[A-Za-z0-9]{40}')->middleware('throttle:print-request')->name('share.print-requests.store');
+Route::delete('/share/{token}/print-requests/{printRequest:uuid}', [PrintRequestController::class, 'destroy'])
+    ->where('token', '[A-Za-z0-9]{40}')->middleware('throttle:share')->name('share.print-requests.destroy');
 
 Route::middleware(['auth', 'throttle:web'])->group(function () {
     Route::get('/', Catalog::class)->name('catalog');

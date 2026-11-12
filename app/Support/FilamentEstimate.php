@@ -73,6 +73,21 @@ final readonly class FilamentEstimate
         return max($this->lowGrams(), self::round($this->solidGrams * self::FILL_HIGH));
     }
 
+    /** Grams on one spool, for the price per gram. */
+    public const SPOOL_GRAMS = 1000;
+
+    /**
+     * Filament cost of the estimate at config('access.print_request_spool_price') per 1 kg spool, for example "≈ €0.80–1.38".
+     */
+    public function priceLabel(): string
+    {
+        $price = fn (int $grams): string => number_format(max(0.01, $grams * (float) config('access.print_request_spool_price') / self::SPOOL_GRAMS), 2);
+        $low = $price($this->lowGrams());
+        $high = $price($this->highGrams());
+
+        return '≈ €'.($low === $high ? $low : "{$low}–{$high}");
+    }
+
     /** For example "≈ 35–60 g of PLA". */
     public function label(): string
     {
