@@ -17,7 +17,7 @@
 <div x-data="{ mailer: @js(old('mail_mailer', $values['mail_mailer'])) }" class="space-y-6">
     <div>
         <h3 class="text-sm font-semibold">How the app sends email</h3>
-        <div class="mt-2 grid gap-2 sm:grid-cols-2">
+        <div class="mt-2 grid gap-2 sm:grid-cols-3">
             @foreach (\App\Actions\Setup\SaveMailSettings::MAILERS as $key => $label)
                 <label class="cursor-pointer rounded-lg border px-3 py-2 text-sm"
                        :class="mailer === @js($key) ? 'border-emerald-600 bg-emerald-50' : 'border-stone-300 hover:border-stone-400'">
@@ -25,7 +25,11 @@
                            @if ($live) wire:model="mail_mailer" @else name="mail_mailer" @endif>
                     <span class="font-medium">{{ $label }}</span>
                     <span class="mt-0.5 block text-xs text-stone-500">
-                        {{ $key === 'smtp' ? 'Print request emails and sign-in codes reach people.' : 'Nothing is delivered; for trying the app out.' }}
+                        {{ match ($key) {
+                            'smtp' => 'Print request emails and sign-in codes reach people.',
+                            'resend' => 'Only an API key; Resend signs the mail for your domain.',
+                            default => 'Nothing is delivered; for trying the app out.',
+                        } }}
                     </span>
                 </label>
             @endforeach
@@ -60,10 +64,25 @@
         <label class="block text-sm sm:col-span-2">
             <span class="font-medium">Password</span>
             <input type="password" autocomplete="new-password" placeholder="{{ $passwordStored ? 'Saved; leave empty to keep it' : '' }}"
-                   @if ($live) wire:model="mail_password" @else name="mail_password" @endif
+                   @if ($live) wire:model="mail_password" @else name="mail_password" @endif x-bind:disabled="mailer !== 'smtp'"
                    class="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2 font-mono text-sm">
             @if ($error('mail_password')) <span class="mt-1 block text-red-700">{{ $error('mail_password') }}</span> @endif
         </label>
+    </div>
+
+    {{-- Resend's SMTP relay (see the "resend" mailer in config/mail.php): the API key is the password. --}}
+    <div x-show="mailer === 'resend'" class="space-y-2">
+        <label class="block text-sm">
+            <span class="font-medium">Resend API key</span>
+            <input type="password" autocomplete="new-password" placeholder="{{ $passwordStored ? 'Saved; leave empty to keep it' : 're_…' }}"
+                   @if ($live) wire:model="mail_password" @else name="mail_password" @endif x-bind:disabled="mailer !== 'resend'"
+                   class="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2 font-mono text-sm">
+            @if ($error('mail_password')) <span class="mt-1 block text-red-700">{{ $error('mail_password') }}</span> @endif
+        </label>
+        <p class="text-xs text-stone-500">
+            Create a key with "Sending access" at <a href="https://resend.com/api-keys" target="_blank" rel="noopener noreferrer" class="text-emerald-700 underline">resend.com/api-keys ↗</a>,
+            and verify the from address's domain under Domains in Resend first; Resend only sends from verified domains and signs that mail with DKIM itself.
+        </p>
     </div>
 
     <div class="grid gap-3 sm:grid-cols-2">

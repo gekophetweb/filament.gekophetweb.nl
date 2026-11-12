@@ -24,8 +24,15 @@ class SaveMailSettings
         'mail_from_address', 'mail_from_name', 'mail_dkim_domain', 'mail_dkim_selector', 'mail_dkim_private_key',
     ];
 
-    /** Ways to send: real mail through an SMTP server, or only writing it to the log. */
-    public const MAILERS = ['smtp' => 'Send through an SMTP server', 'log' => 'Only write emails to the log'];
+    /**
+     * Ways to send: real mail through an SMTP server or Resend, or only writing it to the log.
+     * For Resend the mail_password field holds the API key (RESEND_API_KEY); see the "resend" mailer in config/mail.php.
+     */
+    public const MAILERS = [
+        'smtp' => 'Send through an SMTP server',
+        'resend' => 'Send through Resend',
+        'log' => 'Only write emails to the log',
+    ];
 
     public const DEFAULT_DKIM_SELECTOR = 'spools';
 
@@ -57,6 +64,20 @@ class SaveMailSettings
     }
 
     /**
+     * The SMTP password or Resend API key the app runs with now for this way of sending, if any.
+     */
+    public static function currentPassword(string $mailer): ?string
+    {
+        $password = match ($mailer) {
+            'smtp' => config('mail.mailers.smtp.password'),
+            'resend' => config('mail.mailers.resend.password'),
+            default => null,
+        };
+
+        return filled($password) ? (string) $password : null;
+    }
+
+    /**
      * The DKIM private key the app runs with now, if any.
      */
     public static function currentDkimKey(): ?string
@@ -66,7 +87,7 @@ class SaveMailSettings
 
     /**
      * @param  array<string, mixed>  $input
-     * @return array<string, string> Trimmed values; SMTP fields empty when mail only goes to the log.
+     * @return array<string, string> Trimmed values; fields the chosen way of sending does not use are empty.
      *
      * @throws ValidationException
      */
@@ -79,6 +100,8 @@ class SaveMailSettings
         $validated = Validator::make($input, $this->rules($input), [
             'mail_host.required_if' => 'Enter the SMTP server.',
             'mail_port.required_if' => 'Enter the SMTP port.',
+            'mail_password.required_if' => 'Enter your Resend API key.',
+            'mail_password.starts_with' => 'A Resend API key starts with re_.',
             'mail_dkim_selector.required_with' => 'Enter a selector to sign with DKIM.',
             'mail_dkim_private_key.required_with' => 'Generate or paste a private key to sign with DKIM.',
         ], [
@@ -97,9 +120,18 @@ class SaveMailSettings
         $values['mail_from_address'] = Str::lower($values['mail_from_address']);
 
         if ($values['mail_mailer'] !== 'smtp') {
-            foreach (['mail_host', 'mail_port', 'mail_scheme', 'mail_username', 'mail_password'] as $field) {
+            foreach (['mail_host', 'mail_port', 'mail_scheme', 'mail_username'] as $field) {
                 $values[$field] = '';
             }
+        }
+
+        if ($values['mail_mailer'] === 'log') {
+            $values['mail_password'] = '';
+        }
+
+        // Resend signs with DKIM itself.
+        if ($values['mail_mailer'] === 'resend') {
+            $values['mail_dkim_domain'] = '';
         }
 
         if ($values['mail_dkim_domain'] === '') {
@@ -121,7 +153,8 @@ class SaveMailSettings
             'MAIL_PORT' => $values['mail_port'],
             'MAIL_SCHEME' => $values['mail_scheme'],
             'MAIL_USERNAME' => $values['mail_username'],
-            'MAIL_PASSWORD' => $values['mail_password'],
+            'MAIL_PASSWORD' => $values['mail_mailer'] === 'smtp' ? $values['mail_password'] : '',
+            'RESEND_API_KEY' => $values['mail_mailer'] === 'resend' ? $values['mail_password'] : '',
             'MAIL_FROM_ADDRESS' => $values['mail_from_address'],
             'MAIL_FROM_NAME' => $values['mail_from_name'],
             'MAIL_DKIM_DOMAIN' => $values['mail_dkim_domain'],
@@ -161,8 +194,8 @@ class SaveMailSettings
     {
         $mailer = 'mail-settings-test';
 
-        config(["mail.mailers.{$mailer}" => $values['mail_mailer'] === 'smtp'
-            ? array_merge(config('mail.mailers.smtp'), [
+        config(["mail.mailers.{$mailer}" => match ($values['mail_mailer']) {
+            'smtp' => array_merge(config('mail.mailers.smtp'), [
                 'transport' => 'smtp',
                 'url' => null,
                 'scheme' => $values['mail_scheme'] ?: null,
@@ -176,9 +209,10 @@ class SaveMailSettings
                     'selector' => $values['mail_dkim_selector'],
                     'private_key' => $values['mail_dkim_private_key'],
                 ],
-            ])
-            : ['transport' => 'log', 'channel' => config('mail.mailers.log.channel')],
-        ]);
+            ]),
+            'resend' => array_merge(config('mail.mailers.resend'), ['password' => $values['mail_password'], 'timeout' => 15]),
+            default => ['transport' => 'log', 'channel' => config('mail.mailers.log.channel')],
+        }]);
         Mail::purge($mailer);
 
         Mail::mailer($mailer)->raw(
@@ -206,7 +240,10 @@ class SaveMailSettings
             'mail_port' => ['nullable', 'required_if:mail_mailer,smtp', 'integer', 'between:1,65535'],
             'mail_scheme' => ['nullable', Rule::in(['smtp', 'smtps'])],
             'mail_username' => ['nullable', 'string', 'max:255'],
-            'mail_password' => ['nullable', 'string', 'max:1000'],
+            'mail_password' => array_merge(
+                ['nullable', 'required_if:mail_mailer,resend', 'string', 'max:1000'],
+                ($input['mail_mailer'] ?? '') === 'resend' ? ['starts_with:re_'] : [],
+            ),
             'mail_from_address' => ['required', 'email', 'max:255'],
             'mail_from_name' => ['required', 'string', 'max:100'],
             'mail_dkim_domain' => ['nullable', 'string', 'max:253', 'regex:/^([a-z0-9]([a-z0-9-]*[a-z0-9])?\.)+[a-z]{2,}$/', $this->coversFromAddress((string) ($input['mail_from_address'] ?? ''))],

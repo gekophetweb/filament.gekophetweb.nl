@@ -47,7 +47,7 @@ class MailSettingsController extends Controller
             'values' => SaveMailSettings::current(),
             'dkimKey' => $generatedKey ?? $currentKey,
             'keyStored' => $generatedKey !== null || $currentKey !== null,
-            'passwordStored' => filled(config('mail.mailers.smtp.password')),
+            'passwordStored' => SaveMailSettings::currentPassword((string) config('mail.default')) !== null,
             'testTo' => (string) config('mail.from.address'),
         ])->header('X-Robots-Tag', 'noindex, nofollow');
     }
@@ -104,6 +104,7 @@ class MailSettingsController extends Controller
 
     /**
      * The form, with an empty password or key meaning "keep the one in use" (or the key generated here).
+     * The password is the SMTP password or the Resend API key, whichever way of sending the form picks.
      *
      * @return array<string, string>
      */
@@ -113,7 +114,7 @@ class MailSettingsController extends Controller
         $input += array_fill_keys(SaveMailSettings::FIELDS, '');
 
         if (trim($input['mail_password']) === '') {
-            $input['mail_password'] = (string) config('mail.mailers.smtp.password');
+            $input['mail_password'] = (string) SaveMailSettings::currentPassword($input['mail_mailer']);
         }
 
         if (trim($input['mail_dkim_private_key']) === '') {

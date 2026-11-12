@@ -107,8 +107,16 @@ keeps the `.env.local` value.
 ### Mail settings
 
 The app emails the owner about print requests and sends sign-in codes to requesters without SSO. The
-setup wizard's **Mail** step sets how: through an SMTP server, or only to the log (nothing is delivered).
-It also sets the **send from** address and name, and optional **DKIM** signing:
+setup wizard's **Mail** step sets how: through an SMTP server, through [Resend](https://resend.com), or
+only to the log (nothing is delivered). It also sets the **send from** address and name, and optional
+**DKIM** signing for SMTP.
+
+For **Resend**, only the API key is needed (`RESEND_API_KEY`, a key with sending access). The app uses
+Resend's SMTP relay (`smtp.resend.com`, port 465), so no extra package is installed. Verify the from
+address's domain in Resend first: Resend only sends from verified domains and signs that mail with DKIM
+itself.
+
+DKIM signing for SMTP:
 
 - Fill in the DKIM domain (the from address's domain, or a parent of it) and a selector, then
   *Generate a new key* or paste your own RSA private key (PEM).

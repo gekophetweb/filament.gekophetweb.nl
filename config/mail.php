@@ -68,8 +68,17 @@ return [
             // ],
         ],
 
+        // Resend through its SMTP relay, so no Resend SDK is needed. Resend signs with DKIM itself
+        // (after you verify the domain in Resend), so this mailer has no "dkim" config of its own.
         'resend' => [
-            'transport' => 'resend',
+            'transport' => 'smtp',
+            'scheme' => 'smtps',
+            'host' => 'smtp.resend.com',
+            'port' => 465,
+            'username' => 'resend',
+            'password' => env('RESEND_API_KEY'),
+            'timeout' => null,
+            'local_domain' => env('MAIL_EHLO_DOMAIN', parse_url((string) env('APP_URL', 'http://localhost'), PHP_URL_HOST)),
         ],
 
         'sendmail' => [
