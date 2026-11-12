@@ -27,7 +27,8 @@ services:
     volumes:
       - ./.env:/app/.env:ro
       - app_storage:/app/storage
-    networks: [backend]
+    # frontend for internet access: the queue sends the email (SMTP, Resend). backend is internal only.
+    networks: [frontend, backend]
     restart: unless-stopped
 
   scheduler:
