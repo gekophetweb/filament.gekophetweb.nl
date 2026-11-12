@@ -14,6 +14,11 @@
     --chart-used-up: #eb6834;
 }
 
+/* Hidden until Alpine has started, so x-show content does not flash on load. */
+[x-cloak] {
+    display: none !important;
+}
+
 /* Dark mode: <html class="dark">, the default (see App\Support\Theme). */
 @custom-variant dark (&:where(.dark, .dark *));
 

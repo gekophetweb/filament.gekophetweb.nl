@@ -127,7 +127,9 @@
                         <span class="text-xs font-medium text-stone-500">Reply to {{ $opened->requester_name }}</span>
                         <textarea wire:model="reply" rows="3" maxlength="2000" placeholder="Ready on Friday, pick it up any time…"
                                   class="mt-1 w-full rounded-md border-stone-300 px-2 py-1.5 text-sm"></textarea>
-                        <span class="text-xs text-stone-500">They see this with the status on your share link.</span>
+                        <span class="text-xs text-stone-500">
+                            They see this with the status on your share link{{ $opened->requester_email ? ', and get it by email at '.$opened->requester_email.' when you save a new or changed reply' : '' }}.
+                        </span>
                         @error('reply') <span class="block text-xs text-red-700">{{ $message }}</span> @enderror
                     </label>
                     <label class="block">
@@ -140,13 +142,16 @@
                         <button type="submit" class="rounded-md border border-stone-300 px-3 py-1.5 text-sm hover:bg-stone-50">Save reply and note</button>
                         <span wire:loading wire:target="saveComments" class="text-sm text-stone-500">Saving…</span>
                         @if ($commentsSaved)
-                            <span class="text-sm text-emerald-700" role="status">Saved.</span>
+                            <span class="text-sm text-emerald-700" role="status">Saved.{{ $replyEmailedTo ? " The reply is emailed to {$replyEmailedTo}." : '' }}</span>
                         @endif
                     </div>
                 </form>
 
                 <div class="flex flex-wrap gap-2 border-t border-stone-100 pt-3 text-sm">
                     @if ($opened->status === \App\Enums\PrintRequestStatus::Open)
+                        <button type="button" wire:click="setStatus('{{ $opened->uuid }}', 'accepted')" class="rounded-md bg-stone-900 px-3 py-1.5 text-white hover:bg-stone-700">Accept</button>
+                        <button type="button" wire:click="setStatus('{{ $opened->uuid }}', 'declined')" class="rounded-md border border-stone-300 px-3 py-1.5 hover:bg-stone-50">Decline</button>
+                    @elseif ($opened->status === \App\Enums\PrintRequestStatus::Accepted)
                         <button type="button" wire:click="setStatus('{{ $opened->uuid }}', 'printed')" class="rounded-md bg-stone-900 px-3 py-1.5 text-white hover:bg-stone-700">Mark printed</button>
                         <button type="button" wire:click="setStatus('{{ $opened->uuid }}', 'declined')" class="rounded-md border border-stone-300 px-3 py-1.5 hover:bg-stone-50">Decline</button>
                     @else

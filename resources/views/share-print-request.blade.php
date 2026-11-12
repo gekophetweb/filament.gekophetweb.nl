@@ -9,7 +9,50 @@
                 {{ $owner->name }} is not taking print requests right now.
             </section>
         @else
+        @if (session('print_request_deleted'))
+            <div class="rounded-lg border border-stone-200 bg-white p-3 text-sm shadow-sm" role="status">Your request was deleted.</div>
+        @endif
+
+        @if ($ownRequests->isNotEmpty())
+            <section class="rounded-xl bg-white p-4 shadow-sm">
+                <h2 class="font-semibold">Your requests</h2>
+                <ul class="mt-2 divide-y divide-stone-100">
+                    @foreach ($ownRequests as $printRequest)
+                        <li class="space-y-1 py-2.5 text-sm">
+                            <div class="flex flex-wrap items-center gap-2">
+                                <span class="rounded px-1.5 py-0.5 text-xs {{ $printRequest->status->badgeClasses() }}">{{ $printRequest->status->label() }}</span>
+                                <span class="min-w-0 flex-1 truncate">{{ $printRequest->stl_original_name ?? $printRequest->model_url }}</span>
+                                <span class="flex shrink-0 -space-x-1">
+                                    @foreach ($printRequest->colors as $color)
+                                        <span class="size-3.5 rounded-full ring-1 ring-white" style="background: {{ $color->swatchCss() }}" title="{{ $color->article_name }}"></span>
+                                    @endforeach
+                                </span>
+                                <span class="shrink-0 text-xs text-stone-500">{{ $printRequest->created_at->format('j M Y') }}</span>
+                                <form method="POST" action="{{ route('share.print-requests.destroy', [$owner->share_token, $printRequest]) }}"
+                                      x-data x-on:submit="confirm({{ \Illuminate\Support\Js::from("Delete this request? {$owner->name} no longer sees it.") }}) || $event.preventDefault()">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="shrink-0 rounded px-1.5 py-0.5 text-xs text-red-700 hover:bg-red-50">Delete</button>
+                                </form>
+                            </div>
+                            @if ($printRequest->stl_volume)
+                                <x-filament-estimate :print-request="$printRequest" class="text-xs" />
+                            @endif
+                            @if ($printRequest->reply)
+                                <p class="whitespace-pre-line rounded-md bg-stone-50 px-2 py-1.5 text-stone-700">
+                                    <span class="font-medium">{{ $owner->name }}:</span> {{ $printRequest->reply }}
+                                </p>
+                            @endif
+                        </li>
+                    @endforeach
+                </ul>
+            </section>
+        @endif
+
         <section class="rounded-xl bg-white p-4 shadow-sm">
+            @if ($ownRequests->isNotEmpty())
+                <h2 class="mb-1 font-semibold">New request</h2>
+            @endif
             <p class="text-sm text-stone-600">
                 Upload an STL file or paste a link to the model (Printables, MakerWorld, Thingiverse…) and pick up to
                 {{ \App\Models\PrintRequest::MAX_COLORS }} colors. {{ $owner->name }} sees your request and gets back to you.
@@ -17,7 +60,7 @@
 
             @if (session('print_request_sent'))
                 <div class="mt-3 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm" role="status">
-                    Thanks, your print request was sent. You can follow it under Your requests.
+                    Thanks, your print request was sent. You can follow it under Your requests above.
                 </div>
             @endif
 
@@ -106,12 +149,32 @@
                 </label>
 
                 <div class="grid gap-3 sm:grid-cols-2">
-                    <label class="block">
-                        <span class="text-xs font-medium text-stone-500">STL file (at most {{ config('access.print_request_max_upload_mb') }} MB)</span>
-                        <input type="file" name="stl" accept=".stl"
-                               class="mt-1 block w-full text-sm file:mr-3 file:rounded-md file:border-0 file:bg-stone-200 file:px-3 file:py-1.5 file:text-sm hover:file:bg-stone-300">
-                        @error('stl') <span class="text-xs text-red-700">{{ $message }}</span> @enderror
-                    </label>
+                    <div x-data="stlEstimate(@js([
+                        'fillLow' => \App\Support\FilamentEstimate::FILL_LOW,
+                        'fillHigh' => \App\Support\FilamentEstimate::FILL_HIGH,
+                        'density' => \App\Support\FilamentEstimate::densityOf('PLA'),
+                        'material' => 'PLA',
+                        'spoolPrice' => (float) config('access.print_request_spool_price'),
+                        'spoolGrams' => \App\Support\FilamentEstimate::SPOOL_GRAMS,
+                    ]))">
+                        <label class="block">
+                            <span class="text-xs font-medium text-stone-500">STL file (at most {{ config('access.print_request_max_upload_mb') }} MB)</span>
+                            <input type="file" name="stl" accept=".stl" x-on:change="estimate($event.target.files[0])"
+                                   class="mt-1 block w-full text-sm file:mr-3 file:rounded-md file:border-0 file:bg-stone-200 file:px-3 file:py-1.5 file:text-sm hover:file:bg-stone-300">
+                            @error('stl') <span class="text-xs text-red-700">{{ $message }}</span> @enderror
+                        </label>
+                        <p x-show="busy" x-cloak class="mt-1 text-xs text-stone-500">Measuring the STL…</p>
+                        <p x-show="failed" x-cloak class="mt-1 text-xs text-amber-800">This file could not be read as an STL, so there is no estimate.</p>
+                        <div x-show="result" x-cloak class="mt-2 rounded-md bg-stone-50 px-2 py-1.5 text-sm text-stone-600" role="status">
+                            <span class="font-medium text-stone-900" x-text="result?.grams"></span>
+                            · <span class="font-medium text-stone-900" x-text="result?.price"></span>
+                            · <span x-text="result?.size"></span>
+                            <span class="block text-xs text-stone-500">
+                                Estimate from the STL in PLA, without supports, at €{{ number_format((float) config('access.print_request_spool_price'), 2) }} per 1 kg spool.
+                            </span>
+                            <span x-show="result?.misScaled" class="mt-1 block text-xs text-amber-800">This size looks off; the STL may not be in millimetres, so the estimate is too.</span>
+                        </div>
+                    </div>
                     <label class="block">
                         <span class="text-xs font-medium text-stone-500">…or a link to the model</span>
                         <input type="url" name="model_url" value="{{ old('model_url') }}" maxlength="2048" placeholder="https://"
@@ -152,36 +215,6 @@
             </form>
             @endif
         </section>
-
-        @if ($ownRequests->isNotEmpty())
-            <section class="rounded-xl bg-white p-4 shadow-sm">
-                <h2 class="font-semibold">Your requests</h2>
-                <ul class="mt-2 divide-y divide-stone-100">
-                    @foreach ($ownRequests as $printRequest)
-                        <li class="space-y-1 py-2.5 text-sm">
-                            <div class="flex flex-wrap items-center gap-2">
-                                <span class="rounded px-1.5 py-0.5 text-xs {{ $printRequest->status->badgeClasses() }}">{{ $printRequest->status->label() }}</span>
-                                <span class="min-w-0 flex-1 truncate">{{ $printRequest->stl_original_name ?? $printRequest->model_url }}</span>
-                                <span class="flex shrink-0 -space-x-1">
-                                    @foreach ($printRequest->colors as $color)
-                                        <span class="size-3.5 rounded-full ring-1 ring-white" style="background: {{ $color->swatchCss() }}" title="{{ $color->article_name }}"></span>
-                                    @endforeach
-                                </span>
-                                <span class="shrink-0 text-xs text-stone-500">{{ $printRequest->created_at->format('j M Y') }}</span>
-                            </div>
-                            @if ($printRequest->stl_volume)
-                                <x-filament-estimate :print-request="$printRequest" class="text-xs" />
-                            @endif
-                            @if ($printRequest->reply)
-                                <p class="whitespace-pre-line rounded-md bg-stone-50 px-2 py-1.5 text-stone-700">
-                                    <span class="font-medium">{{ $owner->name }}:</span> {{ $printRequest->reply }}
-                                </p>
-                            @endif
-                        </li>
-                    @endforeach
-                </ul>
-            </section>
-        @endif
         @endif
     </div>
 @endsection
