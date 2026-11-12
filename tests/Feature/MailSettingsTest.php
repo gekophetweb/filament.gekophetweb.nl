@@ -116,6 +116,36 @@ describe('settings', function () {
         expect($values)->mail_host->toBe('')->mail_password->toBe('')->mail_from_address->toBe('spools@mail.example.com');
     });
 
+    it('sends through Resend with only the API key, without SMTP or DKIM settings', function () {
+        $action = app(SaveMailSettings::class);
+        $env = $action->envValues($action->validate(mailInput(['mail_mailer' => 'resend', 'mail_password' => 're_abc123', 'mail_host' => ''])));
+
+        expect($env)->toMatchArray([
+            'MAIL_MAILER' => 'resend',
+            'RESEND_API_KEY' => 're_abc123',
+            'MAIL_PASSWORD' => '',
+            'MAIL_HOST' => '',
+            'MAIL_DKIM_DOMAIN' => '',
+            'MAIL_DKIM_PRIVATE_KEY' => '',
+        ]);
+    });
+
+    it('sends through Resend\'s SMTP relay', function () {
+        config(['mail.mailers.resend.password' => 're_abc123']);
+
+        $transport = Mail::mailer('resend')->getSymfonyTransport();
+
+        expect($transport)->toBeInstanceOf(EsmtpTransport::class)
+            ->and($transport->getStream()->getHost())->toBe('smtp.resend.com')
+            ->and($transport->getUsername())->toBe('resend')
+            ->and($transport->getPassword())->toBe('re_abc123');
+    });
+
+    it('rejects a Resend setup without a valid API key', function (string $key) {
+        expect(fn () => app(SaveMailSettings::class)->validate(mailInput(['mail_mailer' => 'resend', 'mail_password' => $key])))
+            ->toThrow(fn (ValidationException $e) => expect($e->errors())->toHaveKey('mail_password'));
+    })->with(['no key' => [''], 'not a Resend key' => ['p4ss$word']]);
+
     it('rejects settings that would not work', function (array $overrides, string $field) {
         expect(fn () => app(SaveMailSettings::class)->validate(mailInput($overrides)))
             ->toThrow(fn (ValidationException $e) => expect($e->errors())->toHaveKey($field));
@@ -246,6 +276,19 @@ describe('mail settings page', function () {
         expect(file_get_contents($this->dir.'/.env.local'))
             ->toContain("MAIL_PASSWORD='old-pass'")
             ->toContain("MAIL_DKIM_PRIVATE_KEY='".DkimKey::encode(dkimTestKey())."'");
+    });
+
+    it('keeps the Resend API key in use, not the SMTP password, when the field is left empty', function () {
+        Process::fake();
+        config(['mail.mailers.smtp.password' => 'old-pass', 'mail.mailers.resend.password' => 're_old_key']);
+        unlockMailSettings();
+
+        $this->post(route('mail-settings.update'), mailInput(['mail_mailer' => 'resend', 'mail_password' => '']) + ['action' => 'save'])
+            ->assertSessionHasNoErrors();
+
+        expect(file_get_contents($this->dir.'/.env.local'))
+            ->toContain("RESEND_API_KEY='re_old_key'")
+            ->toContain("MAIL_PASSWORD=''");
     });
 
     it('generates a key and shows the DNS record to publish, keeping it out of the form', function () {

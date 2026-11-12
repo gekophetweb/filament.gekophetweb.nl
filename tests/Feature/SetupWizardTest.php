@@ -364,6 +364,20 @@ describe('steps', function () {
             ->toMatch("/MAIL_DKIM_PRIVATE_KEY='[A-Za-z0-9+\\/=]{100,}'/");
         expect(session('setup.mail_password'))->toBeNull()->and(session('setup.dkim_key'))->toBeNull();
     });
+
+    it('writes the Resend API key when saving with Resend', function () {
+        Process::fake();
+        app(SetupState::class)->token();
+        unlockedDraft(['mail_mailer' => 'resend']);
+        session(['setup.mail_password' => Crypt::encryptString('re_test_key')]);
+
+        Livewire::test(Setup::class)->call('save')->assertHasNoErrors()->assertSet('saved', true);
+
+        expect(file_get_contents($this->dir.'/.env'))
+            ->toContain("MAIL_MAILER='resend'")
+            ->toContain("RESEND_API_KEY='re_test_key'")
+            ->toContain("MAIL_PASSWORD=''");
+    });
 });
 
 describe('discovery check', function () {
