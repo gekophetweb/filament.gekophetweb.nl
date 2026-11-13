@@ -11,6 +11,10 @@
         @else
             <x-share-tabs :owner="$owner" />
 
+            @if (session('suggestion_deleted'))
+                <div class="rounded-lg border border-stone-200 bg-white p-3 text-sm shadow-sm" role="status">Your suggestion was deleted.</div>
+            @endif
+
             @if ($ownSuggestions->isNotEmpty())
                 <section class="rounded-xl bg-white p-4 shadow-sm">
                     <h2 class="font-semibold">Your suggestions</h2>
@@ -20,6 +24,12 @@
                                 <div class="flex flex-wrap items-center gap-2">
                                     <span class="rounded px-1.5 py-0.5 text-xs {{ $suggestion->status->badgeClasses() }}">{{ $suggestion->status->label() }}</span>
                                     <span class="text-xs text-stone-500">{{ $suggestion->created_at->format('j M Y') }}</span>
+                                    <form method="POST" action="{{ route('share.suggestions.destroy', [$owner->share_token, $suggestion->uuid]) }}" class="ml-auto"
+                                          x-data x-on:submit="confirm({{ \Illuminate\Support\Js::from("Delete this suggestion? {$owner->name} no longer sees it.") }}) || $event.preventDefault()">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="rounded px-1.5 py-0.5 text-xs text-red-700 hover:bg-red-50">Delete</button>
+                                    </form>
                                 </div>
                                 <p class="whitespace-pre-line text-stone-800">{{ $suggestion->body }}</p>
 

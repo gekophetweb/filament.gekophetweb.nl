@@ -9,6 +9,7 @@ use App\Support\PrintRequester;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Str;
 
 /**
  * The Suggestions tab of the share link: the same signed-in, allowed requesters who send print requests
@@ -28,7 +29,7 @@ class SuggestionController extends Controller
                 'requester' => $requester,
                 'isAllowed' => $isAllowed,
                 'ownSuggestions' => $isAllowed
-                    ? $owner->suggestions()->where('requester_email', $requester->email)->with('messages')->latest('updated_at')->limit(50)->get()
+                    ? $owner->suggestions()->where('requester_email', Str::lower($requester->email))->with('messages')->latest('updated_at')->limit(50)->get()
                     : collect(),
             ])
             ->header('Referrer-Policy', 'no-referrer')
@@ -49,7 +50,7 @@ class SuggestionController extends Controller
 
         $suggestion = new Suggestion([
             'requester_name' => $requester->name ?: $requester->email,
-            'requester_email' => $requester->email,
+            'requester_email' => Str::lower($requester->email),
             'body' => trim($data['body']),
         ]);
         $suggestion->user()->associate($owner)->save();
@@ -73,7 +74,7 @@ class SuggestionController extends Controller
         }
 
         // Only the requester's own suggestions on this link; anything else answers 404.
-        $own = $owner->suggestions()->where('uuid', $suggestion)->where('requester_email', $requester->email)->firstOrFail();
+        $own = $owner->suggestions()->where('uuid', $suggestion)->where('requester_email', Str::lower($requester->email))->firstOrFail();
 
         $data = $request->validateWithBag("answer-{$own->uuid}", [
             'body' => ['required', 'string', 'max:'.Suggestion::MAX_LENGTH],
@@ -86,6 +87,21 @@ class SuggestionController extends Controller
         }
 
         return redirect()->route('share.suggestions', $token)->withFragment("suggestion-{$own->uuid}")->with('answer_sent', $own->uuid);
+    }
+
+    /**
+     * The requester deletes one of their own suggestions, with its conversation; the owner no longer sees it.
+     */
+    public function destroy(string $token, string $suggestion): RedirectResponse
+    {
+        $owner = User::where('share_token', $token)->firstOrFail();
+        $requester = PrintRequester::current();
+        abort_if($requester === null, 404);
+
+        // Only the requester's own suggestions on this link; anything else answers 404.
+        $owner->suggestions()->where('uuid', $suggestion)->where('requester_email', Str::lower($requester->email))->firstOrFail()->delete();
+
+        return redirect()->route('share.suggestions', $token)->with('suggestion_deleted', true);
     }
 
     /**
