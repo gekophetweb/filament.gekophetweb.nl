@@ -215,6 +215,26 @@
             </form>
             @endif
         </section>
+
+        @if ($isAllowed)
+            <section id="suggestion-box" class="rounded-xl bg-white p-4 shadow-sm">
+                <h2 class="font-semibold">Suggestion box</h2>
+                <p class="mt-1 text-sm text-stone-600">An idea, a color {{ $owner->name }} should get, or other feedback that is not a print request.</p>
+
+                @if (session('suggestion_sent'))
+                    <div class="mt-3 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm" role="status">Thanks, your suggestion was sent.</div>
+                @endif
+
+                <form method="POST" action="{{ route('share.suggestions.store', $owner->share_token) }}" class="mt-3 space-y-2">
+                    @csrf
+                    <textarea name="body" rows="3" required maxlength="{{ \App\Models\Suggestion::MAX_LENGTH }}" aria-label="Your suggestion"
+                              placeholder="It would be great if…"
+                              class="w-full rounded-md border-stone-300 px-2 py-1.5 text-sm">{{ old('body') }}</textarea>
+                    @error('body', 'suggestion') <p class="text-xs text-red-700">{{ $message }}</p> @enderror
+                    <button type="submit" class="rounded-md bg-stone-900 px-3 py-1.5 text-sm text-white hover:bg-stone-700">Send suggestion</button>
+                </form>
+            </section>
+        @endif
         @endif
     </div>
 @endsection
