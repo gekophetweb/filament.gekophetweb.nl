@@ -11,7 +11,7 @@
         </div>
         <label class="flex items-center gap-2 text-sm" title="{{ $email }}">
             <input type="checkbox" wire:click="toggleEmails" @checked($emailsOn) class="rounded border-stone-300">
-            Email me at {{ $email }} for each new request
+            Email me at {{ $email }} for each new request or suggestion
         </label>
     </div>
 

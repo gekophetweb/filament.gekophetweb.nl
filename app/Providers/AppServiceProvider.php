@@ -76,6 +76,8 @@ class AppServiceProvider extends ServiceProvider
         // Per signed-in requester when there is one, so a requester cannot get around it by changing networks.
         RateLimiter::for('print-request', fn (Request $r) => Limit::perHour($limit('print_requests_per_hour'))
             ->by(PrintRequester::current() ? 'requester:'.PrintRequester::current()->email : 'ip:'.$r->ip()));
+        RateLimiter::for('suggestion', fn (Request $r) => Limit::perHour($limit('suggestions_per_hour'))
+            ->by(PrintRequester::current() ? 'requester:'.PrintRequester::current()->email : 'ip:'.$r->ip()));
         // Emailed sign-in codes, so the share link cannot be used to flood someone's inbox.
         RateLimiter::for('print-request-code', fn (Request $r) => [
             Limit::perHour($limit('print_request_codes_per_hour'))->by('ip:'.$r->ip()),

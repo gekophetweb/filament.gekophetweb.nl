@@ -38,6 +38,12 @@ class User extends Authenticatable
         return $this->hasMany(PrintRequest::class);
     }
 
+    /** @return HasMany<Suggestion, $this> */
+    public function suggestions(): HasMany
+    {
+        return $this->hasMany(Suggestion::class);
+    }
+
     /**
      * Whether another API token may be created (config access.max_tokens_per_user counts unexpired ones).
      */

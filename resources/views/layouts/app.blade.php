@@ -32,6 +32,13 @@
                         <span class="ml-0.5 rounded-full bg-emerald-600 px-1.5 text-xs font-semibold text-white tabular-nums" aria-label="{{ $unreadPrintRequests }} unread">{{ $unreadPrintRequests }}</span>
                     @endif
                 </a>
+                @php($unreadSuggestions = auth()->user()->suggestions()->unread()->count())
+                <a href="{{ route('suggestions') }}" @class(['text-sm', 'font-semibold text-emerald-700' => request()->routeIs('suggestions')])>
+                    Suggestions
+                    @if ($unreadSuggestions)
+                        <span class="ml-0.5 rounded-full bg-emerald-600 px-1.5 text-xs font-semibold text-white tabular-nums" aria-label="{{ $unreadSuggestions }} unread">{{ $unreadSuggestions }}</span>
+                    @endif
+                </a>
                 <a href="{{ route('devices') }}" @class(['text-sm', 'font-semibold text-emerald-700' => request()->routeIs('devices')])>Devices</a>
                 <a href="{{ route('docs.api') }}" @class(['text-sm', 'font-semibold text-emerald-700' => request()->routeIs('docs.*')])>API docs</a>
                 <x-theme-toggle class="ml-auto" />
