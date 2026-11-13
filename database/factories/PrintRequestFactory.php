@@ -26,4 +26,9 @@ class PrintRequestFactory extends Factory
     {
         return $this->state(['status' => PrintRequestStatus::Printed]);
     }
+
+    public function accepted(): static
+    {
+        return $this->state(['status' => PrintRequestStatus::Accepted]);
+    }
 }

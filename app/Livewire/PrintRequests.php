@@ -4,10 +4,12 @@ namespace App\Livewire;
 
 use App\Enums\PrintRequestStatus;
 use App\Models\PrintRequest;
+use App\Notifications\PrintRequestReplied;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Notification;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
@@ -34,7 +36,7 @@ class PrintRequests extends Component
     #[Url(as: 'request')]
     public ?string $selected = null;
 
-    /** Reply on the opened request; the requester sees it on the share link. */
+    /** Reply on the opened request; the requester sees it on the share link and gets it by email when it is new or changed. */
     #[Validate(['nullable', 'string', 'max:2000'])]
     public string $reply = '';
 
@@ -43,6 +45,9 @@ class PrintRequests extends Component
     public string $privateNote = '';
 
     public bool $commentsSaved = false;
+
+    /** Where the last saved reply was emailed, if it was new or changed. */
+    public ?string $replyEmailedTo = null;
 
     public function mount(): void
     {
@@ -66,6 +71,7 @@ class PrintRequests extends Component
         $this->reply = (string) $printRequest->reply;
         $this->privateNote = (string) $printRequest->private_note;
         $this->commentsSaved = false;
+        $this->replyEmailedTo = null;
         $this->resetValidation();
     }
 
@@ -75,10 +81,21 @@ class PrintRequests extends Component
         Gate::authorize('update', $printRequest);
         $this->validate();
 
+        $reply = trim($this->reply) === '' ? null : trim($this->reply);
+        $isNewReply = $reply !== null && $reply !== $printRequest->reply;
+
         $printRequest->forceFill([
-            'reply' => trim($this->reply) === '' ? null : trim($this->reply),
+            'reply' => $reply,
             'private_note' => trim($this->privateNote) === '' ? null : trim($this->privateNote),
         ])->save();
+
+        $this->replyEmailedTo = null;
+        if ($isNewReply && $printRequest->requester_email) {
+            Notification::route('mail', [$printRequest->requester_email => $printRequest->requester_name])
+                ->notify(new PrintRequestReplied($printRequest, $reply));
+            $this->replyEmailedTo = $printRequest->requester_email;
+        }
+
         $this->commentsSaved = true;
     }
 
@@ -132,7 +149,7 @@ class PrintRequests extends Component
     {
         $user = Auth::user();
         $requests = $user->printRequests()
-            ->when($this->show === 'open', fn (Builder $query) => $query->where('status', PrintRequestStatus::Open))
+            ->when($this->show === 'open', fn (Builder $query) => $query->whereIn('status', PrintRequestStatus::toHandle()))
             ->when($this->show === 'unread', fn (Builder $query) => $query->unread())
             ->with('colors')
             ->latest()
@@ -146,7 +163,7 @@ class PrintRequests extends Component
             'requests' => $requests,
             'opened' => $opened,
             'counts' => [
-                'open' => $user->printRequests()->where('status', PrintRequestStatus::Open)->count(),
+                'open' => $user->printRequests()->whereIn('status', PrintRequestStatus::toHandle())->count(),
                 'unread' => $user->printRequests()->unread()->count(),
             ],
             'shareUrl' => $user->shareUrl(),

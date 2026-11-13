@@ -25,7 +25,7 @@ Route::get('/setup', Setup::class)->middleware('throttle:login')->name('setup');
 Route::get('/setup/test', [SetupSignInTestController::class, 'redirect'])->middleware('throttle:login')->name('setup.test');
 Route::get('/setup/callback', [SetupSignInTestController::class, 'callback'])->middleware('throttle:sso-callback')->name('setup.callback');
 
-// Mail settings once the app is set up: direct local requests with the link from `php artisan setup:mail-url`.
+// Mail settings once the app is set up, with the link from `php artisan setup:mail-url` (locally or through the tunnel).
 Route::get('/mail-settings', [MailSettingsController::class, 'show'])->middleware('throttle:login')->name('mail-settings');
 Route::post('/mail-settings', [MailSettingsController::class, 'update'])->middleware('throttle:login')->name('mail-settings.update');
 
@@ -56,6 +56,8 @@ Route::post('/share/{token}/sign-out', [PrintRequesterSignInController::class, '
     ->where('token', '[A-Za-z0-9]{40}')->middleware('throttle:share')->name('share.sign-out');
 Route::post('/share/{token}/print-requests', [PrintRequestController::class, 'store'])
     ->where('token', '[A-Za-z0-9]{40}')->middleware('throttle:print-request')->name('share.print-requests.store');
+Route::delete('/share/{token}/print-requests/{printRequest:uuid}', [PrintRequestController::class, 'destroy'])
+    ->where('token', '[A-Za-z0-9]{40}')->middleware('throttle:share')->name('share.print-requests.destroy');
 
 Route::middleware(['auth', 'throttle:web'])->group(function () {
     Route::get('/', Catalog::class)->name('catalog');

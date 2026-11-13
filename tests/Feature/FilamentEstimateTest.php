@@ -87,6 +87,14 @@ it('estimates grams from the volume and the material density', function () {
         ->and(FilamentEstimate::densityOf('Wood'))->toBe(FilamentEstimate::DEFAULT_DENSITY);
 });
 
+it('prices the estimate at the price of a 1 kg spool', function () {
+    config(['access.print_request_spool_price' => 18]);
+
+    // 1000 cm³ of PLA: 1240 g solid, so 370–620 g printed.
+    expect(FilamentEstimate::forVolume(1_000_000, ['PLA'])->priceLabel())->toBe('≈ €6.66–11.16')
+        ->and(FilamentEstimate::forVolume(10, ['PLA'])->priceLabel())->toBe('≈ €0.02');
+});
+
 it('flags sizes that suggest the STL is not in millimetres', function () {
     expect(StlMeasurement::looksMisScaled([2.0, 1.5, 1.0]))->toBeTrue()
         ->and(StlMeasurement::looksMisScaled([1200.0, 10.0, 10.0]))->toBeTrue()
@@ -115,11 +123,11 @@ it('estimates the filament when a request comes in and shows it to the owner', f
         ->and($printRequest->dimensionsLabel())->toBe('40 × 40 × 40 mm')
         ->and($printRequest->filamentEstimate()->label())->toBe('≈ 24–41 g of PETG');
 
-    $this->get($owner->shareUrl())->assertSee('≈ 24–41 g of PETG');
+    $this->get($owner->shareUrl())->assertSee(['≈ 24–41 g of PETG', '≈ €0.43–0.74']);
     Livewire::actingAs($owner)->test(PrintRequests::class)->call('open', $printRequest->uuid)
-        ->assertSee(['≈ 24–41 g of PETG', '40 × 40 × 40 mm']);
+        ->assertSee(['≈ 24–41 g of PETG', '≈ €0.43–0.74', '40 × 40 × 40 mm']);
     Notification::assertSentTo($owner, PrintRequestReceived::class, fn (PrintRequestReceived $n) => in_array(
-        'Estimated filament: ≈ 24–41 g of PETG (40 × 40 × 40 mm, without supports)', $n->toMail($owner)->introLines, true,
+        'Estimated filament: ≈ 24–41 g of PETG, ≈ €0.43–0.74 (40 × 40 × 40 mm, without supports)', $n->toMail($owner)->introLines, true,
     ));
 });
 

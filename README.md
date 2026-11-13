@@ -107,8 +107,16 @@ keeps the `.env.local` value.
 ### Mail settings
 
 The app emails the owner about print requests and sends sign-in codes to requesters without SSO. The
-setup wizard's **Mail** step sets how: through an SMTP server, or only to the log (nothing is delivered).
-It also sets the **send from** address and name, and optional **DKIM** signing:
+setup wizard's **Mail** step sets how: through an SMTP server, through [Resend](https://resend.com), or
+only to the log (nothing is delivered). It also sets the **send from** address and name, and optional
+**DKIM** signing for SMTP.
+
+For **Resend**, only the API key is needed (`RESEND_API_KEY`, a key with sending access). The app uses
+Resend's SMTP relay (`smtp.resend.com`, port 465), so no extra package is installed. Verify the from
+address's domain in Resend first: Resend only sends from verified domains and signs that mail with DKIM
+itself.
+
+DKIM signing for SMTP:
 
 - Fill in the DKIM domain (the from address's domain, or a parent of it) and a selector, then
   *Generate a new key* or paste your own RSA private key (PEM).
@@ -120,18 +128,19 @@ It also sets the **send from** address and name, and optional **DKIM** signing:
 Leave the DKIM domain empty when your mail provider signs for you. The private key is stored base64
 encoded as `MAIL_DKIM_PRIVATE_KEY` in `storage/app/.env.local`.
 
-On an installation that is already set up, the same form is at `/mail-settings`. It is only reachable
-directly on the Docker host (`http://127.0.0.1:8000`, never through the tunnel) with a one-time link,
-valid for an hour:
+On an installation that is already set up, the same form is at `/mail-settings`. It opens with a
+one-time link, valid for an hour:
 
 ```bash
 docker compose exec app php artisan setup:mail-url
 ```
 
-On a remote server, open an SSH tunnel first (`ssh -L 8000:127.0.0.1:8000 <user>@<server>`). If you
-removed the `127.0.0.1:8000:8000` port mapping (install step 7), add it back for a moment, or set the
-`MAIL_*` keys in `storage/app/.env.local` by hand as shown above. Saving reloads the app and restarts
-the queue worker.
+The command prints the link twice with the same token: on the public address (`APP_URL`, through the
+tunnel) and on the Docker host (`http://127.0.0.1:8000`). The public link only opens from an address on
+the web allow-list (`ALLOWED_IPS_WEB`). The Docker host link works from anywhere that reaches the
+published port, for example through an SSH tunnel (`ssh -L 8000:127.0.0.1:8000 <user>@<server>`). You
+can also set the `MAIL_*` keys in `storage/app/.env.local` by hand as shown above. Saving reloads the
+app and restarts the queue worker.
 
 ### Missing settings
 

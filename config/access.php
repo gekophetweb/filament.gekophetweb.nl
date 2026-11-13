@@ -45,6 +45,9 @@ return [
     // PHP's upload_max_filesize and post_max_size must allow at least this much (the Docker image sets 64M).
     'print_request_max_upload_mb' => (int) env('PRINT_REQUEST_MAX_UPLOAD_MB', 50),
 
+    // Price in euros of one 1 kg PLA spool, for the cost in print request estimates.
+    'print_request_spool_price' => (float) env('PRINT_REQUEST_SPOOL_PRICE', 18),
+
     // Active API/MCP tokens one user may have at the same time.
     'max_tokens_per_user' => (int) env('MAX_TOKENS_PER_USER', 10),
 

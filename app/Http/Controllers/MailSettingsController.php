@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Actions\Setup\SaveMailSettings;
 use App\Support\Mail\DkimKey;
 use App\Support\Setup\MailSettingsAccess;
-use App\Support\Setup\SetupState;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -16,8 +15,8 @@ use RuntimeException;
 use Throwable;
 
 /**
- * The setup wizard's Mail step for an app that is already set up: direct local requests only,
- * opened with the one-time link from `php artisan setup:mail-url`.
+ * The setup wizard's Mail step for an app that is already set up, opened with the one-time link from
+ * `php artisan setup:mail-url`: on the Docker host, or through the tunnel from an address on the web allow-list.
  */
 class MailSettingsController extends Controller
 {
@@ -27,12 +26,10 @@ class MailSettingsController extends Controller
     /** Secrets are never flashed back into the form. */
     private const SECRETS = ['mail_password', 'mail_dkim_private_key'];
 
-    public function __construct(private SetupState $setup, private MailSettingsAccess $access) {}
+    public function __construct(private MailSettingsAccess $access) {}
 
     public function show(Request $request): Response|RedirectResponse
     {
-        $this->requireDirectLocalRequest($request);
-
         if ($request->filled('token')) {
             if (! $this->access->redeem((string) $request->query('token'))) {
                 session()->flash('mail_settings_error', 'That link is not valid any more. Run `php artisan setup:mail-url` for a new one.');
@@ -50,14 +47,13 @@ class MailSettingsController extends Controller
             'values' => SaveMailSettings::current(),
             'dkimKey' => $generatedKey ?? $currentKey,
             'keyStored' => $generatedKey !== null || $currentKey !== null,
-            'passwordStored' => filled(config('mail.mailers.smtp.password')),
+            'passwordStored' => SaveMailSettings::currentPassword((string) config('mail.default')) !== null,
             'testTo' => (string) config('mail.from.address'),
         ])->header('X-Robots-Tag', 'noindex, nofollow');
     }
 
     public function update(Request $request, SaveMailSettings $mail): RedirectResponse
     {
-        $this->requireDirectLocalRequest($request);
         abort_unless($this->access->isUnlocked(), 403);
 
         $input = $this->input($request);
@@ -108,6 +104,7 @@ class MailSettingsController extends Controller
 
     /**
      * The form, with an empty password or key meaning "keep the one in use" (or the key generated here).
+     * The password is the SMTP password or the Resend API key, whichever way of sending the form picks.
      *
      * @return array<string, string>
      */
@@ -117,7 +114,7 @@ class MailSettingsController extends Controller
         $input += array_fill_keys(SaveMailSettings::FIELDS, '');
 
         if (trim($input['mail_password']) === '') {
-            $input['mail_password'] = (string) config('mail.mailers.smtp.password');
+            $input['mail_password'] = (string) SaveMailSettings::currentPassword($input['mail_mailer']);
         }
 
         if (trim($input['mail_dkim_private_key']) === '') {
@@ -132,10 +129,5 @@ class MailSettingsController extends Controller
         $key = session(self::GENERATED_KEY);
 
         return $key ? Crypt::decryptString($key) : null;
-    }
-
-    private function requireDirectLocalRequest(Request $request): void
-    {
-        abort_unless($this->setup->isDirectLocalRequest($request), 404);
     }
 }

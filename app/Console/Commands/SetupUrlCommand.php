@@ -57,9 +57,10 @@ class SetupUrlCommand extends Command
 
         // A link only for something missing, so a tip alone does not put a fresh token in the log at every start.
         if ($missing !== []) {
-            $url = rtrim((string) config('setup.local_url'), '/').'/mail-settings?token='.$mailAccess->issueToken();
-            $this->line('  Fix them on the Docker host (the link works once, for '.config('setup.mail_token_minutes').' minutes):');
-            $this->line("  Mail settings URL: {$url}");
+            $token = $mailAccess->issueToken();
+            $this->line('  Fix them with one of these links (works once, for '.config('setup.mail_token_minutes').' minutes):');
+            $this->line('  Mail settings URL: '.MailSettingsUrlCommand::url((string) config('app.url'), $token));
+            $this->line('  On the Docker host: '.MailSettingsUrlCommand::url((string) config('setup.local_url'), $token));
         }
         $this->line('  '.($missing !== [] ? 'A new link' : 'To change it').': docker compose exec app php artisan setup:mail-url');
         $this->line('');
