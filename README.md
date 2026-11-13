@@ -275,7 +275,7 @@ deleted, and rows that fail are skipped and listed. `status` takes `boxed`, `on_
 | IP allow-list per surface | `ALLOWED_IPS_WEB/API/MCP`; `*` = any address, empty blocks everything in production |
 | Trusted proxy | `TRUSTED_PROXIES` = the Docker `frontend` subnet only |
 | Rate limits | Per user, shared by all their tokens: API read 120/min, write 30/min and 1000/day, MCP 60/min; plus 300/min per IP and login 10/min. 20 failed token logins block the IP for 10 minutes. Change them with the `RATE_LIMIT_*` variables (`config/access.php`) |
-| Tokens | Devices page: read-only (`spools:read`) or read-write (`spools:read`, `spools:write`), valid for one year, at most 10 active per user (`MAX_TOKENS_PER_USER`) |
+| Tokens | Devices page: read-only (`spools:read`, `requests:read`) or read-write (also `spools:write`, `requests:write`), valid for one year, at most 10 active per user (`MAX_TOKENS_PER_USER`) |
 
 With open sign-up, the first sign-in through the identity provider creates the account, and each user
 only sees their own spools. With Google, publish the OAuth consent screen (Audience → Publish app);
@@ -312,6 +312,13 @@ The status changes and `DELETE` take an optional `note`. `POST /spools` with `am
 identical spools in one call and returns them as a list in `data`; without it, one spool comes back as before.
 Spools have no price, location or notes.
 `GET /spools?updated_since=` also returns deleted spools (with `deleted_at`) for sync.
+
+What comes in through the share link needs `requests:read` / `requests:write` (tokens made before these
+existed only have the `spools:` abilities; create a new one). `GET /print-requests` (`folder=open|unread|all,
+status, per_page<=100`), `GET|PATCH|DELETE /print-requests/{uuid}` (PATCH `status`, `reply`, `private_note`,
+`read`; a new or changed reply is emailed to the requester), `GET /print-requests/{uuid}/stl`;
+`GET /suggestions`, `GET|PATCH|DELETE /suggestions/{uuid}`, `POST /suggestions/{uuid}/messages` (reply, emailed);
+`GET /access-requests` (`status`, pending by default), `POST /access-requests/{id}/approve|decline`.
 
 Buy links open a search in the Bambu Lab store set by `BAMBULAB_STORE_URL` (default the EU store).
 

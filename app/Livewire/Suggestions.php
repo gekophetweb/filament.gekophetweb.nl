@@ -2,13 +2,12 @@
 
 namespace App\Livewire;
 
+use App\Actions\ReplyToSuggestion;
 use App\Enums\SuggestionStatus;
 use App\Models\Suggestion;
-use App\Notifications\SuggestionReplied;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Notification;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
@@ -79,14 +78,12 @@ class Suggestions extends Component
     /**
      * Add a reply to the opened suggestion and email it to the requester.
      */
-    public function sendReply(): void
+    public function sendReply(ReplyToSuggestion $replyTo): void
     {
         $suggestion = $this->find((string) $this->selected);
         $this->validate();
 
-        $message = $suggestion->addMessage($this->reply, fromOwner: true);
-        Notification::route('mail', [$suggestion->requester_email => $suggestion->requester_name])
-            ->notify(new SuggestionReplied($suggestion, $message));
+        $replyTo->handle($suggestion, $this->reply);
 
         $this->reset('reply');
         $this->replyEmailedTo = $suggestion->requester_email;

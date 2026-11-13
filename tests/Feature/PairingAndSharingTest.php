@@ -25,7 +25,7 @@ it('shows a QR code whose one-time code the app trades for its own token', funct
     $response = $this->postJson('/api/v1/pair', ['code' => $payload['code']])->assertCreated();
     $token = $response->json('data.token');
 
-    expect($response->json('data.abilities'))->toBe(['spools:read', 'spools:write'])
+    expect($response->json('data.abilities'))->toBe(['spools:read', 'spools:write', 'requests:read', 'requests:write'])
         ->and($user->tokens()->sole()->name)->toBe('Pixel 9');
 
     $this->withToken($token)->getJson('/api/v1/me')->assertOk()->assertJsonPath('data.email', $user->email);

@@ -47,7 +47,11 @@
                         <dt class="text-stone-500">Authentication</dt>
                         <dd><code class="font-mono">Authorization: Bearer &lt;token&gt;</code>, with a token from the Devices page or from <a href="#pairDevice" class="text-emerald-700 underline">pairing by QR code</a>.</dd>
                         <dt class="text-stone-500">Abilities</dt>
-                        <dd>Read-only tokens have <code class="font-mono">spools:read</code>. Read-write tokens also have <code class="font-mono">spools:write</code>.</dd>
+                        <dd>
+                            Read-only tokens have <code class="font-mono">spools:read</code> and <code class="font-mono">requests:read</code>.
+                            Read-write tokens also have <code class="font-mono">spools:write</code> and <code class="font-mono">requests:write</code>.
+                            Tokens made before print requests, suggestions and access requests were in the API only have the <code class="font-mono">spools:</code> ones; create a new token for those.
+                        </dd>
                         <dt class="text-stone-500">OpenAPI</dt>
                         <dd><a href="{{ route('docs.api.openapi') }}" class="text-emerald-700 underline">openapi.json</a> (OpenAPI {{ $spec['openapi'] }}), for code generators and API clients.</dd>
                     </dl>

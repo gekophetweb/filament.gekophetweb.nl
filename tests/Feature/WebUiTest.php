@@ -204,7 +204,7 @@ it('creates read-only and write tokens and revokes them', function () {
         ->assertSet('plainToken', fn ($t) => is_string($t) && str_contains($t, '|'));
 
     $token = $user->tokens()->sole();
-    expect($token->abilities)->toBe(['spools:read']);
+    expect($token->abilities)->toBe(['spools:read', 'requests:read']);
 
     Livewire::actingAs($user)->test(Devices::class)->call('revoke', $token->id);
     expect($user->tokens()->count())->toBe(0);

@@ -2,14 +2,13 @@
 
 namespace App\Livewire;
 
+use App\Actions\SavePrintRequestComments;
 use App\Enums\PrintRequestStatus;
 use App\Models\PrintRequest;
-use App\Notifications\PrintRequestReplied;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Facades\Notification;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
@@ -75,27 +74,13 @@ class PrintRequests extends Component
         $this->resetValidation();
     }
 
-    public function saveComments(): void
+    public function saveComments(SavePrintRequestComments $comments): void
     {
         $printRequest = $this->find((string) $this->selected);
         Gate::authorize('update', $printRequest);
         $this->validate();
 
-        $reply = trim($this->reply) === '' ? null : trim($this->reply);
-        $isNewReply = $reply !== null && $reply !== $printRequest->reply;
-
-        $printRequest->forceFill([
-            'reply' => $reply,
-            'private_note' => trim($this->privateNote) === '' ? null : trim($this->privateNote),
-        ])->save();
-
-        $this->replyEmailedTo = null;
-        if ($isNewReply && $printRequest->requester_email) {
-            Notification::route('mail', [$printRequest->requester_email => $printRequest->requester_name])
-                ->notify(new PrintRequestReplied($printRequest, $reply));
-            $this->replyEmailedTo = $printRequest->requester_email;
-        }
-
+        $this->replyEmailedTo = $comments->handle($printRequest, $this->reply, $this->privateNote);
         $this->commentsSaved = true;
     }
 
