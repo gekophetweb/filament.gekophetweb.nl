@@ -8,6 +8,13 @@
                     Sharing is off, so nobody can send new ones. <a href="{{ route('share-export') }}" class="underline">Create a share link</a>
                 @endunless
             </p>
+            @if ($pendingAccessRequests)
+                <p class="mt-1 text-sm">
+                    <a href="{{ route('share-export') }}#access-requests" class="font-medium text-emerald-700 underline">
+                        {{ $pendingAccessRequests }} {{ \Illuminate\Support\Str::plural('person', $pendingAccessRequests) }} {{ $pendingAccessRequests === 1 ? 'asks' : 'ask' }} for access
+                    </a>
+                </p>
+            @endif
         </div>
         <label class="flex items-center gap-2 text-sm" title="{{ $email }}">
             <input type="checkbox" wire:click="toggleEmails" @checked($emailsOn) class="rounded border-stone-300">

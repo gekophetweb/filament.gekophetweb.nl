@@ -228,7 +228,12 @@ prove their email in one of two ways:
 - **SSO:** the same provider and callback URL as the app, so nothing new has to be registered at the identity provider.
 
 They don't get an account: only their verified email and name are kept in the session, and that email is the
-request's contact. The owner, signed in to the app, may always send a request through their own link. Requesters
+request's contact. The owner, signed in to the app, may always send a request through their own link.
+
+Someone who signs in but is not on the list can **ask for access**, with an optional note. The owner gets an email
+and finds the request under **Access requests** on Share & export (the Print requests page points there too).
+*Approve* adds the email to the list and emails the person; *Decline* tells them nothing, but the share link then
+says the owner does not take their requests. There is one request per email, so nobody can ask twice. Requesters
 give their name, an STL file (at most `PRINT_REQUEST_MAX_UPLOAD_MB`, default 50) or a link to the model, and up to 4
 colors picked from the owner's in-stock filament. Under the form they see their own requests with the status and the
 owner's reply. Requests land in the **Print requests** inbox (`/print-requests`, the nav shows the unread count).
