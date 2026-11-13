@@ -50,6 +50,8 @@ Route::post('/share/{token}/suggestions', [SuggestionController::class, 'store']
     ->where('token', '[A-Za-z0-9]{40}')->middleware('throttle:suggestion')->name('share.suggestions.store');
 Route::post('/share/{token}/suggestions/{suggestion}/answers', [SuggestionController::class, 'answer'])
     ->where('token', '[A-Za-z0-9]{40}')->whereUuid('suggestion')->middleware('throttle:suggestion')->name('share.suggestions.answer');
+Route::delete('/share/{token}/suggestions/{suggestion}', [SuggestionController::class, 'destroy'])
+    ->where('token', '[A-Za-z0-9]{40}')->whereUuid('suggestion')->middleware('throttle:share')->name('share.suggestions.destroy');
 Route::post('/share/{token}/email-code', [PrintRequesterEmailCodeController::class, 'send'])
     ->where('token', '[A-Za-z0-9]{40}')->middleware('throttle:print-request-code')->name('share.email-code');
 Route::post('/share/{token}/email-code/verify', [PrintRequesterEmailCodeController::class, 'verify'])

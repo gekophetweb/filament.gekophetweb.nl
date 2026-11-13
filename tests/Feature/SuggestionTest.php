@@ -3,6 +3,7 @@
 use App\Enums\SuggestionStatus;
 use App\Livewire\Suggestions;
 use App\Models\Suggestion;
+use App\Models\SuggestionMessage;
 use App\Models\User;
 use App\Notifications\PrintRequesterCode;
 use App\Notifications\SuggestionReceived;
@@ -86,6 +87,35 @@ it('does not let a requester answer someone else\'s suggestion', function () {
 
     $this->post(route('share.suggestions.answer', [$owner->share_token, $theirs->uuid]), ['body' => 'Hi'])->assertNotFound();
     expect($theirs->messages()->count())->toBe(0);
+});
+
+it('lets the requester delete their own suggestion with its conversation', function () {
+    $owner = suggestionOwner();
+    $mine = Suggestion::factory()->for($owner)->create(['requester_email' => 'sam@example.com', 'body' => 'Get some silk gold']);
+    $mine->addMessage('Which brand?', fromOwner: true);
+    asSuggestionRequester();
+
+    $this->get(suggestionsPage($owner))->assertSee(route('share.suggestions.destroy', [$owner->share_token, $mine->uuid]), false);
+    $this->delete(route('share.suggestions.destroy', [$owner->share_token, $mine->uuid]))
+        ->assertRedirect(suggestionsPage($owner))
+        ->assertSessionHas('suggestion_deleted');
+
+    expect(Suggestion::count())->toBe(0)->and(SuggestionMessage::count())->toBe(0);
+    $this->get(suggestionsPage($owner))->assertSee('Your suggestion was deleted.')->assertDontSee('Get some silk gold');
+});
+
+it('does not let a requester delete someone else\'s suggestion', function () {
+    $owner = suggestionOwner();
+    $theirs = Suggestion::factory()->for($owner)->create(['requester_email' => 'other@example.com']);
+    $otherOwners = Suggestion::factory()->create(['requester_email' => 'sam@example.com']);
+
+    $this->delete(route('share.suggestions.destroy', [$owner->share_token, $theirs->uuid]))->assertNotFound();
+
+    asSuggestionRequester();
+    $this->delete(route('share.suggestions.destroy', [$owner->share_token, $theirs->uuid]))->assertNotFound();
+    $this->delete(route('share.suggestions.destroy', [$owner->share_token, $otherOwners->uuid]))->assertNotFound();
+
+    expect($theirs->fresh())->not->toBeNull()->and($otherOwners->fresh())->not->toBeNull();
 });
 
 it('lets the owner set the status and reply, emailing the reply to the requester', function () {
