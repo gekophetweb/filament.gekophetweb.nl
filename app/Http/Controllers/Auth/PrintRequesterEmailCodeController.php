@@ -52,14 +52,14 @@ class PrintRequesterEmailCodeController extends Controller
             Notification::route('mail', [$email => $data['name']])->notify(new PrintRequesterCode($code, $owner->name));
         }
 
-        return redirect()->route('share', $token);
+        return redirect()->route(PrintRequester::pageRoute($request->input('return')), $token);
     }
 
     public function verify(Request $request, string $token): RedirectResponse
     {
         $this->ownerTakingRequests($token);
         $pending = $request->session()->get(self::SESSION_KEY);
-        $back = redirect()->route('share', $token);
+        $back = redirect()->route(PrintRequester::pageRoute($request->input('return')), $token);
 
         if (! is_array($pending) || $pending['expires_at'] < now()->getTimestamp() || $pending['attempts'] >= self::MAX_ATTEMPTS) {
             $request->session()->forget(self::SESSION_KEY);
@@ -87,7 +87,7 @@ class PrintRequesterEmailCodeController extends Controller
     {
         $request->session()->forget(self::SESSION_KEY);
 
-        return redirect()->route('share', $token);
+        return redirect()->route(PrintRequester::pageRoute($request->input('return')), $token);
     }
 
     /**

@@ -28,10 +28,11 @@ class PrintRequesterSignInController extends Controller
 
         // Already known (signed in to the app, or as a requester before): nothing to do.
         if (PrintRequester::current() !== null) {
-            return redirect()->route('share', $token);
+            return redirect()->route(PrintRequester::pageRoute($request->query('return')), $token);
         }
 
         $request->session()->put(PrintRequester::PENDING_SESSION_KEY, $token);
+        $request->session()->put(PrintRequester::RETURN_SESSION_KEY, $request->query('return'));
 
         return Socialite::driver(config('services.sso.provider'))->redirect();
     }
@@ -41,7 +42,7 @@ class PrintRequesterSignInController extends Controller
      */
     public static function complete(Request $request, string $token, SocialiteUser $identity): RedirectResponse
     {
-        $back = redirect()->route('share', $token);
+        $back = redirect()->route(PrintRequester::pageRoute($request->session()->pull(PrintRequester::RETURN_SESSION_KEY)), $token);
         $email = ResolveSsoUser::verifiedEmail($identity);
 
         if ($email === null) {
@@ -58,14 +59,16 @@ class PrintRequesterSignInController extends Controller
 
     public function signOut(Request $request, string $token): RedirectResponse
     {
+        $back = redirect()->route(PrintRequester::pageRoute($request->input('return')), $token);
+
         if (Auth::check()) {
-            return redirect()->route('share', $token);
+            return $back;
         }
 
         PrintRequester::forget();
         $request->session()->regenerate();
         $request->session()->regenerateToken();
 
-        return redirect()->route('share', $token);
+        return $back;
     }
 }
