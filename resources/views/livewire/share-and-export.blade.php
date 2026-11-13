@@ -45,6 +45,32 @@
                 @endif
             </div>
         </form>
+
+        @if ($accessRequests->isNotEmpty())
+            <div id="access-requests" class="mt-4 border-t border-stone-100 pt-4">
+                <h3 class="text-sm font-semibold">Access requests <span class="tabular-nums text-stone-500">{{ $accessRequests->count() }}</span></h3>
+                <p class="mt-1 text-xs text-stone-500">People who signed in on your link but are not on the list. Approving adds their email and tells them by email.</p>
+                <ul class="mt-2 divide-y divide-stone-100">
+                    @foreach ($accessRequests as $accessRequest)
+                        <li wire:key="access-request-{{ $accessRequest->id }}" class="flex flex-wrap items-start gap-3 py-2 text-sm">
+                            <div class="min-w-0 flex-1">
+                                <p><span class="font-medium">{{ $accessRequest->name }}</span> <span class="font-mono text-xs text-stone-500">{{ $accessRequest->email }}</span></p>
+                                @if ($accessRequest->message)
+                                    <p class="mt-0.5 whitespace-pre-line text-stone-600">{{ $accessRequest->message }}</p>
+                                @endif
+                                <p class="text-xs text-stone-500">{{ $accessRequest->created_at->format('j M Y, H:i') }}</p>
+                            </div>
+                            <div class="flex shrink-0 gap-2">
+                                <button type="button" wire:click="approveAccess({{ $accessRequest->id }})"
+                                        class="rounded-md bg-stone-900 px-3 py-1.5 text-white hover:bg-stone-700">Approve</button>
+                                <button type="button" wire:click="declineAccess({{ $accessRequest->id }})" wire:confirm="Decline {{ $accessRequest->email }}?"
+                                        class="rounded-md border border-stone-300 px-3 py-1.5 hover:bg-stone-50">Decline</button>
+                            </div>
+                        </li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
     </section>
 
     <section class="rounded-xl bg-white p-4 shadow-sm">

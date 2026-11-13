@@ -38,6 +38,25 @@ class User extends Authenticatable
         return $this->hasMany(PrintRequest::class);
     }
 
+    /** @return HasMany<AccessRequest, $this> */
+    public function accessRequests(): HasMany
+    {
+        return $this->hasMany(AccessRequest::class);
+    }
+
+    /**
+     * Add an email to the print requester list, unless an entry already covers it.
+     */
+    public function allowPrintRequester(string $email): void
+    {
+        $entries = $this->printRequesterAllowList();
+
+        if (! ResolveSsoUser::matchesAllowList($email, $entries)) {
+            $entries[] = Str::lower($email);
+            $this->forceFill(['print_requester_emails' => implode("\n", $entries)])->save();
+        }
+    }
+
     /** @return HasMany<Suggestion, $this> */
     public function suggestions(): HasMany
     {

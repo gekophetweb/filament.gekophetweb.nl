@@ -3,9 +3,13 @@
 namespace App\Livewire;
 
 use App\Actions\ImportSpools;
+use App\Enums\AccessRequestStatus;
+use App\Models\AccessRequest;
 use App\Models\User;
+use App\Notifications\AccessGranted;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Notification;
 use InvalidArgumentException;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -81,6 +85,35 @@ class ShareAndExport extends Component
         $this->printRequestersSaved = true;
     }
 
+    /**
+     * Add the person who asked to the requester list and email them that they can request prints now.
+     */
+    public function approveAccess(int $id): void
+    {
+        $accessRequest = $this->pendingAccessRequest($id);
+        $user = Auth::user();
+
+        $user->allowPrintRequester($accessRequest->email);
+        $accessRequest->forceFill(['status' => AccessRequestStatus::Approved])->save();
+        Notification::route('mail', [$accessRequest->email => $accessRequest->name])->notify(new AccessGranted($accessRequest));
+
+        $this->printRequesterEmails = implode("\n", $user->fresh()->printRequesterAllowList());
+    }
+
+    /** Decline quietly: the person sees on the share link that you do not take their requests. */
+    public function declineAccess(int $id): void
+    {
+        $this->pendingAccessRequest($id)->forceFill(['status' => AccessRequestStatus::Declined])->save();
+    }
+
+    /**
+     * One of your own pending access requests; anyone else's answers 404.
+     */
+    private function pendingAccessRequest(int $id): AccessRequest
+    {
+        return Auth::user()->accessRequests()->pending()->findOrFail($id);
+    }
+
     private static function isValidAllowListEntry(string $entry): bool
     {
         if ($entry === '*') {
@@ -96,6 +129,7 @@ class ShareAndExport extends Component
     {
         return view('livewire.share-and-export', [
             'shareUrl' => Auth::user()->shareUrl(),
+            'accessRequests' => Auth::user()->accessRequests()->pending()->oldest()->get(),
         ]);
     }
 }

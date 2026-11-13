@@ -167,6 +167,7 @@ class PrintRequests extends Component
                 'unread' => $user->printRequests()->unread()->count(),
             ],
             'shareUrl' => $user->shareUrl(),
+            'pendingAccessRequests' => $user->accessRequests()->pending()->count(),
             'emailsOn' => $user->emails_print_requests,
             'email' => $user->email,
         ]);

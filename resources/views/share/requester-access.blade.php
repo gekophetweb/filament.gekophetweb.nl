@@ -75,7 +75,28 @@
         @endif
     </div>
 @elseif (! $isAllowed)
-    <div class="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm" role="alert">
-        {{ $owner->name }} does not take print requests or suggestions from {{ $requester->email }}. Ask them to add you, or sign in with another account.
+    @php($accessRequest = $owner->accessRequests()->where('email', \Illuminate\Support\Str::lower($requester->email))->first())
+    <div class="mt-3 space-y-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm" role="alert">
+        {{-- Declined, or approved and later taken off the list again: the owner answered, so no new request. --}}
+        @if ($accessRequest && $accessRequest->status !== \App\Enums\AccessRequestStatus::Pending)
+            <p>{{ $owner->name }} does not take print requests or suggestions from {{ $requester->email }}. You can sign in with another account.</p>
+        @elseif ($accessRequest)
+            <p>
+                @if (session('access_requested')) Thanks. @endif
+                You asked {{ $owner->name }} for access on {{ $accessRequest->created_at->format('j M Y') }}.
+                You get an email at {{ $requester->email }} once they add you.
+            </p>
+        @else
+            <p>{{ $owner->name }} does not take print requests or suggestions from {{ $requester->email }} yet. Ask them to add you, or sign in with another account.</p>
+            <form method="POST" action="{{ route('share.access-requests.store', $owner->share_token) }}" class="space-y-2">
+                @csrf
+                <input type="hidden" name="return" value="{{ $page }}">
+                <textarea name="message" rows="2" maxlength="{{ \App\Models\AccessRequest::MAX_MESSAGE_LENGTH }}" aria-label="Note for {{ $owner->name }} (optional)"
+                          placeholder="Note for {{ $owner->name }} (optional): who you are, what you'd like printed…"
+                          class="w-full rounded-md border-amber-300 bg-white px-2 py-1.5 text-sm">{{ old('message') }}</textarea>
+                @error('message', 'accessRequest') <p class="text-xs text-red-700">{{ $message }}</p> @enderror
+                <button type="submit" class="rounded-md bg-stone-900 px-3 py-1.5 text-white hover:bg-stone-700">Ask {{ $owner->name }} for access</button>
+            </form>
+        @endif
     </div>
 @endif
