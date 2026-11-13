@@ -1,7 +1,7 @@
 <div class="max-w-3xl space-y-6">
     <h1 class="text-xl font-semibold">Devices and API tokens</h1>
     <p class="text-sm text-stone-500">
-        Create a token for the Android app or an MCP client. Read-only tokens cannot change anything.
+        Create a token for the Android app or an MCP client. Read-only tokens cannot change anything. Tokens created before print requests, suggestions and access requests were in the API cannot reach those; create a new one for that.
         API base URL: <code class="font-mono">{{ url('/api/v1') }}</code> · MCP endpoint: <code class="font-mono">{{ url('/mcp') }}</code>
     </p>
 

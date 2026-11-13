@@ -2,14 +2,12 @@
 
 namespace App\Livewire;
 
+use App\Actions\HandleAccessRequest;
 use App\Actions\ImportSpools;
-use App\Enums\AccessRequestStatus;
 use App\Models\AccessRequest;
 use App\Models\User;
-use App\Notifications\AccessGranted;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Notification;
 use InvalidArgumentException;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -88,22 +86,17 @@ class ShareAndExport extends Component
     /**
      * Add the person who asked to the requester list and email them that they can request prints now.
      */
-    public function approveAccess(int $id): void
+    public function approveAccess(int $id, HandleAccessRequest $handle): void
     {
-        $accessRequest = $this->pendingAccessRequest($id);
-        $user = Auth::user();
+        $handle->approve($this->pendingAccessRequest($id));
 
-        $user->allowPrintRequester($accessRequest->email);
-        $accessRequest->forceFill(['status' => AccessRequestStatus::Approved])->save();
-        Notification::route('mail', [$accessRequest->email => $accessRequest->name])->notify(new AccessGranted($accessRequest));
-
-        $this->printRequesterEmails = implode("\n", $user->fresh()->printRequesterAllowList());
+        $this->printRequesterEmails = implode("\n", Auth::user()->fresh()->printRequesterAllowList());
     }
 
     /** Decline quietly: the person sees on the share link that you do not take their requests. */
-    public function declineAccess(int $id): void
+    public function declineAccess(int $id, HandleAccessRequest $handle): void
     {
-        $this->pendingAccessRequest($id)->forceFill(['status' => AccessRequestStatus::Declined])->save();
+        $handle->decline($this->pendingAccessRequest($id));
     }
 
     /**

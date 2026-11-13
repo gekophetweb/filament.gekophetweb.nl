@@ -5,9 +5,16 @@ namespace App\Support;
 use App\Actions\AddSpool;
 use App\Actions\DevicePairing;
 use App\Actions\SearchCatalog;
+use App\Enums\AccessRequestStatus;
+use App\Enums\PrintRequestStatus;
 use App\Enums\SpoolEventType;
 use App\Enums\SpoolStatus;
+use App\Enums\SuggestionStatus;
+use App\Http\Controllers\Api\PrintRequestController;
+use App\Http\Controllers\Api\SuggestionController;
 use App\Http\Middleware\ThrottleAuthFailures;
+use App\Livewire\Devices;
+use App\Models\Suggestion;
 
 /**
  * The public REST API reference as an OpenAPI 3.1 document. The docs page and
@@ -21,6 +28,9 @@ class ApiDocumentation
         'Account' => 'Who the token belongs to.',
         'Catalog' => 'Every filament the tracker knows about, with your own counts.',
         'Spools' => 'Your own spools. Spools are counted, not weighed.',
+        'Print requests' => 'Requests to print something, sent through your share link. Needs a token with `requests:read` / `requests:write`.',
+        'Suggestions' => 'Ideas and feedback sent through your share link\'s suggestion box, with their conversation.',
+        'Access requests' => 'People who signed in on your share link, are not on your requester list, and asked to be added.',
     ];
 
     /** @return array<string, mixed> */
@@ -42,7 +52,8 @@ class ApiDocumentation
                     'bearer' => [
                         'type' => 'http',
                         'scheme' => 'bearer',
-                        'description' => 'A token from the Devices page, or from POST /pair. Read-only tokens have `spools:read`; read-write tokens also have `spools:write`.',
+                        'description' => 'A token from the Devices page, or from POST /pair. Read-only tokens have `spools:read` and `requests:read`; read-write tokens also have `spools:write` and `requests:write`. '
+                            .'Tokens made before the request endpoints existed only have the `spools:` abilities.',
                     ],
                 ],
                 'schemas' => $this->schemas(),
@@ -145,7 +156,7 @@ class ApiDocumentation
                             'data' => [
                                 'token' => '7|kq3J1nVb0pXr8eLw2YtZ5aGc9hDf4sMu6iOyTlNe',
                                 'token_type' => 'Bearer',
-                                'abilities' => ['spools:read', 'spools:write'],
+                                'abilities' => Devices::ABILITIES['write'],
                                 'expires_at' => '2027-11-07T12:00:00+00:00',
                                 'api' => url('/api/v1'),
                                 'user' => ['name' => 'Alex', 'email' => 'alex@example.com'],
@@ -170,7 +181,7 @@ class ApiDocumentation
                     'summary' => 'The token\'s user and abilities',
                     'description' => 'Handy to check that a token works and whether it can write.',
                     'responses' => [
-                        200 => $this->ok('The user.', 'Me', ['data' => ['id' => 1, 'name' => 'Alex', 'email' => 'alex@example.com', 'abilities' => ['spools:read', 'spools:write']]]),
+                        200 => $this->ok('The user.', 'Me', ['data' => ['id' => 1, 'name' => 'Alex', 'email' => 'alex@example.com', 'abilities' => Devices::ABILITIES['write']]]),
                         401 => ['$ref' => '#/components/responses/Unauthenticated'],
                         429 => ['$ref' => '#/components/responses/TooManyRequests'],
                     ],
@@ -342,6 +353,217 @@ class ApiDocumentation
                     ),
                 ],
             ],
+            ...$this->requestPaths($page),
+        ];
+    }
+
+    /**
+     * Print requests, suggestions and access requests.
+     *
+     * @param  array<string, mixed>  $page
+     * @return array<string, mixed>
+     */
+    private function requestPaths(array $page): array
+    {
+        $requestUuid = ['name' => 'uuid', 'in' => 'path', 'required' => true, 'schema' => ['type' => 'string', 'format' => 'uuid'], 'description' => 'The print request\'s `uuid`. Someone else\'s answers 404.'];
+        $suggestionUuid = ['name' => 'uuid', 'in' => 'path', 'required' => true, 'schema' => ['type' => 'string', 'format' => 'uuid'], 'description' => 'The suggestion\'s `uuid`. Someone else\'s answers 404.'];
+        $accessId = ['name' => 'id', 'in' => 'path', 'required' => true, 'schema' => ['type' => 'integer'], 'description' => 'The access request `id`. Someone else\'s answers 404.'];
+        $perPage = fn (int $max) => ['name' => 'per_page', 'in' => 'query', 'schema' => ['type' => 'integer', 'minimum' => 1, 'maximum' => $max, 'default' => 50], 'description' => "Items per page, at most {$max}."];
+        $folder = fn (string $toHandle) => ['name' => 'folder', 'in' => 'query', 'schema' => ['type' => 'string', 'enum' => PrintRequestController::FOLDERS, 'default' => 'all'], 'description' => "As in the inbox: `open` still to handle ({$toHandle}), `unread`, or `all`."];
+        $read = ['type' => 'boolean', 'description' => '`true` marks it read, `false` unread again (it then counts in the `unread` folder).'];
+        $printRequest = $this->ok('The print request.', 'PrintRequest', ['data' => $this->examplePrintRequest()]);
+        $suggestion = $this->ok('The suggestion with its conversation.', 'Suggestion', ['data' => $this->exampleSuggestion(withMessages: true)]);
+        $accessRequest = $this->ok('The access request.', 'AccessRequest', ['data' => $this->exampleAccessRequest()]);
+
+        return [
+            '/print-requests' => [
+                'get' => [
+                    'tags' => ['Print requests'],
+                    'operationId' => 'listPrintRequests',
+                    'summary' => 'List print requests',
+                    'description' => 'Newest first. Listing does not mark anything read.',
+                    'x-ability' => 'requests:read',
+                    'parameters' => [
+                        $folder('`open` or `accepted`'),
+                        ['name' => 'status', 'in' => 'query', 'schema' => ['type' => 'string', 'enum' => $this->values(PrintRequestStatus::cases())], 'description' => 'Only requests with this status.'],
+                        $perPage(PrintRequestController::MAX_PER_PAGE),
+                        $page,
+                    ],
+                    'responses' => [
+                        200 => $this->ok('A page of print requests.', 'PrintRequestPage', $this->examplePage([$this->examplePrintRequest()], '/print-requests')),
+                        401 => ['$ref' => '#/components/responses/Unauthenticated'],
+                        403 => ['$ref' => '#/components/responses/MissingAbility'],
+                        422 => ['$ref' => '#/components/responses/ValidationFailed'],
+                        429 => ['$ref' => '#/components/responses/TooManyRequests'],
+                    ],
+                ],
+            ],
+            '/print-requests/{uuid}' => [
+                'get' => [
+                    'tags' => ['Print requests'],
+                    'operationId' => 'getPrintRequest',
+                    'summary' => 'One print request',
+                    'description' => 'With the estimated filament and cost when it came with an STL. Does not mark it read; PATCH `read` does.',
+                    'x-ability' => 'requests:read',
+                    'parameters' => [$requestUuid],
+                    'responses' => $this->spoolResponses($printRequest, write: false),
+                ],
+                'patch' => [
+                    'tags' => ['Print requests'],
+                    'operationId' => 'updatePrintRequest',
+                    'summary' => 'Accept, decline, reply, or mark read',
+                    'description' => 'Send only the fields to change. A new or changed `reply` is emailed to the requester; `meta.reply_emailed_to` then holds the address. '
+                        .'An empty `reply` or `private_note` clears it.',
+                    'x-ability' => 'requests:write',
+                    'parameters' => [$requestUuid],
+                    'requestBody' => $this->jsonBody([
+                        'status' => ['type' => 'string', 'enum' => $this->values(PrintRequestStatus::cases()), 'description' => '`accepted` or `declined` for a new request, `printed` once done, `open` to reopen.'],
+                        'reply' => ['type' => ['string', 'null'], 'maxLength' => 2000, 'description' => 'Shown to the requester on the share link.'],
+                        'private_note' => ['type' => ['string', 'null'], 'maxLength' => 2000, 'description' => 'Only you see it.'],
+                        'read' => $read,
+                    ]),
+                    'responses' => $this->spoolResponses($this->ok('The changed print request.', 'PrintRequestUpdated', [
+                        'data' => [...$this->examplePrintRequest(), 'status' => PrintRequestStatus::Accepted->value, 'reply' => 'Ready on Friday'],
+                        'meta' => ['reply_emailed_to' => 'sam@example.com'],
+                    ])),
+                ],
+                'delete' => [
+                    'tags' => ['Print requests'],
+                    'operationId' => 'deletePrintRequest',
+                    'summary' => 'Delete a print request',
+                    'description' => 'Deletes it and its STL file for good. The requester no longer sees it either.',
+                    'x-ability' => 'requests:write',
+                    'parameters' => [$requestUuid],
+                    'responses' => [204 => ['description' => 'Deleted. No body.']] + array_diff_key($this->spoolResponses($printRequest, write: false), [200 => true]),
+                ],
+            ],
+            '/print-requests/{uuid}/stl' => [
+                'get' => [
+                    'tags' => ['Print requests'],
+                    'operationId' => 'downloadPrintRequestStl',
+                    'summary' => 'Download the STL',
+                    'description' => 'The uploaded file as `application/octet-stream`, with its original name. 404 when the request has no STL.',
+                    'x-ability' => 'requests:read',
+                    'parameters' => [$requestUuid],
+                    'responses' => [
+                        200 => ['description' => 'The STL file.', 'content' => ['application/octet-stream' => ['schema' => ['type' => 'string', 'format' => 'binary']]]],
+                    ] + array_diff_key($this->spoolResponses($printRequest, write: false), [200 => true]),
+                ],
+            ],
+            '/suggestions' => [
+                'get' => [
+                    'tags' => ['Suggestions'],
+                    'operationId' => 'listSuggestions',
+                    'summary' => 'List suggestions',
+                    'description' => 'Latest activity first, with `messages_count` but without the messages. Listing does not mark anything read.',
+                    'x-ability' => 'requests:read',
+                    'parameters' => [
+                        $folder('`open` or `planned`'),
+                        ['name' => 'status', 'in' => 'query', 'schema' => ['type' => 'string', 'enum' => $this->values(SuggestionStatus::cases())], 'description' => 'Only suggestions with this status.'],
+                        $perPage(SuggestionController::MAX_PER_PAGE),
+                        $page,
+                    ],
+                    'responses' => [
+                        200 => $this->ok('A page of suggestions.', 'SuggestionPage', $this->examplePage([$this->exampleSuggestion()], '/suggestions')),
+                        401 => ['$ref' => '#/components/responses/Unauthenticated'],
+                        403 => ['$ref' => '#/components/responses/MissingAbility'],
+                        422 => ['$ref' => '#/components/responses/ValidationFailed'],
+                        429 => ['$ref' => '#/components/responses/TooManyRequests'],
+                    ],
+                ],
+            ],
+            '/suggestions/{uuid}' => [
+                'get' => [
+                    'tags' => ['Suggestions'],
+                    'operationId' => 'getSuggestion',
+                    'summary' => 'One suggestion with its conversation',
+                    'description' => '`messages` holds your replies (`from_owner: true`) and the requester\'s answers, oldest first.',
+                    'x-ability' => 'requests:read',
+                    'parameters' => [$suggestionUuid],
+                    'responses' => $this->spoolResponses($suggestion, write: false),
+                ],
+                'patch' => [
+                    'tags' => ['Suggestions'],
+                    'operationId' => 'updateSuggestion',
+                    'summary' => 'Set the status, or mark read',
+                    'x-ability' => 'requests:write',
+                    'parameters' => [$suggestionUuid],
+                    'requestBody' => $this->jsonBody([
+                        'status' => ['type' => 'string', 'enum' => $this->values(SuggestionStatus::cases()), 'description' => 'The requester sees it on the share link.'],
+                        'read' => $read,
+                    ]),
+                    'responses' => $this->spoolResponses($suggestion),
+                ],
+                'delete' => [
+                    'tags' => ['Suggestions'],
+                    'operationId' => 'deleteSuggestion',
+                    'summary' => 'Delete a suggestion',
+                    'description' => 'Deletes it and its conversation for good.',
+                    'x-ability' => 'requests:write',
+                    'parameters' => [$suggestionUuid],
+                    'responses' => [204 => ['description' => 'Deleted. No body.']] + array_diff_key($this->spoolResponses($suggestion, write: false), [200 => true]),
+                ],
+            ],
+            '/suggestions/{uuid}/messages' => [
+                'post' => [
+                    'tags' => ['Suggestions'],
+                    'operationId' => 'replyToSuggestion',
+                    'summary' => 'Reply to a suggestion',
+                    'description' => 'Adds your reply to the conversation and emails it to the requester; `meta.emailed_to` holds the address.',
+                    'x-ability' => 'requests:write',
+                    'parameters' => [$suggestionUuid],
+                    'requestBody' => $this->jsonBody([
+                        'body' => ['type' => 'string', 'maxLength' => Suggestion::MAX_LENGTH, 'description' => 'The reply.'],
+                    ], required: ['body']),
+                    'responses' => [
+                        201 => $this->ok('The new message.', 'SuggestionMessageCreated', [
+                            'data' => ['from_owner' => true, 'body' => 'Good idea, I will print a few.', 'created_at' => '2026-11-13T15:00:00+00:00'],
+                            'meta' => ['emailed_to' => 'sam@example.com'],
+                        ]),
+                    ] + array_diff_key($this->spoolResponses($suggestion), [200 => true]),
+                ],
+            ],
+            '/access-requests' => [
+                'get' => [
+                    'tags' => ['Access requests'],
+                    'operationId' => 'listAccessRequests',
+                    'summary' => 'List access requests',
+                    'description' => 'Oldest first, at most 200. Pending ones unless `status` says otherwise.',
+                    'x-ability' => 'requests:read',
+                    'parameters' => [
+                        ['name' => 'status', 'in' => 'query', 'schema' => ['type' => 'string', 'enum' => $this->values(AccessRequestStatus::cases()), 'default' => AccessRequestStatus::Pending->value], 'description' => 'Which ones to list.'],
+                    ],
+                    'responses' => [
+                        200 => $this->ok('The access requests.', 'AccessRequestList', ['data' => [$this->exampleAccessRequest()]]),
+                        401 => ['$ref' => '#/components/responses/Unauthenticated'],
+                        403 => ['$ref' => '#/components/responses/MissingAbility'],
+                        422 => ['$ref' => '#/components/responses/ValidationFailed'],
+                        429 => ['$ref' => '#/components/responses/TooManyRequests'],
+                    ],
+                ],
+            ],
+            '/access-requests/{id}/approve' => [
+                'post' => [
+                    'tags' => ['Access requests'],
+                    'operationId' => 'approveAccessRequest',
+                    'summary' => 'Approve an access request',
+                    'description' => 'Adds the email to your requester list and emails the person that they can send requests now. One that was already handled answers 422.',
+                    'x-ability' => 'requests:write',
+                    'parameters' => [$accessId],
+                    'responses' => $this->spoolResponses($this->ok('The approved access request.', 'AccessRequest', ['data' => [...$this->exampleAccessRequest(), 'status' => AccessRequestStatus::Approved->value]])),
+                ],
+            ],
+            '/access-requests/{id}/decline' => [
+                'post' => [
+                    'tags' => ['Access requests'],
+                    'operationId' => 'declineAccessRequest',
+                    'summary' => 'Decline an access request',
+                    'description' => 'Quietly: no email. The person sees on the share link that you do not take their requests. One that was already handled answers 422.',
+                    'x-ability' => 'requests:write',
+                    'parameters' => [$accessId],
+                    'responses' => $this->spoolResponses($accessRequest),
+                ],
+            ],
         ];
     }
 
@@ -404,6 +626,92 @@ class ApiDocumentation
                     'created_at' => ['type' => 'string', 'format' => 'date-time'],
                 ],
             ],
+            'PrintRequestData' => [
+                'type' => 'object',
+                'properties' => [
+                    'uuid' => ['type' => 'string', 'format' => 'uuid'],
+                    'status' => ['type' => 'string', 'enum' => $this->values(PrintRequestStatus::cases())],
+                    'requester_name' => ['type' => 'string'],
+                    'requester_email' => $nullable('string', 'The requester\'s verified sign-in email.'),
+                    'model_url' => $nullable('string', 'Link to the model, when given.'),
+                    'stl' => ['type' => ['object', 'null'], 'description' => 'The uploaded STL, or null with only a link.', 'properties' => [
+                        'name' => ['type' => 'string', 'description' => 'Original file name.'],
+                        'size' => ['type' => 'integer', 'description' => 'Bytes.'],
+                        'dimensions' => ['type' => ['array', 'null'], 'items' => ['type' => 'number'], 'description' => 'Width, depth and height in millimetres.'],
+                        'volume' => $nullable('number', 'Cubic millimetres.'),
+                        'download_url' => ['type' => 'string', 'description' => 'GET it with the same token.'],
+                    ]],
+                    'estimate' => ['type' => ['object', 'null'], 'description' => 'Rough filament estimate from the STL, without supports. Null without a measured STL.', 'properties' => [
+                        'grams_low' => ['type' => 'integer'],
+                        'grams_high' => ['type' => 'integer'],
+                        'label' => ['type' => 'string', 'description' => 'For example `≈ 24–40 g of PLA`.'],
+                        'price_label' => ['type' => 'string', 'description' => 'Filament cost at the configured spool price, for example `≈ €0.43–0.72`.'],
+                        'looks_mis_scaled' => ['type' => 'boolean', 'description' => 'The size suggests the STL is not in millimetres.'],
+                    ]],
+                    'colors' => ['type' => 'array', 'description' => 'Filaments the requester picked, in their order.', 'items' => ['type' => 'object', 'properties' => [
+                        'id' => ['type' => 'integer', 'description' => 'The catalog product `id`.'],
+                        'article_name' => ['type' => 'string'],
+                        'article_number' => ['type' => 'string'],
+                        'material' => $nullable('string', 'Material, such as PLA.'),
+                        'color_hex' => $nullable('string', '`#RRGGBB`.'),
+                    ]]],
+                    'notes' => $nullable('string', 'The requester\'s notes.'),
+                    'reply' => $nullable('string', 'Your reply, shown to the requester.'),
+                    'private_note' => $nullable('string', 'Your note, only for you.'),
+                    'read_at' => $nullable('string', 'When you read it; null while unread.', ['format' => 'date-time']),
+                    'created_at' => ['type' => 'string', 'format' => 'date-time'],
+                    'updated_at' => ['type' => 'string', 'format' => 'date-time'],
+                ],
+            ],
+            'SuggestionMessageData' => [
+                'type' => 'object',
+                'properties' => [
+                    'from_owner' => ['type' => 'boolean', 'description' => '`true` for your replies, `false` for the requester\'s answers.'],
+                    'body' => ['type' => 'string'],
+                    'created_at' => ['type' => 'string', 'format' => 'date-time'],
+                ],
+            ],
+            'SuggestionData' => [
+                'type' => 'object',
+                'properties' => [
+                    'uuid' => ['type' => 'string', 'format' => 'uuid'],
+                    'status' => ['type' => 'string', 'enum' => $this->values(SuggestionStatus::cases())],
+                    'requester_name' => ['type' => 'string'],
+                    'requester_email' => ['type' => 'string', 'description' => 'The requester\'s verified sign-in email.'],
+                    'body' => ['type' => 'string', 'description' => 'The suggestion itself.'],
+                    'messages_count' => ['type' => 'integer'],
+                    'messages' => ['type' => 'array', 'items' => ['$ref' => '#/components/schemas/SuggestionMessageData'], 'description' => 'Only on a single suggestion.'],
+                    'read_at' => $nullable('string', 'When you read it; null while unread. An answer from the requester makes it unread again.', ['format' => 'date-time']),
+                    'created_at' => ['type' => 'string', 'format' => 'date-time'],
+                    'updated_at' => ['type' => 'string', 'format' => 'date-time', 'description' => 'Last activity, new messages included.'],
+                ],
+            ],
+            'AccessRequestData' => [
+                'type' => 'object',
+                'properties' => [
+                    'id' => ['type' => 'integer'],
+                    'status' => ['type' => 'string', 'enum' => $this->values(AccessRequestStatus::cases())],
+                    'name' => ['type' => 'string'],
+                    'email' => ['type' => 'string', 'description' => 'Their verified sign-in email.'],
+                    'message' => $nullable('string', 'What they wrote with the request.'),
+                    'created_at' => ['type' => 'string', 'format' => 'date-time'],
+                    'updated_at' => ['type' => 'string', 'format' => 'date-time'],
+                ],
+            ],
+            'PrintRequest' => $wrap('PrintRequestData'),
+            'PrintRequestPage' => $pageOf('PrintRequestData'),
+            'PrintRequestUpdated' => ['type' => 'object', 'properties' => [
+                'data' => ['$ref' => '#/components/schemas/PrintRequestData'],
+                'meta' => ['type' => 'object', 'properties' => ['reply_emailed_to' => ['type' => ['string', 'null'], 'description' => 'Where the reply was emailed; null when no email went out.']]],
+            ]],
+            'Suggestion' => $wrap('SuggestionData'),
+            'SuggestionPage' => $pageOf('SuggestionData'),
+            'SuggestionMessageCreated' => ['type' => 'object', 'properties' => [
+                'data' => ['$ref' => '#/components/schemas/SuggestionMessageData'],
+                'meta' => ['type' => 'object', 'properties' => ['emailed_to' => ['type' => 'string']]],
+            ]],
+            'AccessRequest' => $wrap('AccessRequestData'),
+            'AccessRequestList' => ['type' => 'object', 'properties' => ['data' => ['type' => 'array', 'items' => ['$ref' => '#/components/schemas/AccessRequestData']]]],
             'Product' => $wrap('ProductData'),
             'Spool' => $wrap('SpoolData'),
             'SpoolList' => ['type' => 'object', 'properties' => ['data' => ['type' => 'array', 'items' => ['$ref' => '#/components/schemas/SpoolData']]]],
@@ -563,6 +871,73 @@ class ApiDocumentation
             'updated_at' => '2026-11-01T09:30:00+00:00',
             'deleted_at' => null,
         ]];
+    }
+
+    /** @return array<string, mixed> */
+    private function examplePrintRequest(): array
+    {
+        return [
+            'uuid' => '6b1e0c3a-2f4d-4e8a-9c7b-1d5f3a9e2c80',
+            'status' => PrintRequestStatus::Open->value,
+            'requester_name' => 'Sam',
+            'requester_email' => 'sam@example.com',
+            'model_url' => null,
+            'stl' => [
+                'name' => 'benchy.stl',
+                'size' => 1_210_884,
+                'dimensions' => [60.0, 31.0, 48.0],
+                'volume' => 15_420.5,
+                'download_url' => url('/api/v1/print-requests/6b1e0c3a-2f4d-4e8a-9c7b-1d5f3a9e2c80/stl'),
+            ],
+            'estimate' => [
+                'grams_low' => 6,
+                'grams_high' => 10,
+                'label' => '≈ 6–10 g of PLA',
+                'price_label' => '≈ €0.11–0.18',
+                'looks_mis_scaled' => false,
+            ],
+            'colors' => [['id' => 1, 'article_name' => 'Jade White', 'article_number' => '10100', 'material' => 'PLA', 'color_hex' => '#FFFFFF']],
+            'notes' => 'Two please.',
+            'reply' => null,
+            'private_note' => null,
+            'read_at' => null,
+            'created_at' => '2026-11-12T19:04:11+00:00',
+            'updated_at' => '2026-11-12T19:04:11+00:00',
+        ];
+    }
+
+    /** @return array<string, mixed> */
+    private function exampleSuggestion(bool $withMessages = false): array
+    {
+        return array_filter([
+            'uuid' => 'c2a7e5d1-8b3f-4a6c-9e0d-7f1b2c3d4e5a',
+            'status' => SuggestionStatus::Planned->value,
+            'requester_name' => 'Sam',
+            'requester_email' => 'sam@example.com',
+            'body' => 'Could you stock a glow-in-the-dark PLA?',
+            'messages_count' => 2,
+            'messages' => $withMessages ? [
+                ['from_owner' => true, 'body' => 'Good idea, ordering one.', 'created_at' => '2026-11-12T20:00:00+00:00'],
+                ['from_owner' => false, 'body' => 'Thanks!', 'created_at' => '2026-11-12T20:15:00+00:00'],
+            ] : null,
+            'read_at' => '2026-11-12T19:30:00+00:00',
+            'created_at' => '2026-11-12T19:10:00+00:00',
+            'updated_at' => '2026-11-12T20:15:00+00:00',
+        ], fn ($value) => $value !== null);
+    }
+
+    /** @return array<string, mixed> */
+    private function exampleAccessRequest(): array
+    {
+        return [
+            'id' => 3,
+            'status' => AccessRequestStatus::Pending->value,
+            'name' => 'Robin',
+            'email' => 'robin@example.org',
+            'message' => 'Sam told me about your printer.',
+            'created_at' => '2026-11-13T08:45:00+00:00',
+            'updated_at' => '2026-11-13T08:45:00+00:00',
+        ];
     }
 
     /**

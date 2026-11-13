@@ -18,9 +18,10 @@ use Livewire\Component;
 #[Title('Devices')]
 class Devices extends Component
 {
+    /** Tokens made before the requests:* abilities existed keep only the spools:* ones until they are re-created. */
     public const ABILITIES = [
-        'read' => ['spools:read'],
-        'write' => ['spools:read', 'spools:write'],
+        'read' => ['spools:read', 'requests:read'],
+        'write' => ['spools:read', 'spools:write', 'requests:read', 'requests:write'],
     ];
 
     #[Validate('required|string|max:60')]
