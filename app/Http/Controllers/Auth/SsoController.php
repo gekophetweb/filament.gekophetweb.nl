@@ -42,7 +42,7 @@ class SsoController extends Controller
             Log::warning('SSO callback failed', ['error' => $e->getMessage(), 'ip' => $request->ip()]);
 
             return is_string($requesterToken)
-                ? redirect()->route('share', $requesterToken)->with('print_requester_error', 'Sign-in failed. Please try again.')
+                ? redirect()->route(PrintRequester::pageRoute($request->session()->pull(PrintRequester::RETURN_SESSION_KEY)), $requesterToken)->with('print_requester_error', 'Sign-in failed. Please try again.')
                 : redirect()->route('login')->with('error', 'Sign-in failed. Please try again.');
         }
 

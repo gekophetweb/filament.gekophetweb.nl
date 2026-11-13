@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\SuggestionStatus;
 use App\Models\Suggestion;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -24,5 +25,10 @@ class SuggestionFactory extends Factory
     public function read(): static
     {
         return $this->state(['read_at' => now()]);
+    }
+
+    public function status(SuggestionStatus $status): static
+    {
+        return $this->state(['status' => $status]);
     }
 }

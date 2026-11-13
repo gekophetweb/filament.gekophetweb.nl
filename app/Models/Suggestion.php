@@ -2,12 +2,14 @@
 
 namespace App\Models;
 
+use App\Enums\SuggestionStatus;
 use Database\Factories\SuggestionFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
 
 /**
@@ -21,6 +23,11 @@ class Suggestion extends Model
     use HasFactory;
 
     public const MAX_LENGTH = 2000;
+
+    /** Same as the column default, so a suggestion created in this request has it too. */
+    protected $attributes = [
+        'status' => 'open',
+    ];
 
     protected static function booted(): void
     {
@@ -37,6 +44,7 @@ class Suggestion extends Model
     protected function casts(): array
     {
         return [
+            'status' => SuggestionStatus::class,
             'read_at' => 'datetime',
         ];
     }
@@ -68,5 +76,37 @@ class Suggestion extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Replies and answers after the suggestion itself, oldest first.
+     *
+     * @return HasMany<SuggestionMessage, $this>
+     */
+    public function messages(): HasMany
+    {
+        return $this->hasMany(SuggestionMessage::class)->oldest()->orderBy('id');
+    }
+
+    /**
+     * Add a message to the conversation. An answer from the requester marks the suggestion unread for the owner.
+     */
+    public function addMessage(string $body, bool $fromOwner): SuggestionMessage
+    {
+        $message = $this->messages()->create(['from_owner' => $fromOwner, 'body' => trim($body)]);
+
+        if (! $fromOwner) {
+            $this->markUnread();
+        }
+
+        $this->touch();
+
+        return $message;
+    }
+
+    /** @param  Builder<Suggestion>  $query */
+    public function scopeToHandle(Builder $query): void
+    {
+        $query->whereIn('status', SuggestionStatus::toHandle());
     }
 }

@@ -1,10 +1,14 @@
 <?php
 
+use App\Enums\SuggestionStatus;
 use App\Livewire\Suggestions;
 use App\Models\Suggestion;
 use App\Models\User;
+use App\Notifications\PrintRequesterCode;
 use App\Notifications\SuggestionReceived;
+use App\Notifications\SuggestionReplied;
 use App\Support\PrintRequester;
+use Illuminate\Notifications\AnonymousNotifiable;
 use Illuminate\Support\Facades\Notification;
 use Livewire\Livewire;
 
@@ -28,16 +32,134 @@ function suggestionUrl(User $owner): string
     return route('share.suggestions.store', $owner->share_token);
 }
 
+function suggestionsPage(User $owner): string
+{
+    return route('share.suggestions', $owner->share_token);
+}
+
+it('gives suggestions their own tab on the share link', function () {
+    $owner = suggestionOwner();
+    asSuggestionRequester();
+
+    $this->get($owner->shareUrl())->assertOk()
+        ->assertSee(suggestionsPage($owner), false)
+        ->assertDontSee('action="'.suggestionUrl($owner).'"', false);
+    $this->get(suggestionsPage($owner))->assertOk()
+        ->assertHeader('X-Robots-Tag', 'noindex, nofollow')
+        ->assertSee(['Suggestions for', $owner->shareUrl(), 'action="'.suggestionUrl($owner).'"'], false);
+});
+
+it('shows requesters their own suggestions with the status and the conversation', function () {
+    $owner = suggestionOwner();
+    $mine = Suggestion::factory()->for($owner)->status(SuggestionStatus::Planned)->create(['requester_email' => 'sam@example.com', 'body' => 'Get some silk gold']);
+    $mine->addMessage('Good idea, ordering it this week', fromOwner: true);
+    Suggestion::factory()->for($owner)->create(['requester_email' => 'other@example.com', 'body' => 'Not my idea']);
+    Suggestion::factory()->create(['requester_email' => 'sam@example.com', 'body' => 'For another owner']);
+    asSuggestionRequester();
+
+    $this->get(suggestionsPage($owner))->assertOk()
+        ->assertSee(['Your suggestions', 'Planned', 'Get some silk gold', 'Good idea, ordering it this week'])
+        ->assertSee(route('share.suggestions.answer', [$owner->share_token, $mine->uuid]), false)
+        ->assertDontSee(['Not my idea', 'For another owner']);
+});
+
+it('lets the requester answer the owner\'s reply, which emails the owner and marks it unread', function () {
+    Notification::fake();
+    $owner = suggestionOwner();
+    $mine = Suggestion::factory()->for($owner)->read()->create(['requester_email' => 'sam@example.com', 'requester_name' => 'Sam']);
+    $mine->addMessage('Which brand?', fromOwner: true);
+    asSuggestionRequester();
+
+    $this->post(route('share.suggestions.answer', [$owner->share_token, $mine->uuid]), ['body' => 'Bambu Lab please'])
+        ->assertRedirect(suggestionsPage($owner).'#suggestion-'.$mine->uuid);
+
+    expect($mine->fresh()->messages->pluck('body')->all())->toBe(['Which brand?', 'Bambu Lab please'])
+        ->and($mine->fresh()->isUnread())->toBeTrue();
+    Notification::assertSentTo($owner, SuggestionReceived::class, fn (SuggestionReceived $n) => $n->answer?->body === 'Bambu Lab please'
+        && $n->toMail($owner)->subject === 'Sam answered on their suggestion');
+});
+
+it('does not let a requester answer someone else\'s suggestion', function () {
+    $owner = suggestionOwner();
+    $theirs = Suggestion::factory()->for($owner)->create(['requester_email' => 'other@example.com']);
+    asSuggestionRequester();
+
+    $this->post(route('share.suggestions.answer', [$owner->share_token, $theirs->uuid]), ['body' => 'Hi'])->assertNotFound();
+    expect($theirs->messages()->count())->toBe(0);
+});
+
+it('lets the owner set the status and reply, emailing the reply to the requester', function () {
+    Notification::fake();
+    $owner = suggestionOwner();
+    $suggestion = Suggestion::factory()->for($owner)->create(['requester_email' => 'sam@example.com', 'requester_name' => 'Sam']);
+
+    Livewire::actingAs($owner)->test(Suggestions::class)
+        ->call('open', $suggestion->uuid)
+        ->call('setStatus', $suggestion->uuid, 'planned')
+        ->call('sendReply')
+        ->assertHasErrors('reply')
+        ->set('reply', 'Ordering it this week')
+        ->call('sendReply')
+        ->assertHasNoErrors()
+        ->assertSet('reply', '')
+        ->assertSee(['Ordering it this week', 'Sent, and emailed to sam@example.com']);
+
+    $suggestion->refresh();
+    expect($suggestion->status)->toBe(SuggestionStatus::Planned)
+        ->and($suggestion->messages->sole())->from_owner->toBeTrue()->body->toBe('Ordering it this week')
+        ->and($suggestion->isUnread())->toBeFalse();
+    Notification::assertSentOnDemand(SuggestionReplied::class, function (SuggestionReplied $n, array $channels, AnonymousNotifiable $notifiable) use ($owner) {
+        $mail = $n->toMail($notifiable);
+
+        return $notifiable->routes['mail'] === ['sam@example.com' => 'Sam']
+            && in_array('Ordering it this week', $mail->introLines, true)
+            && in_array('Status: Planned.', $mail->introLines, true)
+            && $mail->actionUrl === route('share.suggestions', $owner->share_token);
+    });
+});
+
+it('keeps done and declined suggestions out of the open folder', function () {
+    $owner = user();
+    Suggestion::factory()->for($owner)->status(SuggestionStatus::Planned)->create(['requester_name' => 'Planned Pat']);
+    Suggestion::factory()->for($owner)->status(SuggestionStatus::Done)->create(['requester_name' => 'Done Dana']);
+
+    Livewire::actingAs($owner)->test(Suggestions::class)
+        ->assertSee('Planned Pat')
+        ->assertDontSee('Done Dana')
+        ->set('show', 'all')
+        ->assertSee(['Planned Pat', 'Done Dana']);
+});
+
+it('rejects a status that does not exist', function () {
+    $owner = user();
+    $suggestion = Suggestion::factory()->for($owner)->create();
+
+    Livewire::actingAs($owner)->test(Suggestions::class)->call('setStatus', $suggestion->uuid, 'shipped')->assertStatus(422);
+});
+
+it('comes back to the suggestions tab after signing in with an email code', function () {
+    Notification::fake();
+    $owner = suggestionOwner('friend@example.com');
+
+    $this->post(route('share.email-code', $owner->share_token), ['name' => 'Friend', 'email' => 'friend@example.com', 'return' => 'suggestions'])
+        ->assertRedirect(suggestionsPage($owner));
+    $code = Notification::sent(new AnonymousNotifiable, PrintRequesterCode::class)->last()->code;
+
+    $this->post(route('share.email-code.verify', $owner->share_token), ['code' => $code, 'return' => 'suggestions'])
+        ->assertRedirect(suggestionsPage($owner));
+    $this->get(suggestionsPage($owner))->assertSee(['Signed in as', 'friend@example.com', 'action="'.suggestionUrl($owner).'"'], false);
+});
+
 it('shows the suggestion box to allowed requesters only', function () {
     $owner = suggestionOwner('friend@example.com');
 
-    $this->get($owner->shareUrl())->assertDontSee(suggestionUrl($owner), false);
+    $this->get(suggestionsPage($owner))->assertDontSee('action="'.suggestionUrl($owner).'"', false);
 
     asSuggestionRequester('stranger@example.org');
-    $this->get($owner->shareUrl())->assertDontSee(suggestionUrl($owner), false);
+    $this->get(suggestionsPage($owner))->assertDontSee('action="'.suggestionUrl($owner).'"', false);
 
     asSuggestionRequester('friend@example.com');
-    $this->get($owner->shareUrl())->assertSee(['Suggestion box', suggestionUrl($owner)], false);
+    $this->get(suggestionsPage($owner))->assertSee(['Suggestion box', 'action="'.suggestionUrl($owner).'"'], false);
 });
 
 it('takes a suggestion with the verified email and emails the owner', function () {
@@ -46,7 +168,7 @@ it('takes a suggestion with the verified email and emails the owner', function (
     asSuggestionRequester();
 
     $this->post(suggestionUrl($owner), ['body' => "  Get some silk gold!\nPlease.  "])
-        ->assertRedirect($owner->shareUrl().'#suggestion-box')
+        ->assertRedirect(suggestionsPage($owner))
         ->assertSessionHas('suggestion_sent');
 
     $suggestion = $owner->suggestions()->sole();
@@ -76,7 +198,7 @@ it('does not email the owner who turned emails off', function () {
 it('refuses suggestions from visitors who are not signed in or not allowed', function () {
     $owner = suggestionOwner('friend@example.com');
 
-    $this->post(suggestionUrl($owner), ['body' => 'Hi'])->assertRedirect($owner->shareUrl());
+    $this->post(suggestionUrl($owner), ['body' => 'Hi'])->assertRedirect(suggestionsPage($owner));
 
     asSuggestionRequester('stranger@example.org');
     $this->post(suggestionUrl($owner), ['body' => 'Hi'])->assertForbidden();

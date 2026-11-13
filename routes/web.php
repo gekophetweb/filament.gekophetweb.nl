@@ -44,8 +44,12 @@ Route::get('/share/{token}/print-request', [PrintRequestController::class, 'redi
     ->where('token', '[A-Za-z0-9]{40}')->middleware('throttle:share')->name('share.print-request');
 Route::get('/share/{token}/sign-in', [PrintRequesterSignInController::class, 'redirect'])
     ->where('token', '[A-Za-z0-9]{40}')->middleware('throttle:login')->name('share.sign-in');
+Route::get('/share/{token}/suggestions', [SuggestionController::class, 'index'])
+    ->where('token', '[A-Za-z0-9]{40}')->middleware('throttle:share')->name('share.suggestions');
 Route::post('/share/{token}/suggestions', [SuggestionController::class, 'store'])
     ->where('token', '[A-Za-z0-9]{40}')->middleware('throttle:suggestion')->name('share.suggestions.store');
+Route::post('/share/{token}/suggestions/{suggestion}/answers', [SuggestionController::class, 'answer'])
+    ->where('token', '[A-Za-z0-9]{40}')->whereUuid('suggestion')->middleware('throttle:suggestion')->name('share.suggestions.answer');
 Route::post('/share/{token}/email-code', [PrintRequesterEmailCodeController::class, 'send'])
     ->where('token', '[A-Za-z0-9]{40}')->middleware('throttle:print-request-code')->name('share.email-code');
 Route::post('/share/{token}/email-code/verify', [PrintRequesterEmailCodeController::class, 'verify'])

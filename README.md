@@ -241,11 +241,16 @@ The owner also gets an email for each new request (turn it off on the inbox page
 (their verified sign-in email). Set up real delivery in the [Mail settings](#mail-settings); with the default
 `MAIL_MAILER=log` the emails only go to the log. The `queue` container sends them.
 
-Under the form, the same signed-in requesters find a **Suggestion box** for ideas or feedback that are not a
-print request (at most 2000 characters, `RATE_LIMIT_SUGGESTIONS_PER_HOUR`, default 10, per requester). They
-land on the **Suggestions** page (`/suggestions`, with its own unread count in the nav), where the owner reads,
-replies by email, marks unread or deletes them. New suggestions are emailed with the same on/off setting as
-print requests.
+The share link has a second tab, **Suggestions** (`/share/<token>/suggestions`), where the same signed-in
+requesters send ideas or feedback that are not a print request (at most 2000 characters,
+`RATE_LIMIT_SUGGESTIONS_PER_HOUR`, default 10, per requester, answers included). There they see their own
+suggestions with the status (Open, Planned, Done or Declined) and the conversation, and answer the owner's
+replies. Signing in on either tab comes back to that tab.
+
+Suggestions land on the owner's **Suggestions** page (`/suggestions`, with its own unread count in the nav;
+folders Open, Unread and All). There the owner sets the status, replies (emailed to the requester, with a
+link to answer on the website), marks unread or deletes them. New suggestions and answers are emailed to the
+owner with the same on/off setting as print requests, and an answer marks the suggestion unread again.
 
 ## Export and import your spools
 

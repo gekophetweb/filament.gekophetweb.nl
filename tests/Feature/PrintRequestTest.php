@@ -142,7 +142,7 @@ it('only takes requests from people on the owner\'s list', function () {
     [$owner] = sharingOwner(1, requesterEmail: 'stranger@example.org', allowList: "friend@example.com\n@family.example");
 
     $this->get($owner->shareUrl())->assertOk()
-        ->assertSee('does not take print requests from stranger@example.org')
+        ->assertSee('does not take print requests or suggestions from stranger@example.org')
         ->assertDontSee(printRequestUrl($owner), false);
     $this->post(printRequestUrl($owner), ['requester_name' => 'Sam', 'model_url' => 'https://example.com/m'])->assertForbidden();
 
