@@ -14,6 +14,178 @@
     --chart-used-up: #eb6834;
 }
 
+/*
+ * Base styles for browser-generated UI and text. In a layer, so utilities still win.
+ * Colors use the palette tokens, so they flip with dark mode on their own.
+ */
+@layer base {
+    :root {
+        color-scheme: light;
+        accent-color: var(--color-emerald-600);
+        scrollbar-color: var(--color-stone-500) var(--color-stone-100);
+        scrollbar-gutter: stable;
+    }
+
+    ::selection {
+        background-color: var(--color-emerald-200);
+        color: var(--color-stone-900);
+    }
+
+    :focus-visible {
+        outline: 2px solid var(--color-emerald-600);
+        outline-offset: 2px;
+    }
+
+    h1,
+    h2,
+    h3 {
+        text-wrap: balance;
+    }
+
+    p,
+    li,
+    dd {
+        text-wrap: pretty;
+    }
+
+    textarea {
+        resize: vertical;
+    }
+}
+
+/* Cross-fade between pages, unless the user prefers less motion. */
+@media (prefers-reduced-motion: no-preference) {
+    @view-transition {
+        navigation: auto;
+    }
+}
+
+/*
+ * Site header. One <nav> for every width: the links sit inline when the whole row
+ * fits (resources/js/site-nav.js adds .is-wide), otherwise they open from a popover
+ * behind the Menu button. Without script the header stays collapsed.
+ */
+@layer components {
+    .header-inner > * {
+        flex-shrink: 0;
+        white-space: nowrap;
+    }
+
+    .site-header {
+        .menu-button {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            anchor-name: --menu-button;
+        }
+
+        .site-menu {
+            position: fixed;
+            inset: auto;
+            /* Roughly the header height, for browsers without anchor positioning. */
+            inset-block-start: 3.5rem;
+            inset-block-start: anchor(--menu-button bottom);
+            inset-inline-end: 1rem;
+            inline-size: min(80dvw, 18rem);
+            max-inline-size: calc(100dvw - 2rem);
+            block-size: fit-content;
+            max-block-size: calc(100dvh - 6rem);
+            margin: 0.5rem 0 0;
+            padding: 0.5rem;
+            overflow: auto;
+            border: 1px solid var(--color-stone-200);
+            border-radius: var(--radius-xl);
+            background: var(--color-white);
+            color: inherit;
+            box-shadow: var(--shadow-lg);
+
+            &:is(:popover-open) {
+                display: grid;
+                gap: 0.125rem;
+            }
+
+            a {
+                display: block;
+                border-radius: var(--radius-md);
+                padding: 0.5rem 0.75rem;
+            }
+
+            a:hover {
+                background: var(--color-stone-100);
+            }
+
+            .site-menu-actions {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 1rem;
+                margin-block-start: 0.25rem;
+                border-block-start: 1px solid var(--color-stone-200);
+                padding: 0.5rem 0.75rem 0.25rem;
+            }
+        }
+
+        /* Current page: weight and an underline, so it is not shown by color alone. */
+        [aria-current='page'] {
+            font-weight: 600;
+            color: var(--color-emerald-700);
+            text-decoration: underline 2px;
+            text-underline-offset: 6px;
+        }
+    }
+
+    .site-header.is-wide {
+        .site-nav {
+            flex-grow: 1;
+        }
+
+        .menu-button {
+            display: none;
+        }
+
+        .site-menu {
+            position: static;
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            inline-size: auto;
+            max-inline-size: none;
+            block-size: auto;
+            max-block-size: none;
+            overflow: visible;
+            margin: 0;
+            padding: 0;
+            border: 0;
+            border-radius: 0;
+            background: transparent;
+            box-shadow: none;
+
+            a {
+                padding: 0;
+            }
+
+            a:hover {
+                background: transparent;
+                color: var(--color-stone-900);
+            }
+
+            .site-menu-actions {
+                margin: 0 0 0 auto;
+                border: 0;
+                padding: 0;
+            }
+        }
+
+        .site-menu::backdrop {
+            display: none;
+        }
+    }
+
+    .site-header.is-measuring * {
+        transition: none !important;
+    }
+}
+
 /* Hidden until Alpine has started, so x-show content does not flash on load. */
 [x-cloak] {
     display: none !important;

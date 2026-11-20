@@ -3,6 +3,7 @@
         x-data="{ dark: @js($isDark) }"
         x-on:click="dark = ! dark;
             document.documentElement.classList.toggle('dark', dark);
+            document.querySelector('meta[name=theme-color]')?.setAttribute('content', dark ? '#1c1917' : '#ffffff');
             document.cookie = '{{ \App\Support\Theme::COOKIE }}=' + (dark ? 'dark' : 'light') + '; path=/; max-age=31536000; samesite=lax' + (location.protocol === 'https:' ? '; secure' : '')"
         x-bind:aria-label="dark ? 'Switch to light mode' : 'Switch to dark mode'"
         x-bind:title="dark ? 'Switch to light mode' : 'Switch to dark mode'"
